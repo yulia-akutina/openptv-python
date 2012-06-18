@@ -7,7 +7,12 @@ from Cython.Distutils import build_ext
 import numpy as np
 import os
 
-output_name = 'ptv1.pyd'
+import sys
+if sys.platform.startswith("linux"):
+    output_name = 'ptv1.so'
+else:
+    output_name = 'ptv1.pyd'
+
 origdir = os.getcwd()
 os.chdir('../src_c')
 
