@@ -365,23 +365,20 @@ int start_proc_c()
         //  sprintf(val, "keepori %d", i+1);
         // Tcl_Eval(interp, val);
     }
+    
     printf("image0:\n");
     unsigned char *im0 = img[0];
-    for (i=0;i<50;i++) {printf("val1 =%d",im0[i]);}
-    if (!trackallocflag)
-    {
-        for (i=0; i<4; i++)
-        {
-            mega[i]=(P *) calloc(sizeof(P),M);
-            c4[i]=(corres *) calloc(sizeof(corres),M);
-            for (k=0; k<4; k++) { t4[i][k]=(target *) calloc(sizeof (target),M);}
-        }
-        trackallocflag=1;
+    for (i=0;i<50;i++) {
+        printf("val1 =%d",im0[i]);
+    }
+    
+    /* Make sure arrays of tracking-related data are allocated */
+    if (!trackallocflag) {
+        allocate_tracking_structs();
     }
     
     //return TCL_OK; denis 26-10-2010
 	return 0;
-    
 }
 
 int pre_processing_c ()

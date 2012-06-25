@@ -14,21 +14,26 @@
 #include "ptv.h"
 
 //int seq_track_proc_c(ClientData clientData, Tcl_Interp* interp, int argc, const char** argv)
+void allocate_tracking_structs()
+{
+  int i, k;
+
+  /*Alloc space*/
+  for (i=0; i<4; i++) {
+    mega[i]=(P *) calloc(M, sizeof(P));
+    c4[i]=(corres *) calloc(M, sizeof(corres));
+    
+    for (k=0; k<n_img; k++)
+      t4[i][k]=(target *) calloc(M, sizeof (target));
+  }
+  trackallocflag = 1;
+}
+
 int seq_track_proc_c()
 {
   int step, i, k;
-
-  /*Alloc space*/
-  for (i=0; i<4; i++)
-    mega[i]=(P *) calloc(sizeof(P),M);
-
-  for (i=0; i<4; i++)
-    c4[i]=(corres *) calloc(sizeof(corres),M);
-
-  for (i=0; i<4; i++)
-    for (k=0; k<n_img; k++)
-      t4[i][k]=(target *) calloc(sizeof (target),M);
-
+  
+  allocate_tracking_structs();
   readseqtrackcrit ();
   /*load again first data sets*/
   step = seq_first;

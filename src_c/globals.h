@@ -99,20 +99,22 @@
   target          *p[4];
   target          *c[4];
   target          *n[4];
-  target          *t4[4][4];
   int             nt4[4][4];
   corres          *corrp;
   corres	       	*corrc;
   corres	       	*corrn;
-  corres	       	*c4[4];
   trackparameters tpar;
-
- 	P *mega[4];
 
 	FILE	*fopen_r ();
 	double	multimed_r ();
 
+//The following 3 are related.
+P *mega[4];
+target          *t4[4][4];
+corres	       	*c4[4];
+void allocate_tracking_structs();
 
+// General functions:
 int  jw_Init();
 int  init_proc_c();
 int  start_proc_c();
