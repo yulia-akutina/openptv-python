@@ -13,6 +13,8 @@
 *******************************************************************************/
 #include "ptv.h"
 
+#define STR_MAX_LEN 255
+
 //int seq_track_proc_c(ClientData clientData, Tcl_Interp* interp, int argc, const char** argv)
 void allocate_tracking_structs()
 {
@@ -124,59 +126,56 @@ void read_ascii_data(int filenumber)
   fclose(FILEIN);
 
   /* read targets of each camera */
-  for (i=0; i<n_img; i++)
-    {
-      nt4[3][i]=0;
-      compose_name_plus_nr_str (seq_name[i], "_targets",
-				filenumber, filein);
-
-      FILEIN= fopen (filein, "r");
-      if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-
-      fscanf (FILEIN, "%d\n", &nt4[3][i]);
-      for (j=0; j<nt4[3][i]; j++)
-	{
-	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
-		  &t4[3][i][j].pnr, &t4[3][i][j].x,
-		  &t4[3][i][j].y, &t4[3][i][j].n ,
-		  &t4[3][i][j].nx ,&t4[3][i][j].ny,
-		  &t4[3][i][j].sumg, &t4[3][i][j].tnr);
-	}
-      fclose (FILEIN);
-    }
-
+  for (i = 0; i < n_img; i++) {
+      nt4[3][i] = read_targets(t4[3][i], seq_name[i], filenumber);
+  }
 }
 
-/**********************************************************************/
-/* Added by Alex, 19.04.10 to read _targets only, for the external API */
-void read_targets(int i_img, int filenumber,  int *num)
-{
-  FILE	*FILEIN;
-  /* char	filein[256]; */
-  int	i, j;
-  int   dumy;
-  char filein[256];
- 
+/**********************************************************************
+ * Reads targets from a file. The number of targets is read from the first
+ * line, then each line is one target.
+ * 
+ * Arguments:
+ * target buffer[] - an allocated array of target structs to fill in from
+ *   files.
+ * char* file_base - base name of the files to read, to which a frame number
+ *   and the suffix '_targets' is added.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added.
+ * 
+ * Returns:
+ * the number of targets found in the file, or 0 if an error occurred.
+*/
 
-	compose_name_plus_nr_str (seq_name[i_img], "_targets",filenumber, filein);
-  /* read targets of each camera */
-      nt4[3][i_img]=0;
+int read_targets(target buffer[], char* file_base, int frame_num) {
+    FILE *FILEIN;
+    int	tix, num_targets;
+    char filein[STR_MAX_LEN + 1];
 
-      FILEIN= fopen (filein, "r");
-      if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
+    if (frame_num > 0) {
+    	compose_name_plus_nr_str (file_base, "_targets", frame_num, filein);
+    } else {
+        strncpy(filein, file_base, STR_MAX_LEN);
+        strncat(filein, "_targets", STR_MAX_LEN);
+    }
+    
+    FILEIN = fopen (filein, "r");
+    if (! FILEIN) {
+        printf("Can't open ascii file: %s\n", filein);
+        return 0;
+    }
 
-      fscanf (FILEIN, "%d\n", &nt4[3][i_img]);
-      for (j=0; j<nt4[3][i_img]; j++)
-	{
+    fscanf(FILEIN, "%d\n", &num_targets);
+    for (tix = 0; tix < num_targets; tix++)	{
 	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
-		  &pix[i_img][j].pnr,  &pix[i_img][j].x,
-		  &pix[i_img][j].y,    &pix[i_img][j].n ,
-		  &pix[i_img][j].nx,   &pix[i_img][j].ny,
-		  &pix[i_img][j].sumg, &pix[i_img][j].tnr);
+		  &(buffer[tix].pnr),  &(buffer[tix].x),
+		  &(buffer[tix].y),    &(buffer[tix].n),
+		  &(buffer[tix].nx),   &(buffer[tix].ny),
+		  &(buffer[tix].sumg), &(buffer[tix].tnr) );
 	}
-      fclose (FILEIN);
+    fclose (FILEIN);
 
-	  *num = nt4[3][i_img];
+	return num_targets;
 }
 
 /**********************************************************************/

@@ -275,7 +275,7 @@ int  seq_track_proc_c();
 
 void read_ascii_datanew();
 void write_ascii_datanew();
-void read_targets();
+int read_targets(target[], char*, int);
 
 
 //double multimed_r_nlay ()

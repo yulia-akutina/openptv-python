@@ -406,19 +406,8 @@ int n_img;
 
 	    /* read targets of each camera */
 		for(i_img=0;i_img<n_img;i_img++){
-		   compose_name_plus_nr_str (seq_name[i_img], "_targets",filenumber, filein_T);
-           FILEIN_T= fopen (filein_T, "r");
-           if (! FILEIN_T) printf("Can't open ascii file: %s\n", filein_T);
-
-           fscanf (FILEIN_T, "%d\n", &nt4[3][i_img]);
-           for (j=0; j<nt4[3][i_img]; j++){
-	          fscanf (FILEIN_T, "%4d %lf %lf %d %d %d %d %d\n",
-		              &t4[3][i_img][j].pnr, &t4[3][i_img][j].x,
-		              &t4[3][i_img][j].y, &t4[3][i_img][j].n ,
-		              &t4[3][i_img][j].nx ,&t4[3][i_img][j].ny,
-		              &t4[3][i_img][j].sumg, &t4[3][i_img][j].tnr);
-	       }
-           fclose (FILEIN_T);
+            nt4[3][i_img] = read_targets(t4[3][i_img], seq_name[i_img], \
+                filenumber);
 		}
 
 		/* read rt_is or db_is  */
