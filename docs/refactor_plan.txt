@@ -1,0 +1,69 @@
+
+=================================================
+Refactoring plan for improving PyPTV code quality
+=================================================
+
+In the file docs/todo.txt the interested reader may find several ideas on how
+to improve the scientific value of PyPTV. There is certainly a lot of
+potential, but it will not be easy to realize, due to existing code quality
+problems, which also affect the operation of existing features. In this file 
+I present the tasks needed in order to bring the code up to quality standards
+in usability, maintainability, readability, trustworthiness and extensibility.
+
+Each task below has an explanation and a status description. The status 
+description should be updated whenever a task is changed.
+
+Yosef Meller.
+
+
+Factor out duplicated code
+--------------------------
+There are repeated code pieces for some things. Repetition is bad because if
+you find a problem or want to add a feature, you must do it consistently across
+all copies. It is inevitable to forget some copies sometime, leading to
+divergent code having slightly different problems and features at each place it
+is used. Furthermore, each reuse requires a new copy of the entire 
+functionality.
+
+The task is to identify duplication and move into common functions. Minor
+differences should be settled by removal or parameterization.
+
+Status: By now I've identified duplication related to handling of the variables
+(t4, c4, mega): in allocation, filling from text files, and writing results.
+Other duplications are yet to be identified. Of those identified, there's
+already some refactoring done on allocation, which must be completed.
+
+
+Removal of global variables
+---------------------------
+Almost all system state is global. Since the state is used extensively, it is
+changed by several parts of the program without coordination. So far one
+result identified is the use of assumed-initialized memory without
+initializing it. Other possible misuses of globals are documented in extensive
+literature online, and I fully expect to encounter them at some point.
+
+Globals must be replaced by discrete objects passed in as parameters to
+functions, each holding only the subset of system variables that the function
+needs. Our strength is in our disunity. The caller (Python) should be tasked
+with keeping track of the relevant state.
+
+Status: not started.
+
+
+Testing
+-------
+Currently there are no unot tests. The task is to find a unit-testing framework
+that works for C (maybe nosetests can be used, who knows), and start increasing
+coverage.
+
+Status: a gleam in my eye.
+
+Hygiene
+-------
+Meaningful variable names.
+Indentation is mostly OK, but needs work.
+Paragraphs. 
+Janitoring.
+
+Status: not started.
+
