@@ -52,11 +52,25 @@ Status: not started.
 
 Testing
 -------
-Currently there are no unot tests. The task is to find a unit-testing framework
+Currently there are no unit tests. The task is to find a unit-testing framework
 that works for C (maybe nosetests can be used, who knows), and start increasing
 coverage.
 
 Status: a gleam in my eye.
+
+
+Error handling
+--------------
+Errors are currently handled by printing a message and then doing nothing. The
+result is crashes somewhere away from the actual error, where the error becomes
+relevant. 
+
+Functions which can fail should be modified to return their error state, and
+that state must be checked by callers and handled appropriately.
+
+Status: only read_targets() returns an error state if needed, and the callers
+do not check this right now.
+
 
 Hygiene
 -------
