@@ -79,7 +79,6 @@ char	img_mask_path[256];
 char   	track_dir[128];	       	/* directory with dap track data */
 char    fixp_name[128];
 char   	res_name[128];	      	/* result destination */
-char   	filename[128];	      	/* for general use */
 char   	buf[256], val[256];	       	/* buffer */
 char    name[128];  //Beat Dez 08
 double  xp, yp; //Beat Dez 08
@@ -576,7 +575,7 @@ int correspondences_proc_c ()
 {
     int	i, i_img;
     double x,y;
-    
+    char filename[256];
     
     puts ("\nTransformation to metric coordinates\n");
     

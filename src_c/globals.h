@@ -78,7 +78,6 @@
 	char  track_dir[128];	       	/* directory with dap track data */
 	char  res_name[128];	       	/* result destination */
 	char  buf[], val[];		       	/* buffer */
-	char  filename[128];
 
 	unsigned char	*img[];			/* image data */
 	unsigned char	*zoomimg;		/* zomm image data */
