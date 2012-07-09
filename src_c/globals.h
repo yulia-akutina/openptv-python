@@ -128,7 +128,7 @@ int  quit_proc_c ();
 int  parameter_panel_init();
 int  done_proc_c();
 
-void read_ori();
+int read_ori();
 void write_ori ();
 void compose_name_plus_nr ();
 int  mouse_proc_c ();

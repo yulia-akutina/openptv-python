@@ -338,14 +338,9 @@ int start_proc_c()
     /*  read orientation and additional parameters  */
     for (i=0; i<n_img; i++)
     {
-        read_ori (&Ex[i], &I[i], &G[i], img_ori[i]);
-        rotation_matrix (Ex[i], Ex[i].dm);
-        
-        fp1 = fopen_r (img_addpar[i]);
-        fscanf (fp1,"%lf %lf %lf %lf %lf %lf %lf",
-                &ap[i].k1, &ap[i].k2, &ap[i].k3, &ap[i].p1, &ap[i].p2,
-                &ap[i].scx, &ap[i].she);
-        fclose (fp1);
+        read_ori (&Ex[i], &I[i], &G[i], img_ori[i], &(ap[i]), img_addpar[i],
+            NULL);
+        rotation_matrix (Ex[i], Ex[i].dm); // Why, if it's read from a file?
     }
     
     /* read and display original images */
@@ -902,21 +897,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]), 
+                    img_addpar0[i], "addpar.raw");
                 
                 /* transform clicked points */
                 for (j=0; j<4; j++)
@@ -931,7 +913,6 @@ int calibration_proc_c (int sel)
                 
                 /* raw orientation with 4 points */
                 raw_orient_v3 (Ex[i], I[i], G[i], ap[i], mmp, 4, fix4, crd0[i], &Ex[i],&G[i],1);
-                
                 
                 /* sorting of detected points by back-projection */
                 just_plot (Ex[i], I[i], G[i], ap[i], mmp,
@@ -962,21 +943,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]),
+                    img_addpar0[i], "addpar.raw");
                 
                 /* transform clicked points */
                 for (j=0; j<4; j++)
@@ -1093,21 +1061,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]),
+                    img_addpar0[i], "addpar.raw");
                 
 				/* transform clicked points */
 				for (j=0; j<4; j++)
@@ -1282,27 +1237,10 @@ int calibration_proc_c (int sel)
                     /* resection */
                     /*Beat Mai 2007*/
                     sprintf (filename, "raw%d.ori", i_img);
-                    read_ori (&Ex[i_img], &I[i_img], &G[i_img], filename);
-                    fp1 = fopen ("addpar.raw", "r");
-                    
-                    if (fp1) {
-                        fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                                &ap[i_img].k1,&ap[i_img].k2,&ap[i_img].k3,
-                                &ap[i_img].p1,&ap[i_img].p2,
-                                &ap[i_img].scx,&ap[i_img].she);
-                        fclose (fp1);} else {
-                            printf("no addpar.raw\n");
-                            ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                            ap[i].scx=1.0;
-                        }
-                    ////////////////////////////////////////
-                    
-                    
+                    read_ori (&Ex[i_img], &I[i_img], &G[i_img], filename,
+                        &(ap[i_img]), "addpar.raw", NULL);
                     
                     /* markus 14.05.2007 show coordinates combined */
-                    
-                    
-                    
                     for (i=0; i<nfix ; i++)			  
                     {
                         /* first crd->pix */
@@ -1339,22 +1277,9 @@ int calibration_proc_c (int sel)
                 fp1 = fopen( img_ori[i_img], "r" );
                 if(fp1 != NULL) {
                     fclose(fp1);
-                    read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], img_ori[i_img]);
-                    fp1 = fopen (img_addpar0[i_img], "r");
-                    if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                    
-                    if (fp1) {
-                        fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                                &sap[i_img].k1,&sap[i_img].k2,&sap[i_img].k3,
-                                &sap[i_img].p1,&sap[i_img].p2,
-                                &sap[i_img].scx,&sap[i_img].she);
-                        fclose (fp1);
-                    } 
-                    else {
-                        printf("no addpar.raw\n");
-                        sap[i_img].k1=sap[i_img].k2=sap[i_img].k3=sap[i_img].p1=sap[i_img].p2=sap[i_img].she=0.0;
-                        sap[i_img].scx=1.0;
-                    }
+                    read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], 
+                        img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
+                        "addpar.raw");
                     
                     write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
                     fp1 = fopen (safety_addpar[i_img], "w");
@@ -1574,21 +1499,9 @@ int calibration_proc_c (int sel)
 				fp1 = fopen( img_ori[i_img], "r" );
 				if(fp1 != NULL) {
 					fclose(fp1);
-					read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], img_ori[i_img]);
-					fp1 = fopen (img_addpar0[i_img], "r");
-					if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-					
-					if (fp1) {
-						fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-								&sap[i_img].k1,&sap[i_img].k2,&sap[i_img].k3,
-								&sap[i_img].p1,&sap[i_img].p2,
-								&sap[i_img].scx,&sap[i_img].she);
-						fclose (fp1);} 
-					else {
-						printf("no addpar.raw\n");
-						sap[i_img].k1=sap[i_img].k2=sap[i_img].k3=sap[i_img].p1=sap[i_img].p2=sap[i_img].she=0.0;
-						sap[i_img].scx=1.0;
-					}
+					read_ori(&sEx[i_img], &sI[i_img], &sG[i_img],
+                        img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
+                        "addpar.raw");
 					
 					write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
 					fp1 = fopen (safety_addpar[i_img], "w");
