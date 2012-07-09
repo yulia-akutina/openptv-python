@@ -88,21 +88,55 @@ def sequence_tracking(n_img):
 			ptv.py_set_img(temp_img,j)
 		
 		ptv.py_sequence_loop(0,i)
+		
 
-# forward tracking
+#	forward tracking
 	lmax_track,ymin_track,ymax_track, seq_first, seq_last=ptv.py_trackcorr_init()
 	print lmax_track,ymin_track,ymax_track, seq_first, seq_last
 	for step in range (seq_first, seq_last):
 		print step
 		ptv.py_trackcorr_loop(step, lmax_track, ymin_track, ymax_track,display=0)
-   
+ 
 	ptv.py_trackcorr_finish(step+1)
 	print "tracking without display finished"
+	ptv.py_trackback_c() 
+	print "tracking backwards is finished"
 
-# backward tracking is 	temporary disabled !!!
-	# ptv.py_trackback_c() 
 
+def sequence(n_img):
+	# get following variables from the parameters:
+	# n_camera, seq_first, seq_last, base_name
+	sequenceParams = par.SequenceParams(n_img, path = par.temp_path)
+	sequenceParams.read()
+	(base_name, seq_first, seq_last) = (sequenceParams.base_name, sequenceParams.first, sequenceParams.last)
 
+	print ("Starting sequence action")
+	
+	ptv.py_sequence_init(0)
+	stepshake=ptv.py_get_from_sequence_init()
+	if not stepshake:
+		stepshake=1
+	print stepshake
+	temp_img=np.array([],dtype=np.ubyte)
+	for i in range(seq_first,seq_last+1,stepshake):
+		if i<10:
+			seq_ch="%01d" % i
+		elif i<100:
+			seq_ch="%02d" % i
+		else:
+			seq_ch="%03d" % i
+		for j in range (n_img):
+			img_name=base_name[j]+seq_ch
+			print ("Setting image: ",img_name)
+			try:
+				temp_img=imread(img_name).astype(np.ubyte)
+			except:
+				print "Error reading file"
+				   
+			ptv.py_set_img(temp_img,j)
+		
+		ptv.py_sequence_loop(0,i)
+	
 
 
 def run_batch(new_seq_first,new_seq_last):
@@ -121,7 +155,11 @@ def run_batch(new_seq_first,new_seq_last):
 # write the new sequence parameters
 	par.SequenceParams(n_img, base_name,\
 									   new_seq_first, new_seq_last, path = par.temp_path).write()
-	sequence_tracking(n_img)
+	# if you need sequence and tracking:
+	# sequence_tracking(n_img)
+	
+	# if you need sequence only:
+	sequence(n_img)
 
 
 if __name__ == '__main__':
