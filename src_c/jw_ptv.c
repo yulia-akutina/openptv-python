@@ -554,7 +554,8 @@ int detection_proc_c()
                           xmin, imx, 1, imy, pix[i_img], i_img, &num[i_img]);
                 break;
                 
-            case 4: /* new option for external image processing routines */
+            case 4: 
+            	/* new option for external image processing routines */
                 /* added by Alex, 19.04.10 */
                 /* this works here only for the pre-processing stage, see img_name[i_img] is not from a sequence */
                 
