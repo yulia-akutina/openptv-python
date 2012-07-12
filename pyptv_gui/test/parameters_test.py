@@ -9,7 +9,7 @@ sys.path += ['..']
 import parameters
 
 
-referenceParamsDir = "../../experiments/exp1/parameters"
+referenceParamsDir = "testing_fodder/parameters"
 testParamsDir = "parameters_test"
 
 
