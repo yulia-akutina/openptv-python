@@ -367,7 +367,7 @@ int start_proc_c()
     
     /* Make sure arrays of tracking-related data are allocated */
     if (!trackallocflag) {
-        allocate_tracking_structs();
+        allocate_tracking_structs(t4, c4, mega, n_img, M);
     }
     
     //return TCL_OK; denis 26-10-2010

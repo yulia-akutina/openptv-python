@@ -35,7 +35,7 @@ double Ymin=0, Ymax=0,lmax;
 
   /*Alloc space, if checkflag for mega, c4, t4 is zero */
   if (!trackallocflag) {
-    allocate_tracking_structs();
+    allocate_tracking_structs(t4, c4, mega, n_img, M);
   }
 
   /*load again first data sets*/
@@ -776,7 +776,7 @@ int trackback_c ()
 
   /*Alloc space, if checkflag for mega, c4, t4 is zero */
   if (!trackallocflag) {
-    allocate_tracking_structs();
+    allocate_tracking_structs(t4, c4, mega, n_img, M);
   }
 
   /*load again first data sets*/

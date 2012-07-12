@@ -15,18 +15,30 @@
 
 #define STR_MAX_LEN 255
 
-//int seq_track_proc_c(ClientData clientData, Tcl_Interp* interp, int argc, const char** argv)
-void allocate_tracking_structs()
+/*  allocate_tracking_structs() Allocates memory for information needed for
+    tracking.
+    
+    Arguments:
+    target** targets[4] - a (4,n_img)-shape array of pointers to a target
+        structure array. by camera, then by frame.
+    corres* correspond[4] - an array of correspondence structures for each
+        camera and initial target.
+    P* path_info[4] - an array of per-camera arrays of target path information.
+    int frames - number of frames to make room for.
+    int max_targets - number of targets to make room for.
+*/
+void allocate_tracking_structs(\
+    target** targets[4], corres* correspond[4], P* path_info[4], \
+    int frames, int max_targets)
 {
   int i, k;
 
-  /*Alloc space*/
-  for (i=0; i<4; i++) {
-    mega[i]=(P *) calloc(M, sizeof(P));
-    c4[i]=(corres *) calloc(M, sizeof(corres));
+  for (i = 0; i < 4; i++) {
+    path_info[i] = (P *) calloc(max_targets, sizeof(P));
+    correspond[i] = (corres *) calloc(max_targets, sizeof(corres));
     
-    for (k=0; k<n_img; k++)
-      t4[i][k]=(target *) calloc(M, sizeof (target));
+    for (k = 0; k < frames; k++)
+      targets[i][k] = (target *) calloc(max_targets, sizeof(target));
   }
   trackallocflag = 1;
 }
@@ -35,7 +47,7 @@ int seq_track_proc_c()
 {
   int step, i, k;
   
-  allocate_tracking_structs();
+  allocate_tracking_structs(t4, c4, mega, n_img, M);
   readseqtrackcrit ();
   /*load again first data sets*/
   step = seq_first;
