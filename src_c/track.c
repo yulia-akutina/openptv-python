@@ -23,22 +23,6 @@ void write_addedback();
 
 int trackcorr_c_init ()
 {
-/*  char  val[256], buf[256];*/
-/*  int i, j, h, k, mm, kk, step, okay=0, invol=0;*/
-/*  int zaehler1, zaehler2,philf[4][4];*/
-/*  int count1=0, count2=0, count3=0, lost =0, zusatz=0;*/
-/*  int intx0, intx1, inty0, inty1;*/
-/*  int intx2, inty2,intx3, inty3;*/
-/*  int quali=0;*/
-/*  double x1[4], y1[4], x2[4], y2[4], angle, acc, angle0, acc0, lmax, dl;*/
-/*  double xr[4], xl[4], yd[4], yu[4], angle1, acc1;*/
-/*  double X1, Y1, Z1, X0, Y0, Z0, X2, Y2, Z2;*/
-/*  double X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, X6, Y6, Z6;*/
-/*  double xp[4], yp[4], xc[4], yc[4], xn[4], yn[4];*/
-/*  double rr, Ymin=0, Ymax=0;*/
-/*  double npart=0, nlinks=0;*/
-
-/*  foundpix *w, *wn, p16[16];*/
 
 int step,i,k;
 double Ymin=0, Ymax=0,lmax;
@@ -46,23 +30,13 @@ double Ymin=0, Ymax=0,lmax;
    //display = 1;
   // display = atoi(argv[1]);
 
-  //Tcl_Eval( ".text delete 2");
-  //Tcl_Eval( ".text insert 2 \"Track established correspondences\"");
-
   /* read data */
   readseqtrackcrit ();
 
   /*Alloc space, if checkflag for mega, c4, t4 is zero */
-  if (!trackallocflag)
-    {
-      for (i=0; i<4; i++)
-	{
-	  mega[i]=(P *) calloc(sizeof(P),M);
-	  c4[i]=(corres *) calloc(sizeof(corres),M);
-	  for (k=0; k<4; k++) { t4[i][k]=(target *) calloc(sizeof (target),M);}
-	}
-      trackallocflag=1;
-    }
+  if (!trackallocflag) {
+    allocate_tracking_structs(t4, c4, mega, n_img, M);
+  }
 
   /*load again first data sets*/
   step = seq_first;
@@ -113,10 +87,6 @@ int flag_m_tr=0;
 foundpix *w, *wn, p16[16];
 
       sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
-      //Tcl_SetVar( "tbuf", buf, TCL_GLOBAL_ONLY);
-      //Tcl_Eval( ".text delete 2");
-      //Tcl_Eval( ".text insert 2 $tbuf");
-
       count1=0; lost =0; zusatz=0;
 
       /* try to track correspondences from previous 0 - corp, variable h */
@@ -776,16 +746,7 @@ int trackcorr_c_finish(int step)
 
   /* reset of display flag */
   display = 1;
-
-  //return TCL_OK;
 }
-
-
-
-
-
-
-
 
 /*     track backwards */
 
@@ -814,16 +775,9 @@ int trackback_c ()
   readseqtrackcrit ();
 
   /*Alloc space, if checkflag for mega, c4, t4 is zero */
-  if (!trackallocflag)
-    {
-      for (i=0; i<4; i++)
-	{
-	  mega[i]=(P *) calloc(sizeof(P),M);
-	  c4[i]=(corres *) calloc(sizeof(corres),M);
-	  for (k=0; k<4; k++) { t4[i][k]=(target *) calloc(sizeof (target),M);}
-	}
-      trackallocflag=1;
-    }
+  if (!trackallocflag) {
+    allocate_tracking_structs(t4, c4, mega, n_img, M);
+  }
 
   /*load again first data sets*/
   step = seq_last;

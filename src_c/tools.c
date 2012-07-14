@@ -7,19 +7,6 @@ void qs_coord2d_pnr ();
 void qs_con ();
 void bubble_foundpix1 ();
 void bubble_foundpix2 ();
-//void tclimg2cimg();
-
-/* tools / makros */
-
-/* int round (double x) */
-/* round input double x to integer */
-/* {
- if (x>=0)
-   return((int)(x+.5));
- else
-   return((int)(x-.5));
-}
-*/
 
 void write_ori (Ex, I, G, filename)  /* write exterior and interior orientation */
 Exterior Ex;
@@ -42,30 +29,81 @@ printf ("inside tools.c, yh=%f \n", I.yh);
 }
 
 
-void read_ori (Ex, I, G, filename)	  /* read exterior and interior orientation */
+int read_ori (Ex, I, G, ori_file, addp, add_file, add_fallback)
+/*  read exterior and interior orientation, and - if available, parameters for
+    distortion corrections.
+    
+    Arguments:
+    Exterior *Ex - output buffer for exterior orientation.
+    Interior *I - output buffer for interior orientation.
+    Glass *G - output buffer for glass parameters.
+    char *ori_file - path of file contatining interior and exterior orientation
+        data
+    ap_52 addp - output buffer for additional (distortion) parameters.
+    char *add_file - path of file contatining added (distortions) parameters.
+    char *add_fallback - path to file for use if add_file can't be openned.
+    
+    Returns:
+    true value on success, false on failure. Failure can happen if add_file
+    can't be opened, or the fscanf results are wrong, but if the additional
+    parameters' file or fallback can't be opened, they're just assigned default
+    values.
+*/
 Exterior *Ex;
 Interior *I;
 Glass    *G;
-char	 filename[64];
+ap_52    *addp;
+char	 *ori_file, *add_file, add_fallback;
 {
   FILE	*fp;
-  int  	i;
+  int  	i, scan_res;
 
-  fp = fopen_r (filename);
-  fscanf (fp, "%lf %lf %lf %lf %lf %lf",
+  if (!(fp = fopen_r(ori_file))) return 0;
+  
+  /* Exterior */
+  scan_res = fscanf (fp, "%lf %lf %lf %lf %lf %lf",
 	  &(Ex->x0), &(Ex->y0), &(Ex->z0),
 	  &(Ex->omega), &(Ex->phi), &(Ex->kappa));
-  for (i=0; i<3; i++)  fscanf (fp, " %lf %lf %lf",
-			       &(Ex->dm[i][0]), &(Ex->dm[i][1]), &(Ex->dm[i][2]));
-  fscanf (fp, "%lf %lf %lf", &(I->xh), &(I->yh), &(I->cc));
-  fscanf (fp, "%lf %lf %lf", &(G->vec_x), &(G->vec_y), &(G->vec_z));
-  fclose (fp);
+  if (scan_res != 6) return 0;
+  
+  /* Exterior rotation matrix */
+  for (i=0; i<3; i++) {
+    scan_res = fscanf (fp, " %lf %lf %lf",
+        &(Ex->dm[i][0]), &(Ex->dm[i][1]), &(Ex->dm[i][2]));
+    if (scan_res != 3) return 0;
+  }
+
+  /* Interior */
+  scan_res = fscanf (fp, "%lf %lf %lf", &(I->xh), &(I->yh), &(I->cc));
+  if (scan_res != 3) return 0;
+  
+  /* Glass */
+  scan_res = fscanf (fp, "%lf %lf %lf", &(G->vec_x), &(G->vec_y), &(G->vec_z));
+  if (scan_res != 3) return 0;
+  
+  fclose(fp);
+  
+  /* Additional: */
+  fp = fopen(add_file, "r");
+  if ((!fp) && add_fallback) fp = fopen (add_fallback, "r");
+  
+  if (fp) {
+    scan_res = fscanf (fp, "%lf %lf %lf %lf %lf %lf %lf",
+        addp->k1, addp->k2, addp->k3, addp->p1, addp->p2,
+        addp->scx, addp->she);
+    fclose (fp);
+  } else {
+    printf("no addpar fallback used\n"); // Waits for proper logging.
+    addp->k1 = addp->k2 = addp->k3 = addp->p1 = addp->p2 = addp->she = 0.0;
+    addp->scx=1.0;
+  }
+  
+  return 1;
 }
 
 
-
 FILE *fopen_r (filename)
-char	filename[256];
+char *filename;
 /*	tries to open a file;
 	gives a message, if it cannot open it
 	and waits until it has been created 	 */

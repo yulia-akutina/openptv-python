@@ -13,8 +13,7 @@
  positioning with tclTk display
  -> 4 camera version
  
- Routines contained:    	only start_proc_c, init_proc_c, detection_proc_c left, pre_processing_c, pre_processing_c, Denis - 26/10/2010
- 
+ Routines contained:    	only start_proc_c, init_proc_c, detection_proc_c left, pre_processing_c, pre_processing_c, Denis - 26/10/2010 
  
  ****************************************************************************/
 #include "ptv.h"
@@ -80,7 +79,6 @@ char	img_mask_path[256];
 char   	track_dir[128];	       	/* directory with dap track data */
 char    fixp_name[128];
 char   	res_name[128];	      	/* result destination */
-char   	filename[128];	      	/* for general use */
 char   	buf[256], val[256];	       	/* buffer */
 char    name[128];  //Beat Dez 08
 double  xp, yp; //Beat Dez 08
@@ -339,14 +337,9 @@ int start_proc_c()
     /*  read orientation and additional parameters  */
     for (i=0; i<n_img; i++)
     {
-        read_ori (&Ex[i], &I[i], &G[i], img_ori[i]);
-        rotation_matrix (Ex[i], Ex[i].dm);
-        
-        fp1 = fopen_r (img_addpar[i]);
-        fscanf (fp1,"%lf %lf %lf %lf %lf %lf %lf",
-                &ap[i].k1, &ap[i].k2, &ap[i].k3, &ap[i].p1, &ap[i].p2,
-                &ap[i].scx, &ap[i].she);
-        fclose (fp1);
+        read_ori (&Ex[i], &I[i], &G[i], img_ori[i], &(ap[i]), img_addpar[i],
+            NULL);
+        rotation_matrix (Ex[i], Ex[i].dm); // Why, if it's read from a file?
     }
     
     /* read and display original images */
@@ -374,7 +367,7 @@ int start_proc_c()
     
     /* Make sure arrays of tracking-related data are allocated */
     if (!trackallocflag) {
-        allocate_tracking_structs();
+        allocate_tracking_structs(t4, c4, mega, n_img, M);
     }
     
     //return TCL_OK; denis 26-10-2010
@@ -477,26 +470,8 @@ int detection_proc_c()
     char filename[256];
     FILE	*FILEIN;
     
-    /*  Tk_PhotoHandle img_handle;*/
-    /*  Tk_PhotoImageBlock img_block;*/
-    
     /* process info */
     sprintf(val, "Detection of Particles");
-    /*  Tcl_Eval(interp, ".text delete 2");*/
-    /*  Tcl_SetVar(interp, "tbuf", val, TCL_GLOBAL_ONLY);*/
-    /*  Tcl_Eval(interp, ".text insert 2 $tbuf");*/
-    
-    /*  if (display) {*/
-    /*    for (i_img=0; i_img<n_img; i_img++)*/
-    /*      {*/
-    /*	img_handle = Tk_FindPhoto( interp, "temp");*/
-    /*	Tk_PhotoGetImage (img_handle, &img_block);*/
-    /*	tclimg2cimg (interp, img[i_img], &img_block);*/
-    /*	sprintf(val, "newimage %d", i_img+1);*/
-    /*	Tcl_Eval(interp, val);*/
-    /*      }*/
-    /*  }*/
-    
     strcpy(val, "");
     
     /* xmin set to 10 so v_line is not included in detection, in future xmin should
@@ -558,33 +533,11 @@ int detection_proc_c()
                 /* added by Alex, 19.04.10 */
                 /* this works here only for the pre-processing stage, see img_name[i_img] is not from a sequence */
                 
-                sprintf (filename, "%s%s", img_name[i_img],"_targets");
-                /* read targets of each camera */
-                nt4[3][i_img]=0;
-                
-                FILEIN= fopen (filename, "r");
-                if (! FILEIN) printf("Can't open ascii file: %s\n", filename);
-                
-                fscanf (FILEIN, "%d\n", &nt4[3][i_img]);
-                for (j=0; j<nt4[3][i_img]; j++){
-                    fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
-                            &pix[i_img][j].pnr, &pix[i_img][j].x,
-                            &pix[i_img][j].y, &pix[i_img][j].n ,
-                            &pix[i_img][j].nx ,&pix[i_img][j].ny,
-                            &pix[i_img][j].sumg, &pix[i_img][j].tnr);
-                }
-                fclose (FILEIN);
+                nt4[3][i_img] = read_targets(pix[i_img], img_name[i_img], 0);
                 num[i_img] = nt4[3][i_img];
-                
                 
                 printf("pix.x0=%d\n",pix[i_img][0].x);
                 printf("pix.y0=%d\n",pix[i_img][0].y);
-                
-                
-                /*          if (display)*/
-                /*		  for (j=0; j<num[i_img]; j++){*/
-                /*	           drawcross (interp, (int) pix[i_img][j].x, (int) pix[i_img][j].y,cr_sz, i_img, "blue");*/
-                /*		  }*/
                 
                 break;
         }
@@ -622,7 +575,7 @@ int correspondences_proc_c ()
 {
     int	i, i_img;
     double x,y;
-    
+    char filename[256];
     
     puts ("\nTransformation to metric coordinates\n");
     
@@ -864,7 +817,6 @@ int calibration_proc_c (int sel)
                 copy_images (img[i], img0[i]);
             }
             
-            
             /* target recognition */
             for (i=0; i<n_img; i++)
             {
@@ -872,7 +824,7 @@ int calibration_proc_c (int sel)
                           0, imx, 1, imy, pix[i], i, &num[i]);
                 
                 
-                printf (buf,"image %d: %d,  ", i+1, num[i]);
+                sprintf (buf,"image %d: %d,  ", i+1, num[i]);
                 strcat(val, buf);
                 
                 if (num[i] > nmax)  exit (1);
@@ -944,21 +896,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]), 
+                    img_addpar0[i], "addpar.raw");
                 
                 /* transform clicked points */
                 for (j=0; j<4; j++)
@@ -973,7 +912,6 @@ int calibration_proc_c (int sel)
                 
                 /* raw orientation with 4 points */
                 raw_orient_v3 (Ex[i], I[i], G[i], ap[i], mmp, 4, fix4, crd0[i], &Ex[i],&G[i],1);
-                
                 
                 /* sorting of detected points by back-projection */
                 just_plot (Ex[i], I[i], G[i], ap[i], mmp,
@@ -1004,21 +942,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]),
+                    img_addpar0[i], "addpar.raw");
                 
                 /* transform clicked points */
                 for (j=0; j<4; j++)
@@ -1135,21 +1060,8 @@ int calibration_proc_c (int sel)
                 }
                 
                 /* get approx for orientation and ap */
-                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i]);
-                fp1 = fopen (img_addpar0[i], "r");
-                if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                
-                if (fp1) {
-                    fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                            &ap[i].k1,&ap[i].k2,&ap[i].k3,
-                            &ap[i].p1,&ap[i].p2,
-                            &ap[i].scx,&ap[i].she);
-                    fclose (fp1);} else {
-                        printf("no addpar.raw\n");
-                        ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                        ap[i].scx=1.0;
-                    }
-                
+                read_ori (&Ex[i], &I[i], &G[i], img_ori0[i], &(ap[i]),
+                    img_addpar0[i], "addpar.raw");
                 
 				/* transform clicked points */
 				for (j=0; j<4; j++)
@@ -1324,27 +1236,10 @@ int calibration_proc_c (int sel)
                     /* resection */
                     /*Beat Mai 2007*/
                     sprintf (filename, "raw%d.ori", i_img);
-                    read_ori (&Ex[i_img], &I[i_img], &G[i_img], filename);
-                    fp1 = fopen ("addpar.raw", "r");
-                    
-                    if (fp1) {
-                        fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                                &ap[i_img].k1,&ap[i_img].k2,&ap[i_img].k3,
-                                &ap[i_img].p1,&ap[i_img].p2,
-                                &ap[i_img].scx,&ap[i_img].she);
-                        fclose (fp1);} else {
-                            printf("no addpar.raw\n");
-                            ap[i].k1=ap[i].k2=ap[i].k3=ap[i].p1=ap[i].p2=ap[i].she=0.0;
-                            ap[i].scx=1.0;
-                        }
-                    ////////////////////////////////////////
-                    
-                    
+                    read_ori (&Ex[i_img], &I[i_img], &G[i_img], filename,
+                        &(ap[i_img]), "addpar.raw", NULL);
                     
                     /* markus 14.05.2007 show coordinates combined */
-                    
-                    
-                    
                     for (i=0; i<nfix ; i++)			  
                     {
                         /* first crd->pix */
@@ -1381,22 +1276,9 @@ int calibration_proc_c (int sel)
                 fp1 = fopen( img_ori[i_img], "r" );
                 if(fp1 != NULL) {
                     fclose(fp1);
-                    read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], img_ori[i_img]);
-                    fp1 = fopen (img_addpar0[i_img], "r");
-                    if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-                    
-                    if (fp1) {
-                        fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-                                &sap[i_img].k1,&sap[i_img].k2,&sap[i_img].k3,
-                                &sap[i_img].p1,&sap[i_img].p2,
-                                &sap[i_img].scx,&sap[i_img].she);
-                        fclose (fp1);
-                    } 
-                    else {
-                        printf("no addpar.raw\n");
-                        sap[i_img].k1=sap[i_img].k2=sap[i_img].k3=sap[i_img].p1=sap[i_img].p2=sap[i_img].she=0.0;
-                        sap[i_img].scx=1.0;
-                    }
+                    read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], 
+                        img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
+                        "addpar.raw");
                     
                     write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
                     fp1 = fopen (safety_addpar[i_img], "w");
@@ -1510,22 +1392,8 @@ int calibration_proc_c (int sel)
 					/////////open target file(s)!
 					/* read targets of each camera */
 					
-					nt4[3][i]=0;
-					compose_name_plus_nr_str (seq_name[i_img], "_targets",filenumber, filein_T);
-					
-					FILEIN_T= fopen (filein_T, "r");
-					if (! FILEIN_T) printf("Can't open ascii file: %s\n", filein_T);
-					
-					fscanf (FILEIN_T, "%d\n", &nt4[3][i_img]);
-					for (j=0; j<nt4[3][i_img]; j++){
-						fscanf (FILEIN_T, "%4d %lf %lf %d %d %d %d %d\n",
-								&t4[3][i_img][j].pnr, &t4[3][i_img][j].x,
-								&t4[3][i_img][j].y, &t4[3][i_img][j].n ,
-								&t4[3][i_img][j].nx ,&t4[3][i_img][j].ny,
-								&t4[3][i_img][j].sumg, &t4[3][i_img][j].tnr);
-					}
-					fclose (FILEIN_T);
-					////////done reading target files
+                    nt4[3][i_img] = read_targets(t4[3][i_img], seq_name[i_img], \
+                        filenumber); /* Was nt4[3][i] but that seems wrong */
 					
 					fscanf(FILEIN, "%d\n", &dumy); /* read # of 3D points on dumy */
 					fscanf(FILEIN_ptv, "%d\n", &dumy); /* read # of 3D points on dumy */
@@ -1630,21 +1498,9 @@ int calibration_proc_c (int sel)
 				fp1 = fopen( img_ori[i_img], "r" );
 				if(fp1 != NULL) {
 					fclose(fp1);
-					read_ori (&sEx[i_img], &sI[i_img], &sG[i_img], img_ori[i_img]);
-					fp1 = fopen (img_addpar0[i_img], "r");
-					if (! fp1)  fp1 = fopen ("addpar.raw", "r");
-					
-					if (fp1) {
-						fscanf (fp1, "%lf %lf %lf %lf %lf %lf %lf",
-								&sap[i_img].k1,&sap[i_img].k2,&sap[i_img].k3,
-								&sap[i_img].p1,&sap[i_img].p2,
-								&sap[i_img].scx,&sap[i_img].she);
-						fclose (fp1);} 
-					else {
-						printf("no addpar.raw\n");
-						sap[i_img].k1=sap[i_img].k2=sap[i_img].k3=sap[i_img].p1=sap[i_img].p2=sap[i_img].she=0.0;
-						sap[i_img].scx=1.0;
-					}
+					read_ori(&sEx[i_img], &sI[i_img], &sG[i_img],
+                        img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
+                        "addpar.raw");
 					
 					write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
 					fp1 = fopen (safety_addpar[i_img], "w");
@@ -1893,29 +1749,15 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     
     if ( pft_version == 4) { 
 		for (k=0; k<n_img; k++) {
-			read_targets(k,i,&num[k]);
-            // sprintf (buf,"%d: %d,  ", k+1, num[k]);
+            num[k] = read_targets(pix[k], seq_name[k], i);
+            nt4[3][k] = num[k]; // Until we get to globals removal fulltime.
             
-            // strcat(val, buf);
             /* proper sort of targets in y-direction for later binary search */
             /* and for dimitris' tracking */
             quicksort_target_y (pix[k], num[k]);
             /* reorganize target numbers */
             for (j=0; j<num[k]; j++)  pix[k][j].pnr = j;
         }
-		/*
-         sprintf (buf, "Number of detected particles per image");
-         Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-         Tcl_Eval(interp, ".text delete 2");
-         Tcl_Eval(interp, ".text insert 2 $tbuf");
-         
-         Tcl_SetVar(interp, "tbuf", val, TCL_GLOBAL_ONLY);
-         Tcl_Eval(interp, ".text delete 3");
-         Tcl_Eval(interp, ".text insert 3 $tbuf");
-         
-         printf("%s\n", val);
-         return TCL_OK;
-         */
     } 
     /***************************************************************************************/
     else {

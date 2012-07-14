@@ -78,7 +78,6 @@
 	char  track_dir[128];	       	/* directory with dap track data */
 	char  res_name[128];	       	/* result destination */
 	char  buf[], val[];		       	/* buffer */
-	char  filename[128];
 
 	unsigned char	*img[];			/* image data */
 	unsigned char	*zoomimg;		/* zomm image data */
@@ -128,7 +127,7 @@ int  quit_proc_c ();
 int  parameter_panel_init();
 int  done_proc_c();
 
-void read_ori();
+int read_ori();
 void write_ori ();
 void compose_name_plus_nr ();
 int  mouse_proc_c ();
@@ -275,7 +274,7 @@ int  seq_track_proc_c();
 
 void read_ascii_datanew();
 void write_ascii_datanew();
-void read_targets();
+int read_targets(target[], char*, int);
 
 
 //double multimed_r_nlay ()
