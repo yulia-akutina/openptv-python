@@ -20,8 +20,9 @@
     which is for 4 consecutive frames held in memory at the same time.
     
     Arguments:
-    target** targets[4] - a (4,cams)-shape array of pointers to a target
-        structure array. by set, then by camera.
+    target* targets[4][4] - a (4,4)-shape array of pointers to a target
+        structure array. by set, then by camera. Currently assumes 4 cameras as
+        the callers do, but should be generalized.
     corres* correspond[4] - an array of correspondence structures for each
         set and initial target.
     P* path_info[4] - an array of per-set arrays of target path information.
@@ -29,7 +30,7 @@
     int max_targets - number of targets to make room for.
 */
 void allocate_tracking_structs(\
-    target** targets[4], corres* correspond[4], P* path_info[4], \
+    target* targets[4][4], corres* correspond[4], P* path_info[4], \
     int cams, int max_targets)
 {
   int i, k;
@@ -38,8 +39,9 @@ void allocate_tracking_structs(\
     path_info[i] = (P *) calloc(max_targets, sizeof(P));
     correspond[i] = (corres *) calloc(max_targets, sizeof(corres));
     
-    for (k = 0; k < cams; k++)
+    for (k = 0; k < cams; k++) {
       targets[i][k] = (target *) calloc(max_targets, sizeof(target));
+    }
   }
   trackallocflag = 1;
 }
