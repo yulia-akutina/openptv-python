@@ -146,6 +146,77 @@ void read_ascii_data(int filenumber)
   }
 }
 
+/******************************************************************
+ * Reads rt_is files. these files contain both the path info and the 
+ * information on correspondence between targets on the different images.
+ * Sets fields not in file to default values.
+ * 
+ * Arguments:
+ * corres *cor_buf - a buffer of corres structs to fill in from the file.
+ * P *path_buf - same for path info structures.
+ * char* file_base - base name of the files to read, to which a frame number
+ *   is added. Without separator.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added. The '.' separator is added
+ * between the name and the frame number.
+ * 
+ * Returns:
+ * The number of points read for this frame. 0 on failure.
+*/
+int read_path_frame(corres *cor_buf, P *path_buf, \
+    char *file_base, int frame_num) {
+
+    FILE *filein;
+    char fname[STR_MAX_LEN];
+    int read_res = 0, targets = 0, alt_link = 0;
+    
+    sprintf(fname, "%s.%d", file_base, frame_num);
+    filein = fopen (fname, "r");
+    if (!filein) {
+        /* Keeping the printf until we have proper logging. */
+        printf("Can't open ascii file: %s\n", fname);
+        return 0;
+    }
+    
+    /* File format: first line contains the number of points, then each line is
+    a record of path and correspondence info. We don't need the nuber of points
+    because we read to EOF anyway. */
+    
+    read_res = fscanf(filein, "%d\n", &read_res);
+    if (!read_res) return 0;
+    
+    do {
+        /* Defaults: */
+        path_buf->prev = -1;
+        path_buf->next = -2;
+        path_buf->prio = 4;
+        path_buf->inlist = 0;
+        path_buf->finaldecis = 1000000.0;
+
+        for (alt_link = 0; alt_link < POSI; alt_link++) {
+            path_buf->decis[j] = 0.0;
+            path_buf->linkdecis[j] = -999;
+        }
+        
+        /* Rest of values: */
+        read_res = fscanf(filein, "%d %f %f %f %d %d %d %d\n",\
+            &read_res, &(path_buf->x[0]), &(path_buf->x[1]), &(path_buf->x[2]),
+            &(cor_buf->p[0]), &(cor_buf->p[1]), &(cor_buf->p[2]),
+            &(cor_buf->p[3]) );
+        
+        if (read_res != 8) {
+            targets = 0;
+            break;
+        }
+        
+        cor_buf->nr = ++targets;
+                
+    } while (!feof(filein));
+    
+    fclose(filein);
+    return targets;
+}
+
 /**********************************************************************
  * Reads targets from a file. The number of targets is read from the first
  * line, then each line is one target.
