@@ -194,8 +194,8 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         path_buf->finaldecis = 1000000.0;
 
         for (alt_link = 0; alt_link < POSI; alt_link++) {
-            path_buf->decis[j] = 0.0;
-            path_buf->linkdecis[j] = -999;
+            path_buf->decis[alt_link] = 0.0;
+            path_buf->linkdecis[alt_link] = -999;
         }
         
         /* Rest of values: */
@@ -210,7 +210,9 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         }
         
         cor_buf->nr = ++targets;
-                
+        
+        cor_buf++;
+        path_buf++;
     } while (!feof(filein));
     
     fclose(filein);
