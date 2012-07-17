@@ -495,29 +495,10 @@ void read_ascii_datanew(int filenumber)
   fclose(FILEIN);
   /* end of read added-file for prio info */
 
-
   /* read targets of each camera */
-  for (i=0; i<n_img; i++)
-    {
-      nt4[3][i]=0;
-      compose_name_plus_nr_str (seq_name[i], "_targets",
-				filenumber, filein);
-
-      FILEIN= fopen (filein, "r");
-      if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-
-      fscanf (FILEIN, "%d\n", &nt4[3][i]);
-      for (j=0; j<nt4[3][i]; j++)
-	{
-	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
-		  &t4[3][i][j].pnr, &t4[3][i][j].x,
-		  &t4[3][i][j].y, &t4[3][i][j].n ,
-		  &t4[3][i][j].nx ,&t4[3][i][j].ny,
-		  &t4[3][i][j].sumg, &t4[3][i][j].tnr);
-	}
-      fclose (FILEIN);
-    }
-
+  for (i = 0; i < n_img; i++) {
+      nt4[3][i] = read_targets(t4[3][i], seq_name[i], filenumber);
+  }
 }
 
 /**********************************************************************/
