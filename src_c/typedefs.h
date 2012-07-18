@@ -1,3 +1,5 @@
+#include "tracking_frame_buf.h"
+
 #define sqr(x) x*x
 #define maxcand 200 //Beat changed it on 090325
 #define maxtrack 64 //Beat changed it on 090325
@@ -81,15 +83,6 @@ mm_np;
 
 typedef struct
 {
-  int     pnr;
-  double  x, y;
-  int     n, nx, ny, sumg;
-  int     tnr;
-}
-target;
-
-typedef struct
-{
   int 	pos, status;
   short	xmin, xmax, ymin, ymax;
   int   n, sumg;
@@ -126,13 +119,6 @@ typedef struct
   double  corr;
 }
 n_tupel;
-
-typedef struct
-{
-  int nr;
-  int p[4];
-}
-corres;
 
 typedef struct
 {
@@ -181,17 +167,6 @@ typedef struct
   double quali[maxcand];
 }
 prevlist;
-
-typedef struct Pstruct
-{
-  float x[3]; /*coordinates*/
-  int prev, next; /*pointer to prev or next link*/
-  int prio; /*Prority of link is used for differen levels*/
-  float decis[POSI]; /*Bin for decision critera of possible links to next dataset*/
-  float finaldecis; /*final decision critera by which the link was established*/
-  int linkdecis[POSI]; /* pointer of possible links to next data set*/
-  int inlist; /* Counter of number of possible links to next data set*/
-} P;
 
 
 #define MAX_FILENAME_LEN 1024
