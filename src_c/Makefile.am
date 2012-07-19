@@ -2,7 +2,8 @@
 
 lib_LTLIBRARIES = libptv.la
 libptv_la_SOURCES = ptv.c tools.c ttools.c imgcoord.c multimed.c ray_tracing.c\
-    lsqadj.c trafo.c ptv.h
+    lsqadj.c trafo.c ptv.h track.c pointpos.c intersect.c orientation.c \
+    rotation.c epi.c
 libptv_la_LIBADD = -lm
 
 bin_PROGRAMS = main
