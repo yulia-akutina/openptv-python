@@ -6,6 +6,8 @@ for all cameras, correspondence information and path links information.
 #ifndef TRACKING_FRAME_BUF_H
 #define TRACKING_FRAME_BUF_H
 
+#define POSI 80
+
 typedef struct
 {
   int     pnr;

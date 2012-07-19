@@ -10,8 +10,6 @@
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-#define POSI 80 //Beat changed it on 090325
-
 typedef	double	Dmatrix[3][3];	/* 3 x 3 rotation matrix */
 
 typedef struct
