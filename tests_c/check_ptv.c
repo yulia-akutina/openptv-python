@@ -177,6 +177,8 @@ START_TEST(test_tracking)
             fail_unless(line_len = getline(line_samp, &buf_size, res_sample));
             fail_if(strncmp(*line_res, *line_samp, line_len));
         }
+        fclose(res_file);
+        fclose(res_sample);
     }
     closedir(res_dir);
 }
