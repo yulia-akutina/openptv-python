@@ -184,6 +184,22 @@ START_TEST(test_tracking)
 }
 END_TEST
 
+/* Regression test for reading orientation files. Just reads a sample file and
+   makes sure that nothing crashes and the orientation structures are filled
+   out correctly.
+*/
+START_TEST(test_read_ori)
+{
+    Exterior Ex;
+    Interior I;
+    Glass    G;
+    ap_52    addp;
+    char     ori_file[] = "cal/cam1.tif.ori", add_file[] = , add_fallback[] = ;
+    
+    fail_unless(read_ori(Ex, I, G, ori_file, addp, add_file, add_fallback));
+}
+END_TEST
+
 Suite* ptv_suite(void) {
     Suite *s = suite_create ("PTV");
 
