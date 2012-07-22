@@ -89,8 +89,8 @@ char	 *ori_file, *add_file, add_fallback;
   
   if (fp) {
     scan_res = fscanf (fp, "%lf %lf %lf %lf %lf %lf %lf",
-        addp->k1, addp->k2, addp->k3, addp->p1, addp->p2,
-        addp->scx, addp->she);
+        &(addp->k1), &(addp->k2), &(addp->k3), &(addp->p1), &(addp->p2),
+        &(addp->scx), &(addp->she));
     fclose (fp);
   } else {
     printf("no addpar fallback used\n"); // Waits for proper logging.
