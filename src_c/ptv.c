@@ -91,55 +91,10 @@ return 0;
 
 void read_ascii_data(int filenumber)
 {
-  FILE	*FILEIN;
-  char	filein[256];
-  int	i, j;
-  int   dumy;
+  int	i;
 
-  for(i=0;i<M;i++)
-    {
-      /*reset all other variable to default value*/
-      mega[3][i].prev = -1;
-      mega[3][i].next = -2;
-      mega[3][i].prio = 4;
-      mega[3][i].inlist = 0;
-      mega[3][i].finaldecis = 1000000.0;
-      c4[3][i].p[0]=-1;
-      c4[3][i].p[1]=-1;
-      c4[3][i].p[2]=-1;
-      c4[3][i].p[3]=-1;
-    }
-
-  if (filenumber < 10)        sprintf (filein, "res/rt_is.%1d", filenumber);
-  else if (filenumber < 100)  sprintf (filein, "res/rt_is.%2d",  filenumber);
-  else       sprintf (filein, "res/rt_is.%3d", filenumber);
-
-  FILEIN = fopen (filein, "r");
-  if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-
-  i=0;
-  m[3]=0;
-
-  fscanf(FILEIN, "%d\n", &dumy); /* read # of 3D points on dumy */
-  do
-    {
-      /*read dataset row by row, x,y,z and correspondences */
-      fscanf(FILEIN, "%d %f %f %f %d %d %d %d\n",
-	     &dumy, &mega[3][i].x[0], &mega[3][i].x[1], &mega[3][i].x[2],
-	     &c4[3][i].p[0], &c4[3][i].p[1], &c4[3][i].p[2], &c4[3][i].p[3]);
-
-      c4[3][i].nr=i;
-
-      for(j=0; j<POSI; j++){
-	mega[3][i].decis[j] = 0.0;
-	mega[3][i].linkdecis[j] = -999;
-      }
-      i++;
-      m[3]++;
-    }while(!feof(FILEIN));
-
-  fclose(FILEIN);
-
+  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", filenumber);
+  
   /* read targets of each camera */
   for (i = 0; i < n_img; i++) {
       nt4[3][i] = read_targets(t4[3][i], seq_name[i], filenumber);
@@ -411,51 +366,7 @@ void read_ascii_datanew(int filenumber)
   int   dumy;
   double fdumy;
 
-  for(i=0;i<M;i++)
-    {
-      /*reset all other variable to default value*/
-      mega[3][i].prev = -1;
-      mega[3][i].next = -2;
-      mega[3][i].prio = 4;
-      mega[3][i].inlist = 0;
-      mega[3][i].finaldecis = 1000000.0;
-      c4[3][i].p[0]=-1;
-      c4[3][i].p[1]=-1;
-      c4[3][i].p[2]=-1;
-      c4[3][i].p[3]=-1;
-    }
-
-  if (filenumber < 10)        sprintf (filein, "res/rt_is.%1d", filenumber);
-  else if (filenumber < 100)  sprintf (filein, "res/rt_is.%2d",  filenumber);
-  else       sprintf (filein, "res/rt_is.%3d", filenumber);
-
-  FILEIN = fopen (filein, "r");
-  if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-
-  m[3]=0;
-
-  fscanf(FILEIN, "%d\n", &m[3]);
-
-  for(i=0; i<=m[3]; i++)
-    {
-      /*read dataset row by row, x,y,z and correspondences */
-      fscanf(FILEIN, "%d %f %f %f %d %d %d %d\n",
-	     &dumy, &mega[3][i].x[0], &mega[3][i].x[1], &mega[3][i].x[2],
-	     &c4[3][i].p[0], &c4[3][i].p[1], &c4[3][i].p[2], &c4[3][i].p[3]);
-
-      c4[3][i].nr=i;
-      /*reset other variables to default value*/
-      mega[3][i].inlist = 0;
-      mega[3][i].finaldecis = 1000000.0;
-
-      for(j=0; j<POSI; j++){
-	mega[3][i].decis[j] = 0.0;
-	mega[3][i].linkdecis[j] = -999;
-      }
-    }
-
-  fclose(FILEIN);
-
+  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", filenumber);
   /* read ptv_is-file for prev and next info */
 
   if (filenumber < 10)       sprintf (filein, "res/ptv_is.%1d", filenumber);
