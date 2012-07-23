@@ -28,7 +28,7 @@ int compare_exterior(Exterior *e1, Exterior *e2) {
  * compare_interior() performs a comparison of two Interior objects.
  *
  * Arguments: 
- * Interior *i1, *i2 - pointers for the calibration objects to compare.
+ * Interior *i1, *i2 - pointers for the interior objects to compare.
  *
  * Returns:
  * 1 if equal, 0 if any field differs.
@@ -55,7 +55,7 @@ int compare_glass(Glass *g1, Glass *g2) {
  * compare_addpar() performs a comparison of two ap_52 objects.
  *
  * Arguments: 
- * ap_52 *a1, *a2 - pointers for the calibration objects to compare.
+ * ap_52 *a1, *a2 - pointers for the ap_52 objects to compare.
  *
  * Returns:
  * 1 if equal, 0 if any field differs.
