@@ -221,10 +221,6 @@ START_TEST(test_read_ori)
     cal.added_par = addp;
     
     fail_unless(compare_calib(&cal, &correct_cal));
-//    fail_unless(compare_exterior(&Ex, &correct_ext));
- //   fail_unless(compare_interior(&I, &correct_int));
-   // fail_unless(compare_glass(&G, &correct_glass));
-    //fail_unless(compare_addpar(&addp, &correct_addp));
 }
 END_TEST
 
