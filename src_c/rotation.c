@@ -18,7 +18,8 @@ Routines contained:		-
 
 ****************************************************************************/
 
-#include "ptv.h"
+#include <math.h>
+#include "calibration.h"
 
 void rotation_matrix (Ex, dm)
 

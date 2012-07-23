@@ -191,19 +191,40 @@ END_TEST
 START_TEST(test_read_ori)
 {
     Exterior Ex;
-    Interior I;
-    Glass    G;
-    ap_52    addp;
-    char ori_file[] = "cal/cam1.tif.ori";
-    char add_file[] = "cal/cam1.tif.addpar";
+    Exterior correct_ext = {
+        105.2632, 102.7458, 403.8822,
+        -0.2383291, 0.2442810, 0.0552577, 
+        {{0.9688305, -0.0535899, 0.2418587}, 
+        {-0.0033422, 0.9734041, 0.2290704},
+        {-0.2477021, -0.2227387, 0.9428845}}};
     
-    /* For now, the code relies on a rigid experiment directory structure and
-       expects to find there the input files and parameters. It also throws the
-       output in the same tree. Until we fix that, testing_fodder/ mimics the 
-       necessary structure. */
-    fail_unless(!chdir("testing_fodder/"));
-
+    Interior I;
+    Interior correct_int = {-2.4742, 3.2567, 100.0000};
+    
+    Glass G;
+    Glass correct_glass = {0.0001, 0.00001, 150.0};
+    
+    ap_52 addp;
+    ap_52 correct_addp = {0., 0., 0., 0., 0., 1., 0.};
+    
+    Calibration cal;
+    Calibration correct_cal = {correct_ext, correct_int, correct_glass, 
+        correct_addp};
+    
+    char ori_file[] = "testing_fodder/cal/cam1.tif.ori";
+    char add_file[] = "testing_fodder/cal/cam1.tif.addpar";
+    
     fail_unless(read_ori(&Ex, &I, &G, ori_file, &addp, add_file, NULL));
+    cal.ext_par = Ex;
+    cal.int_par = I;
+    cal.glass_par = G;
+    cal.added_par = addp;
+    
+    fail_unless(compare_calib(&cal, &correct_cal));
+//    fail_unless(compare_exterior(&Ex, &correct_ext));
+ //   fail_unless(compare_interior(&I, &correct_int));
+   // fail_unless(compare_glass(&G, &correct_glass));
+    //fail_unless(compare_addpar(&addp, &correct_addp));
 }
 END_TEST
 

@@ -1,4 +1,5 @@
 #include "tracking_frame_buf.h"
+#include "calibration.h"
 
 #define sqr(x) x*x
 #define maxcand 200 //Beat changed it on 090325
@@ -9,8 +10,6 @@
 #ifndef  M_PI
 #define M_PI 3.1415926535897932384626433832795
 #endif
-
-typedef	double	Dmatrix[3][3];	/* 3 x 3 rotation matrix */
 
 typedef struct
 {
@@ -28,38 +27,11 @@ coord_2d;
 
 typedef struct
 {
-  double  x0, y0, z0;
-  double  omega, phi, kappa;
-  Dmatrix dm;
-}
-Exterior;
-
-typedef struct
-{
   double  dacc, dangle, dvxmax, dvxmin;
   double dvymax, dvymin, dvzmax, dvzmin;
   int  dsumg, dn, dnx, dny, add;
 }
 trackparameters;
-
-typedef struct
-{
-  double xh, yh;
-  double cc;
-}
-Interior;
-
-typedef struct
-{
-  double vec_x,vec_y,vec_z;
-}
-Glass;
-
-typedef struct
-{
-  double k1,k2,k3,p1,p2,scx,she;
-}
-ap_52;
 
 typedef struct
 {
