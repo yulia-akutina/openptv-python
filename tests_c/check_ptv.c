@@ -194,9 +194,16 @@ START_TEST(test_read_ori)
     Interior I;
     Glass    G;
     ap_52    addp;
-    char     ori_file[] = "cal/cam1.tif.ori", add_file[] = , add_fallback[] = ;
+    char ori_file[] = "cal/cam1.tif.ori";
+    char add_file[] = "cal/cam1.tif.addpar";
     
-    fail_unless(read_ori(Ex, I, G, ori_file, addp, add_file, add_fallback));
+    /* For now, the code relies on a rigid experiment directory structure and
+       expects to find there the input files and parameters. It also throws the
+       output in the same tree. Until we fix that, testing_fodder/ mimics the 
+       necessary structure. */
+    fail_unless(!chdir("testing_fodder/"));
+
+    fail_unless(read_ori(&Ex, &I, &G, ori_file, &addp, add_file, NULL));
 }
 END_TEST
 
@@ -218,6 +225,11 @@ Suite* ptv_suite(void) {
     TCase *tc_track = tcase_create ("Tracking");
     tcase_add_test(tc_track, test_tracking);
     suite_add_tcase (s, tc_track);
+
+    TCase *tc_rori = tcase_create ("Read orientation file");
+    tcase_add_test(tc_rori, test_read_ori);
+    suite_add_tcase (s, tc_rori);
+
     return s;
 }
 
