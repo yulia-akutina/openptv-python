@@ -17,12 +17,16 @@ typedef struct
 }
 target;
 
+int compare_targets(target *t1, target *t2);
+
 typedef struct
 {
   int nr;
   int p[4];
 }
 corres;
+
+int compare_corres(corres *c1, corres *c2);
 
 typedef struct Pstruct
 {
@@ -34,6 +38,8 @@ typedef struct Pstruct
   int linkdecis[POSI]; /* pointer of possible links to next data set*/
   int inlist; /* Counter of number of possible links to next data set*/
 } P;
+
+int compare_path_info(P *p1, P *p2);
 
 typedef struct {
     P *path_info;
