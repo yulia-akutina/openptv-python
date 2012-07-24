@@ -179,6 +179,12 @@ START_TEST(test_tracking)
         }
         fclose(res_file);
         fclose(res_sample);
+        
+        /* Clear the tracks and leave the testing directory clean: */
+        if ((strncmp(next_file->d_name, "added", 5) == 0) || \
+            (strncmp(next_file->d_name, "ptv_is", 6) == 0)) {
+            remove(res_dir_name);
+        }
     }
     closedir(res_dir);
 }
