@@ -6,6 +6,7 @@ Contains functions for dealing with the frame content, such as comparing and
 reading targets, correspondences, etc.
 */
 
+#include <string.h>
 #include <stdio.h>
 #include "tracking_frame_buf.h"
 
@@ -41,7 +42,7 @@ int compare_targets(target *t1, target *t2) {
 
 int read_targets(target buffer[], char* file_base, int frame_num) {
     FILE *FILEIN;
-    int	tix, num_targets;
+    int	tix, num_targets, scanf_ok;
     char filein[STR_MAX_LEN + 1];
 
     if (frame_num > 0) {
@@ -57,13 +58,21 @@ int read_targets(target buffer[], char* file_base, int frame_num) {
         return 0;
     }
 
-    fscanf(FILEIN, "%d\n", &num_targets);
+    if (fscanf(FILEIN, "%d\n", &num_targets) == 0) {
+        printf("Bad format for file: %s\n", filein);
+        return 0;
+    }
     for (tix = 0; tix < num_targets; tix++)	{
-	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
+	  scanf_ok = fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
 		  &(buffer[tix].pnr),  &(buffer[tix].x),
 		  &(buffer[tix].y),    &(buffer[tix].n),
 		  &(buffer[tix].nx),   &(buffer[tix].ny),
 		  &(buffer[tix].sumg), &(buffer[tix].tnr) );
+      
+      if (scanf_ok == 0) {
+        printf("Bad format for file: %s\n", filein);
+        return 0;
+      }
 	}
     fclose (FILEIN);
 
@@ -95,7 +104,7 @@ int compare_corres(corres *c1, corres *c2) {
  * true if all fields are equal, false otherwise.
 */
 int compare_path_info(P *p1, P *p2) {
-    int equal = 0, iter;
+    int iter;
     if (!((p1->prev == p2->prev) && (p1->next == p2->next) && \
         (p1->prio == p2->prio) && (p1->finaldecis == p2->finaldecis) && \
         (p1->inlist == p2->inlist)))
