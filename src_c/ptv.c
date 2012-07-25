@@ -174,53 +174,6 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
     return targets;
 }
 
-/**********************************************************************
- * Reads targets from a file. The number of targets is read from the first
- * line, then each line is one target.
- * 
- * Arguments:
- * target buffer[] - an allocated array of target structs to fill in from
- *   files.
- * char* file_base - base name of the files to read, to which a frame number
- *   and the suffix '_targets' is added.
- * int frame_num - number of frame to add to file_base. A value of 0 or less
- *   means that no frame number should be added.
- * 
- * Returns:
- * the number of targets found in the file, or 0 if an error occurred.
-*/
-
-int read_targets(target buffer[], char* file_base, int frame_num) {
-    FILE *FILEIN;
-    int	tix, num_targets;
-    char filein[STR_MAX_LEN + 1];
-
-    if (frame_num > 0) {
-    	compose_name_plus_nr_str (file_base, "_targets", frame_num, filein);
-    } else {
-        strncpy(filein, file_base, STR_MAX_LEN);
-        strncat(filein, "_targets", STR_MAX_LEN);
-    }
-    
-    FILEIN = fopen (filein, "r");
-    if (! FILEIN) {
-        printf("Can't open ascii file: %s\n", filein);
-        return 0;
-    }
-
-    fscanf(FILEIN, "%d\n", &num_targets);
-    for (tix = 0; tix < num_targets; tix++)	{
-	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
-		  &(buffer[tix].pnr),  &(buffer[tix].x),
-		  &(buffer[tix].y),    &(buffer[tix].n),
-		  &(buffer[tix].nx),   &(buffer[tix].ny),
-		  &(buffer[tix].sumg), &(buffer[tix].tnr) );
-	}
-    fclose (FILEIN);
-
-	return num_targets;
-}
-
 /**********************************************************************/
 void write_ascii_data(int filenumber)
 {

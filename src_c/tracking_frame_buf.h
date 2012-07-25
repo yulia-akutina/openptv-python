@@ -7,6 +7,7 @@ for all cameras, correspondence information and path links information.
 #define TRACKING_FRAME_BUF_H
 
 #define POSI 80
+#define STR_MAX_LEN 255
 
 typedef struct
 {
@@ -18,6 +19,7 @@ typedef struct
 target;
 
 int compare_targets(target *t1, target *t2);
+int read_targets(target buffer[], char* file_base, int frame_num);
 
 typedef struct
 {

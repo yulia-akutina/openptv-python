@@ -47,23 +47,6 @@ START_TEST(test_allocate_tracking_structs)
 }
 END_TEST
 
-START_TEST(test_read_targets)
-{
-    target tbuf[2]; /* Two targets in the sample target file */
-    target t1 = {0, 1127.0000, 796.0000, 13320, 111, 120, 828903, 1};
-    target t2 = {1, 796.0000, 809.0000, 13108, 113, 116, 658928, 0};
-    
-    char *file_base = "testing_fodder/sample_";
-    int frame_num = 42;
-    int targets_read = 0;
-    
-    targets_read = read_targets(tbuf, file_base, frame_num);
-    fail_unless(targets_read == 2);
-    fail_unless(compare_targets(tbuf, &t1));
-    fail_unless(compare_targets(tbuf + 1, &t2));
-}
-END_TEST
-
 START_TEST(test_read_path_frame)
 {
     corres cor_buf[80];
@@ -204,10 +187,6 @@ Suite* ptv_suite(void) {
     TCase *tc_tw = tcase_create ("Tracking window");
     tcase_add_test(tc_tw, test_allocate_tracking_structs);
     suite_add_tcase (s, tc_tw);
-    
-    TCase *tc_trt = tcase_create ("Read targets");
-    tcase_add_test(tc_trt, test_read_targets);
-    suite_add_tcase (s, tc_trt);
 
     TCase *tc_trpf = tcase_create ("Read path frame");
     tcase_add_test(tc_trpf, test_read_path_frame);

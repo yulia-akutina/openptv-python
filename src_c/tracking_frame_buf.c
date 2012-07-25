@@ -6,6 +6,7 @@ Contains functions for dealing with the frame content, such as comparing and
 reading targets, correspondences, etc.
 */
 
+#include <stdio.h>
 #include "tracking_frame_buf.h"
 
 /* Check that target t1 is equal to target t2, i.e. all their fields are equal.
@@ -21,6 +22,52 @@ int compare_targets(target *t1, target *t2) {
         (t1->pnr == t2->pnr) && (t1->x == t2->x) && (t1->y == t2->y) && \
         (t1->n == t2->n) && (t1->nx == t2->nx) && (t1->ny == t2->ny) && \
         (t1->sumg == t2->sumg) && (t1->tnr == t2->tnr));
+}
+
+/* Reads targets from a file. The number of targets is read from the first
+ * line, then each line is one target.
+ * 
+ * Arguments:
+ * target buffer[] - an allocated array of target structs to fill in from
+ *   files.
+ * char* file_base - base name of the files to read, to which a frame number
+ *   and the suffix '_targets' is added.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added.
+ * 
+ * Returns:
+ * the number of targets found in the file, or 0 if an error occurred.
+*/
+
+int read_targets(target buffer[], char* file_base, int frame_num) {
+    FILE *FILEIN;
+    int	tix, num_targets;
+    char filein[STR_MAX_LEN + 1];
+
+    if (frame_num > 0) {
+        sprintf(filein, "%s%04d%s", file_base, frame_num, "_targets");
+    } else {
+        strncpy(filein, file_base, STR_MAX_LEN);
+        strncat(filein, "_targets", STR_MAX_LEN);
+    }
+    
+    FILEIN = fopen (filein, "r");
+    if (! FILEIN) {
+        printf("Can't open ascii file: %s\n", filein);
+        return 0;
+    }
+
+    fscanf(FILEIN, "%d\n", &num_targets);
+    for (tix = 0; tix < num_targets; tix++)	{
+	  fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
+		  &(buffer[tix].pnr),  &(buffer[tix].x),
+		  &(buffer[tix].y),    &(buffer[tix].n),
+		  &(buffer[tix].nx),   &(buffer[tix].ny),
+		  &(buffer[tix].sumg), &(buffer[tix].tnr) );
+	}
+    fclose (FILEIN);
+
+	return num_targets;
 }
 
 /* Check that two correspondence structs are equal, i.e. all their fields are 

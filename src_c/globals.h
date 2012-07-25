@@ -1,5 +1,7 @@
 /*  global declarations for ptv  */
 
+#include "tracking_frame_buf.h"
+
 #define nmax 20240
 
 	int    	n_img;			       /* no of images */
@@ -274,7 +276,5 @@ int  seq_track_proc_c();
 
 void read_ascii_datanew();
 void write_ascii_datanew();
-int read_targets(target[], char*, int);
-
 
 //double multimed_r_nlay ()
