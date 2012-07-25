@@ -558,12 +558,7 @@ class TreeMenuHandler (Handler):
 			temp_img=np.array([],dtype=np.ubyte)
 			# main loop - format image name, read it and call v.py_sequence_loop(..) for current step
 			for i in range(seq_first,seq_last+1,stepshake):
-				if i<10:
-					seq_ch="%01d" % i
-				elif i<100:
-					seq_ch="%02d" % i
-				else:
-					seq_ch="%03d" % i
+				seq_ch="%04d" % i
 					
 				for j in range (n_camera):
 					img_name=base_name[j]+seq_ch
