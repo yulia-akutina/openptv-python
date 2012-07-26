@@ -20,6 +20,8 @@ target;
 
 int compare_targets(target *t1, target *t2);
 int read_targets(target buffer[], char* file_base, int frame_num);
+int write_targets(target buffer[], int num_targets, char* file_base, \
+    int frame_num);
 
 typedef struct
 {

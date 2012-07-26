@@ -8,6 +8,7 @@
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "../src_c/tracking_frame_buf.h"
 
@@ -25,6 +26,32 @@ START_TEST(test_read_targets)
     fail_unless(targets_read == 2);
     fail_unless(compare_targets(tbuf, &t1));
     fail_unless(compare_targets(tbuf + 1, &t2));
+}
+END_TEST
+
+START_TEST(test_write_targets)
+{
+    /* Write and read back two targets, make sure they're the same.
+    Assumes that read_targets is ok, which is tested separately. */
+    
+    target tbuf[2]; /* Two targets in the sample target file */
+    target t1 = {0, 1127.0000, 796.0000, 13320, 111, 120, 828903, 1};
+    target t2 = {1, 796.0000, 809.0000, 13108, 113, 116, 658928, 0};
+    
+    char *file_base = "testing_fodder/test_";
+    int frame_num = 42;
+    int num_targets = 2;
+    
+    tbuf[0] = t1; tbuf[1] = t2;
+    fail_unless(write_targets(tbuf, num_targets, file_base, frame_num));
+    
+    num_targets = read_targets(tbuf, file_base, frame_num);
+    fail_unless(num_targets == 2);
+    fail_unless(compare_targets(tbuf, &t1));
+    fail_unless(compare_targets(tbuf + 1, &t2));
+    
+    // Leave the test directory clean:
+    remove("testing_fodder/test_0042_targets");
 }
 END_TEST
 
@@ -68,6 +95,10 @@ Suite* fb_suite(void) {
     TCase *tc_trt = tcase_create ("Read targets");
     tcase_add_test(tc_trt, test_read_targets);
     suite_add_tcase (s, tc_trt);
+
+    TCase *tc_twt = tcase_create ("Write targets");
+    tcase_add_test(tc_twt, test_write_targets);
+    suite_add_tcase (s, tc_twt);
 
     TCase *tc_trpf = tcase_create ("Read path frame");
     tcase_add_test(tc_trpf, test_read_path_frame);

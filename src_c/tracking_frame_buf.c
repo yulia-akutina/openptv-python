@@ -79,6 +79,57 @@ int read_targets(target buffer[], char* file_base, int frame_num) {
 	return num_targets;
 }
 
+/* Writes targets to a file. The number of targets is written to the first
+ * line, then each line is one target.
+ * 
+ * Arguments:
+ * target buffer[] - an allocated array of target structs to fill in from
+ *   files.
+ * int num_targets - length of the targets buffer.
+ * char* file_base - base name of the files to read, to which a frame number
+ *   and the suffix '_targets' is added.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added.
+ * 
+ * Returns:
+ * True value on success, or 0 if an error occurred.
+*/
+int write_targets(target buffer[], int num_targets, char* file_base, \
+    int frame_num) {
+    
+    FILE *FILEOUT;
+    int	tix, printf_ok;
+    char fileout[STR_MAX_LEN + 1];
+    
+    sprintf(fileout, "%s%04d%s", file_base, frame_num, "_targets");
+
+    FILEOUT = fopen(fileout, "w");
+    if (! FILEOUT) {
+        printf("Can't open ascii file: %s\n", fileout);
+        return 0;
+    }
+    
+    if (fprintf (FILEOUT, "%d\n", num_targets) <= 0) {
+        printf("Write error in file %s\n", fileout);
+        return 0;
+    }
+    
+    for (tix = 0; tix < num_targets; tix++)	{
+	    printf_ok = fprintf(FILEOUT, "%4d %9.4f %9.4f %5d %5d %5d %5d %5d\n",
+		    buffer[tix].pnr, buffer[tix].x,
+		    buffer[tix].y, buffer[tix].n,
+		    buffer[tix].nx, buffer[tix].ny,
+		    buffer[tix].sumg, buffer[tix].tnr);
+        if (printf_ok <= 0) {
+            printf("Write error in file %s\n", fileout);
+            return 0;
+        }
+	}
+    fclose (FILEOUT);
+    
+    return 1;
+}
+
 /* Check that two correspondence structs are equal, i.e. all their fields are 
  * equal.
  * 

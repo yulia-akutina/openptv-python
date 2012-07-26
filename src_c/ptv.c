@@ -151,25 +151,9 @@ void write_ascii_data(int filenumber)
   fclose(FILEOUT);
 
   /* write targets of each camera */
-  for (i=0; i<n_img; i++)
-    {
-      compose_name_plus_nr_str (seq_name[i], "_targets",
-				filenumber, fileout);
-
-      FILEOUT= fopen (fileout, "w");
-      if (! FILEOUT) printf("Can't open ascii file: %s\n", fileout);
-
-      fprintf (FILEOUT, "%d\n", nt4[set][i]);
-      for (j=0; j<nt4[set][i]; j++)
-	{
-	  fprintf (FILEOUT, "%4d %9.4f %9.4f %5d %5d %5d %5d %5d\n",
-		  t4[set][i][j].pnr, t4[set][i][j].x,
-		  t4[set][i][j].y, t4[set][i][j].n ,
-		  t4[set][i][j].nx ,t4[set][i][j].ny,
-		  t4[set][i][j].sumg, t4[set][i][j].tnr);
-	}
-      fclose (FILEOUT);
-    }
+  for (i=0; i<n_img; i++) {
+        write_targets(t4[set][i], nt4[set][i], seq_name[i], filenumber);
+  }
 }
 
 
@@ -343,26 +327,9 @@ void write_ascii_datanew(int filenumber)
   fclose(FILEOUT);
 
   /* write targets of each camera */
-  for (i=0; i<n_img; i++)
-    {
-      compose_name_plus_nr_str (seq_name[i], "_targets",
-				filenumber, fileout);
-
-      FILEOUT= fopen (fileout, "w");
-      if (! FILEOUT) printf("Can't open ascii file: %s\n", fileout);
-
-      fprintf (FILEOUT, "%d\n", nt4[set][i]);
-      for (j=0; j<nt4[set][i]; j++)
-	{
-	  fprintf (FILEOUT, "%4d %9.4f %9.4f %5d %5d %5d %5d %5d\n",
-		  t4[set][i][j].pnr, t4[set][i][j].x,
-		  t4[set][i][j].y, t4[set][i][j].n ,
-		  t4[set][i][j].nx ,t4[set][i][j].ny,
-		  t4[set][i][j].sumg, t4[set][i][j].tnr);
-	}
-      fclose (FILEOUT);
-    }
-
+  for (i=0; i<n_img; i++) {
+        write_targets(t4[set][i], nt4[set][i], seq_name[i], filenumber);
+  }
 }
 /* ************************************************************* */
 
