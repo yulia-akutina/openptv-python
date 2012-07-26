@@ -47,40 +47,6 @@ START_TEST(test_allocate_tracking_structs)
 }
 END_TEST
 
-START_TEST(test_read_path_frame)
-{
-    corres cor_buf[80];
-    P path_buf[80];
-    int alt_link;
-    
-    /* Correct values for particle 3 */
-    P path_correct = {
-        .x = {45.219, -20.269, 25.946},
-        .prev = -1,
-        .next = -2,
-        .prio = 4, 
-        .finaldecis = 1000000.0,
-        .inlist = 0.
-    };
-    for (alt_link = 0; alt_link < POSI; alt_link++) {
-        path_correct.decis[alt_link] = 0.0;
-        path_correct.linkdecis[alt_link] = -999;
-    }
-    corres c_correct = { 3, {96, 66, 26, 26} };
-
-    char *file_base = "testing_fodder/rt_is";
-    int frame_num = 818;
-    int targets_read = 0;
-
-    targets_read = read_path_frame(cor_buf, path_buf, file_base, frame_num);
-    fail_unless(targets_read == 80);
-    fail_unless(compare_corres(cor_buf + 2, &c_correct), \
-        "Got corres: %d, [%d %d %d %d]", cor_buf[2].nr, \
-        cor_buf[2].p[0], cor_buf[2].p[1], cor_buf[2].p[2], cor_buf[2].p[3]);
-    fail_unless(compare_path_info(path_buf + 2, &path_correct));
-}
-END_TEST
-
 /* Test a full tracking run with trackcor_*, from init to completion.
  * This is done by running on an initial set of rt_is files, then comparing the
  * result to a sample run.
@@ -187,10 +153,6 @@ Suite* ptv_suite(void) {
     TCase *tc_tw = tcase_create ("Tracking window");
     tcase_add_test(tc_tw, test_allocate_tracking_structs);
     suite_add_tcase (s, tc_tw);
-
-    TCase *tc_trpf = tcase_create ("Read path frame");
-    tcase_add_test(tc_trpf, test_read_path_frame);
-    suite_add_tcase (s, tc_trpf);
 
     TCase *tc_track = tcase_create ("Tracking");
     tcase_add_test(tc_track, test_tracking);
