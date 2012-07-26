@@ -53,7 +53,7 @@ Exterior *Ex;
 Interior *I;
 Glass    *G;
 ap_52    *addp;
-char	 *ori_file, *add_file, add_fallback;
+char	 *ori_file, *add_file, *add_fallback;
 {
   FILE	*fp;
   int  	i, scan_res;
@@ -85,7 +85,7 @@ char	 *ori_file, *add_file, add_fallback;
   
   /* Additional: */
   fp = fopen(add_file, "r");
-  if ((!fp) && add_fallback) fp = fopen (add_fallback, "r");
+  if ((fp == NULL) && add_fallback) fp = fopen (add_fallback, "r");
   
   if (fp) {
     scan_res = fscanf (fp, "%lf %lf %lf %lf %lf %lf %lf",
