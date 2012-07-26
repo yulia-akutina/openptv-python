@@ -243,3 +243,62 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
     return targets;
 }
 
+/* write_path_frame() writes the correspondence and linkage information for a
+ * frame with the next and previous frames. The information is weirdly 
+ * distributed among two files. The rt_is file holds correspondence and 
+ * position data, and the ptv_is holds linkage data.
+ *
+ * Arguments:
+ * corres *cor_buf - an array of corres structs to write to the files.
+ * P *path_buf - same for path info structures.
+ * int num_parts - number of particles represented by the cor_buf and path_buf
+ *   arrays, i.e. the arrays' length.
+ * char* corres_file_base, *linkage_file_base - base names of the output
+ *   correspondence and likage files respectively, to which a frame number
+ *   is added. Without separator.
+ * int frame_num - number of frame to add to file_base. The '.' separator is 
+ * added between the name and the frame number.
+ * 
+ * Returns:
+ * True on success. 0 on failure.
+ */
+int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
+    char *corres_file_base, char *linkage_file_base, int frame_num) {
+
+    FILE *corres_file, *linkage_file;
+    char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
+    int	pix, j;
+
+    sprintf(corres_fname, "%s.%d", corres_file_base, frame_num);
+    corres_file = fopen (corres_fname, "w");
+    if (corres_file == NULL) {
+        printf("Can't open file %s for writing\n", corres_fname);
+        return 0;
+    }
+    
+    sprintf(linkage_fname, "%s.%d", linkage_file_base, frame_num);
+    linkage_file = fopen (linkage_fname, "w");
+    if (linkage_file == NULL) {
+        printf("Can't open file %s for writing\n", linkage_fname);
+        return 0;
+    }
+
+    fprintf(corres_file, "%d\n", num_parts);
+    fprintf(linkage_file, "%d\n", num_parts);
+
+    for(pix = 0; pix < num_parts; pix++) {
+        fprintf(corres_file, "%4d %4d %10.3f %10.3f %10.3f\n",
+	        path_buf[pix].prev, path_buf[pix].next, path_buf[pix].x[0],
+	        path_buf[pix].x[1], path_buf[pix].x[2]);
+        
+        fprintf(linkage_file, "%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n",
+	        pix + 1, path_buf[pix].x[0], path_buf[pix].x[1], path_buf[pix].x[2],
+    	    cor_buf[pix].p[0], cor_buf[pix].p[1], cor_buf[pix].p[2],
+            cor_buf[pix].p[3]);
+    }
+
+    fclose(corres_file);
+    fclose(linkage_file);
+    return 1;
+}
+

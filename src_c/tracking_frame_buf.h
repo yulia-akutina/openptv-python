@@ -46,6 +46,8 @@ typedef struct Pstruct
 int compare_path_info(P *p1, P *p2);
 int read_path_frame(corres *cor_buf, P *path_buf, \
     char *file_base, int frame_num);
+int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
+    char *corres_file_base, char *linkage_file_base, int frame_num);
 
 typedef struct {
     P *path_info;

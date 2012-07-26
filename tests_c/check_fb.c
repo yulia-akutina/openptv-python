@@ -89,6 +89,37 @@ START_TEST(test_read_path_frame)
 }
 END_TEST
 
+START_TEST(test_write_path_frame)
+{
+    corres cor_buf[] = { {1, {96, 66, 26, 26}}, {2, {30, 31, 32, 33}} };
+    P path_buf[] = {
+        {
+        .x = {45.219, -20.269, 25.946},
+        .prev = -1,
+        .next = -2,
+        .prio = 4,
+        .finaldecis = 1000000.0,
+        .inlist = 0.
+        },
+        {
+        .x = {45.219, -20.269, 25.946},
+        .prev = -1,
+        .next = -2,
+        .prio = 0,
+        .finaldecis = 2000000.0,
+        .inlist = 1.
+        }
+    };
+    
+    char *corres_file_base = "testing_fodder/rt_is";
+    char *linkage_file_base = "testing_fodder/ptv_is";
+    int frame_num = 42;
+    
+    fail_unless(write_path_frame(cor_buf, path_buf, 2,\
+        corres_file_base, linkage_file_base, frame_num));
+}
+END_TEST
+
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Frame Buffer");
 
@@ -103,6 +134,10 @@ Suite* fb_suite(void) {
     TCase *tc_trpf = tcase_create ("Read path frame");
     tcase_add_test(tc_trpf, test_read_path_frame);
     suite_add_tcase (s, tc_trpf);
+
+    TCase *tc_twpf = tcase_create ("Write path frame");
+    tcase_add_test(tc_twpf, test_write_path_frame);
+    suite_add_tcase (s, tc_twpf);
 
     return s;
 }
