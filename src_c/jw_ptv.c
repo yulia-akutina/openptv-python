@@ -270,6 +270,7 @@ int init_proc_c()
 int start_proc_c()
 {
     int  i, k;
+    unsigned char *im0 = img[0];
     
     /*  read from main parameter file  */
     printf("inside start_proc");
@@ -360,7 +361,6 @@ int start_proc_c()
     }
     
     printf("image0:\n");
-    unsigned char *im0 = img[0];
     for (i=0;i<50;i++) {
         printf("val1 =%d",im0[i]);
     }
@@ -1668,6 +1668,7 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     double slice_step,slicethickness,zdim,dummy;
     
     int step_shake;
+    int j,k,pft_version = 3,ok;
     
     slice_step=seq_slice_step;
     slicethickness=seq_slicethickness;
@@ -1675,7 +1676,6 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     dummy=seq_dummy;
     step_shake=seq_step_shake;
     
-    int j,k,pft_version = 3,ok;
     //printf("\nstep: %d, zslice[j]: %f, slicepos: %d\n", i);
     
     //	  Zmax_lay[0]= z_cen_slice[slicepos] - slicethickness/2.0;
