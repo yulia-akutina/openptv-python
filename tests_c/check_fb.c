@@ -120,6 +120,32 @@ START_TEST(test_write_path_frame)
 }
 END_TEST
 
+START_TEST(test_create_frame)
+{
+    frame *frm;
+    
+    // Dummy things to store in the frame's buffers:
+    target t_target;
+    corres t_corres;
+    P t_path;
+    
+    int cams = 4;
+    int max_targets = 100;
+    int cam_ix = 0;
+    
+    frm = create_frame(cams, max_targets);
+    
+    /* Try to write stuff into the allocated memory and see it doesn't
+    segfault.*/
+    frm->correspond[42] = t_corres;
+    frm->path_info[42] = t_path;
+    
+    for (cam_ix = 0; cam_ix < cams; cam_ix ++) {
+        frm->targets[cam_ix][42] = t_target;
+    }
+}
+END_TEST
+
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Frame Buffer");
 
@@ -139,6 +165,10 @@ Suite* fb_suite(void) {
     tcase_add_test(tc_twpf, test_write_path_frame);
     suite_add_tcase (s, tc_twpf);
 
+    TCase *tc_tcf = tcase_create ("Create frame");
+    tcase_add_test(tc_tcf, test_create_frame);
+    suite_add_tcase (s, tc_tcf);
+    
     return s;
 }
 

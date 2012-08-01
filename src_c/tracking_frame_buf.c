@@ -302,3 +302,30 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     return 1;
 }
 
+/* create_frame() allocates a frame object, allocates its arrays and sets up 
+ * the frame data.
+ *  
+ * Arguments:
+ * int num_cams - number of cameras per frame.
+ * int max_targets - number of elements to allocate for the different buffers
+ *     held by a frame.
+ * 
+ * Returns:
+ * a pointer to the new dynamically allocated frame structure.
+ */
+frame* create_frame(int num_cams, int max_targets) {
+    frame *new_frame;
+    int cam;
+    
+    new_frame = (frame *) malloc(sizeof(frame));
+    new_frame->path_info = (P *) calloc(max_targets, sizeof(P));
+    new_frame->correspond = (corres *) calloc(max_targets, sizeof(corres));
+    new_frame->targets = (target**) calloc(num_cams, sizeof(target*));
+    
+    for (cam = 0; cam < num_cams; cam++) {
+        new_frame->targets[cam] = \
+            (target *) calloc(max_targets, sizeof(target));
+    }
+    return new_frame;
+}
+

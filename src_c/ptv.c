@@ -12,6 +12,7 @@
 **
 *******************************************************************************/
 #include "ptv.h"
+#include "tracking_frame_buf.h"
 
 #define STR_MAX_LEN 255
 
@@ -34,14 +35,17 @@ void allocate_tracking_structs(\
     int cams, int max_targets)
 {
   int i, k;
+  frame* scratch_frame;
 
   for (i = 0; i < 4; i++) {
-    path_info[i] = (P *) calloc(max_targets, sizeof(P));
-    correspond[i] = (corres *) calloc(max_targets, sizeof(corres));
+    scratch_frame = create_frame(cams, max_targets);
+    path_info[i] = scratch_frame->path_info;
+    correspond[i] = scratch_frame->correspond;
     
     for (k = 0; k < cams; k++) {
-      targets[i][k] = (target *) calloc(max_targets, sizeof(target));
+      targets[i][k] = scratch_frame->targets[k];
     }
+    free(scratch_frame);
   }
   trackallocflag = 1;
 }
