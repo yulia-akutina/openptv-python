@@ -8,6 +8,7 @@ reading targets, correspondences, etc.
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "tracking_frame_buf.h"
 
 /* Check that target t1 is equal to target t2, i.e. all their fields are equal.
@@ -331,3 +332,28 @@ frame* create_frame(int num_cams, int max_targets) {
     new_frame->max_targets = max_targets;
     return new_frame;
 }
+
+/* free_frame() frees all memory allocated for the frame buffers, then frees
+ * the memory allocated for the frame itself.
+ * 
+ * Arguments:
+ * frame *self - the frame to free.
+ */
+void free_frame(frame *self) {
+    free(self->path_info);
+    self->path_info = NULL;
+    
+    free(self->correspond);
+    self->correspond = NULL;
+    
+    for (; self->num_cams > 0; self->num_cams--) {
+        free(self->targets[self->num_cams - 1]);
+        self->targets[self->num_cams - 1] = NULL;
+    }
+    
+    free(self->targets);
+    self->targets = NULL;
+    
+    free(self);
+}
+
