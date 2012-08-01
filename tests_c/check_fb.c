@@ -143,6 +143,9 @@ START_TEST(test_create_frame)
     for (cam_ix = 0; cam_ix < cams; cam_ix ++) {
         frm->targets[cam_ix][42] = t_target;
     }
+    
+    fail_unless(frm->num_cams == cams);
+    fail_unless(frm->max_targets == max_targets);
 }
 END_TEST
 

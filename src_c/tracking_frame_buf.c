@@ -326,6 +326,8 @@ frame* create_frame(int num_cams, int max_targets) {
         new_frame->targets[cam] = \
             (target *) calloc(max_targets, sizeof(target));
     }
+    
+    new_frame->num_cams = num_cams;
+    new_frame->max_targets = max_targets;
     return new_frame;
 }
-
