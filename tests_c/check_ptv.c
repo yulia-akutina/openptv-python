@@ -68,7 +68,10 @@ START_TEST(test_tracking)
        necessary structure. */
     fail_unless(!chdir("testing_fodder/"));
     
+    init_proc_c();
+    start_proc_c();
     trackcorr_c_init();
+    
     for (step = 497; step < 597; step++) {
         trackcorr_c_loop(step, lmax_track, ymin_track, ymax_track, 0);
     }
@@ -88,11 +91,11 @@ START_TEST(test_tracking)
         fail_if((res_file = fopen(res_dir_name, "r")) == NULL);
         
         strcpy(samp_dir_name + 11, next_file->d_name);
-        fail_if((res_sample = fopen(res_dir_name, "r")) == NULL);
+        fail_if((res_sample = fopen(samp_dir_name, "r")) == NULL);
         
         while ((line_len = getline(line_res, &buf_size, res_file)) != -1) {
             fail_unless(line_len = getline(line_samp, &buf_size, res_sample));
-            fail_if(strncmp(*line_res, *line_samp, line_len));
+            fail_if(strncmp(*line_res, *line_samp, line_len), "%s %s",*line_res, *line_samp);
         }
         fclose(res_file);
         fclose(res_sample);
