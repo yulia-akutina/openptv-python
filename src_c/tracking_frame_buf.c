@@ -217,7 +217,7 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         path_buf->prio = 4;
         path_buf->inlist = 0;
         path_buf->finaldecis = 1000000.0;
-
+        
         for (alt_link = 0; alt_link < POSI; alt_link++) {
             path_buf->decis[alt_link] = 0.0;
             path_buf->linkdecis[alt_link] = -999;
@@ -288,11 +288,11 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     fprintf(linkage_file, "%d\n", num_parts);
 
     for(pix = 0; pix < num_parts; pix++) {
-        fprintf(corres_file, "%4d %4d %10.3f %10.3f %10.3f\n",
+        fprintf(linkage_file, "%4d %4d %10.3f %10.3f %10.3f\n",
 	        path_buf[pix].prev, path_buf[pix].next, path_buf[pix].x[0],
 	        path_buf[pix].x[1], path_buf[pix].x[2]);
         
-        fprintf(linkage_file, "%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n",
+        fprintf(corres_file, "%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n",
 	        pix + 1, path_buf[pix].x[0], path_buf[pix].x[1], path_buf[pix].x[2],
     	    cor_buf[pix].p[0], cor_buf[pix].p[1], cor_buf[pix].p[2],
             cor_buf[pix].p[3]);
