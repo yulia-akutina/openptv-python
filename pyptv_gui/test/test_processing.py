@@ -2,12 +2,13 @@
 # back, etc.
 
 import unittest
-import os, shutil, re
+import os, shutil, glob, re
 
 from scipy.misc import imread
 
 from ptv1 import py_start_proc_c, py_init_proc_c
 from ptv1 import py_sequence_init, py_sequence_loop, py_set_img
+from ptv1 import py_trackcorr_init, py_trackcorr_loop, py_trackcorr_finish
 
 def compare_directories(dir1, dir2, mask=None):
     """
@@ -56,6 +57,7 @@ class TestProcessing(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree("res/")
         shutil.rmtree("scene83_event1/")
+        os.chdir("../")
     
     def test_sequencing(self):
         """Sequencing reproduces sample results"""
@@ -75,5 +77,25 @@ class TestProcessing(unittest.TestCase):
         self.failUnless(compare_directories("res/", "after_sequencing/"))
         self.failUnless(compare_directories(
             "scene83_event1/", "after_sequencing_targets/",
+            mask=re.compile("_targets$")))
+    
+    def test_tracking(self):
+        """Tracking reproduces sample results"""
+        shutil.copytree("after_sequencing/", "res/")
+        for fname in glob.iglob("after_sequencing_targets/*"):
+            shutil.copy(fname, "scene83_event1/")
+        
+        py_init_proc_c()
+        py_start_proc_c()
+        init_args = py_trackcorr_init()
+        
+        for frame in range(497, 597):
+            args = (frame,) + init_args[:-1]
+            py_trackcorr_loop(*args)
+        py_trackcorr_finish(597)
+        
+        self.failUnless(compare_directories("res/", "after_tracking/"))
+        self.failUnless(compare_directories(
+            "scene83_event1/", "after_tracking_targets/",
             mask=re.compile("_targets$")))
 
