@@ -8,11 +8,6 @@
 #include <check.h>
 #include <stdlib.h>
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <dirent.h>
-
 #include "../src_c/ptv.h"
 
 START_TEST(test_allocate_tracking_structs)
@@ -44,69 +39,6 @@ START_TEST(test_allocate_tracking_structs)
             targs[frame_ix][cam_ix][42] = t_target;
         }
     }
-}
-END_TEST
-
-/* Test a full tracking run with trackcor_*, from init to completion.
- * This is done by running on an initial set of rt_is files, then comparing the
- * result to a sample run.
- */
-START_TEST(test_tracking)
-{
-    int step = 0;
-    DIR *res_dir = NULL;
-    struct dirent *next_file;
-    FILE *res_file, *res_sample;
-    char res_dir_name[128] = "res/", samp_dir_name[128] = "sample_res/";
-    char **line_res, **line_samp;
-    size_t buf_size = 128;
-    int line_len = 0;
-    
-    /* For now, the code relies on a rigid experiment directory structure and
-       expects to find there the input files and parameters. It also throws the
-       output in the same tree. Until we fix that, testing_fodder/ mimics the 
-       necessary structure. */
-    fail_unless(!chdir("testing_fodder/"));
-    
-    init_proc_c();
-    start_proc_c();
-    trackcorr_c_init();
-    
-    for (step = 497; step < 597; step++) {
-        trackcorr_c_loop(step, lmax_track, ymin_track, ymax_track, 0);
-    }
-    trackcorr_c_finish(597);
-    
-    /* After tracking all outputs are in res/, and compared against 
-       sample_res/
-    */
-    res_dir = opendir("res/");
-    fail_if(res_dir == NULL);
-    
-    line_res = (char**) malloc(buf_size);
-    line_samp = (char**) malloc(buf_size);
-    
-    while (next_file = readdir(res_dir)) {
-        strcpy(res_dir_name + 4, next_file->d_name);
-        fail_if((res_file = fopen(res_dir_name, "r")) == NULL);
-        
-        strcpy(samp_dir_name + 11, next_file->d_name);
-        fail_if((res_sample = fopen(samp_dir_name, "r")) == NULL);
-        
-        while ((line_len = getline(line_res, &buf_size, res_file)) != -1) {
-            fail_unless(line_len = getline(line_samp, &buf_size, res_sample));
-            fail_if(strncmp(*line_res, *line_samp, line_len), "%s %s",*line_res, *line_samp);
-        }
-        fclose(res_file);
-        fclose(res_sample);
-        
-        /* Clear the tracks and leave the testing directory clean: */
-        if ((strncmp(next_file->d_name, "added", 5) == 0) || \
-            (strncmp(next_file->d_name, "ptv_is", 6) == 0)) {
-            remove(res_dir_name);
-        }
-    }
-    closedir(res_dir);
 }
 END_TEST
 
@@ -156,10 +88,6 @@ Suite* ptv_suite(void) {
     TCase *tc_tw = tcase_create ("Tracking window");
     tcase_add_test(tc_tw, test_allocate_tracking_structs);
     suite_add_tcase (s, tc_tw);
-
-    TCase *tc_track = tcase_create ("Tracking");
-    tcase_add_test(tc_track, test_tracking);
-    suite_add_tcase (s, tc_track);
 
     TCase *tc_rori = tcase_create ("Read orientation file");
     tcase_add_test(tc_rori, test_read_ori);
