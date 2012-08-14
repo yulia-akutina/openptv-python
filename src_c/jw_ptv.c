@@ -573,7 +573,7 @@ int detection_proc_c()
 //int correspondences_proc_c (ClientData clientData, Tcl_Interp* interp, int argc, const char** argv)
 int correspondences_proc_c ()
 {
-    int	i, i_img;
+    int	i, i_img, frame;
     double x,y;
     char filename[256];
     
@@ -625,18 +625,19 @@ int correspondences_proc_c ()
     /* save pixel coords for tracking */
     for (i_img=0; i_img<n_img; i_img++)
     {
-        sprintf (filename, "%s_targets", img_name[i_img]);
-        fp1 = fopen (filename, "w");
-        
-        fprintf(fp1,"%d\n", num[i_img]);
-        for (i=0; i<num[i_img]; i++)
-        {
-            fprintf (fp1, "%4d %9.4f %9.4f %5d %5d %5d %5d %5d\n", pix[i_img][i].pnr, pix[i_img][i].x,
-                     pix[i_img][i].y, pix[i_img][i].n ,
-                     pix[i_img][i].nx ,pix[i_img][i].ny,
-                     pix[i_img][i].sumg, pix[i_img][i].tnr);
+        /* This is a workaround for the globals-laden handling of file names.
+        it should be removed when we get to removing the globals here. */
+        for (i = strlen(img_name[i_img]) - 1; i >= 0; i--) {
+            if ((img_name[i_img][i] > 0x39) || (img_name[i_img][i] < 0x30))
+                break;
         }
-        fclose (fp1);
+        i++;
+        strncpy(filename, img_name[i_img], i);
+        filename[i] = '\0';
+        
+        sscanf(img_name[i_img] + i, "%d", &frame);
+        printf("file %s, frame %d", filename, frame);
+        write_targets(pix[i_img], num[i_img], filename, frame);
     }
     
     // return TCL_OK;

@@ -114,46 +114,9 @@ void write_ascii_data(int filenumber)
 
   set = 0;
 
-  if (filenumber < 10)       sprintf (fileout, "res/ptv_is.%1d", filenumber);
-  else if (filenumber< 100)  sprintf (fileout, "res/ptv_is.%2d",  filenumber);
-  else       sprintf (fileout, "res/ptv_is.%3d",  filenumber);
-
-  /*  printf ("write file: %s\n",fileout); */
-  FILEOUT = fopen (fileout, "w");
-  if (! FILEOUT) printf("Can't open ascii file for writing\n");
-
-  fprintf(FILEOUT, "%d\n", m[set]);
-
-  for(i=0; i<m[set]; i++)
-    {
-      /*read dataset row by row*/
-      fprintf(FILEOUT, "%4d %4d %10.3f %10.3f %10.3f\n",
-	      mega[set][i].prev, mega[set][i].next, mega[set][i].x[0],
-	      mega[set][i].x[1], mega[set][i].x[2]);
-    }
-  fclose(FILEOUT);
-
-  /* create/update of new targets- and new rt_is-files */
-
-  if (filenumber < 10)        sprintf (fileout, "res/rt_is.%1d", filenumber);
-  else if (filenumber< 100)   sprintf (fileout, "res/rt_is.%2d",  filenumber);
-  else       sprintf (fileout, "res/rt_is.%3d",  filenumber);
-
-  /*  printf ("write file: %s\n",fileout); */
-  FILEOUT = fopen (fileout, "w");
-  if (! FILEOUT) printf("Can't open ascii file for writing\n");
-
-  fprintf(FILEOUT, "%d\n", m[set]);
-
-  for(i=0; i<m[set]; i++)
-    {
-      fprintf(FILEOUT, "%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n",
-	     i+1, mega[set][i].x[0], mega[set][i].x[1], mega[set][i].x[2],
-	     c4[set][i].p[0], c4[set][i].p[1], c4[set][i].p[2], c4[set][i].p[3]);
-    }
-
-  fclose(FILEOUT);
-
+  write_path_frame(c4[set], mega[set], m[set], "res/rt_is", "res/ptv_is", 
+    filenumber);
+  
   /* write targets of each camera */
   for (i=0; i<n_img; i++) {
         write_targets(t4[set][i], nt4[set][i], seq_name[i], filenumber);
@@ -289,46 +252,8 @@ void write_ascii_datanew(int filenumber)
 
   set = 0;
 
-  if (filenumber < 10)       sprintf (fileout, "res/ptv_is.%1d", filenumber);
-  else if (filenumber< 100)  sprintf (fileout, "res/ptv_is.%2d",  filenumber);
-  else       sprintf (fileout, "res/ptv_is.%3d",  filenumber);
-
-  /*  printf ("write file: %s\n",fileout); */
-  FILEOUT = fopen (fileout, "w");
-  if (! FILEOUT) printf("Can't open ascii file for writing\n");
-
-  fprintf(FILEOUT, "%d\n", m[set]);
-
-  for(i=0; i<m[set]; i++)
-    {
-      /*read dataset row by row, prev/next order changed because backwards*/
-      fprintf(FILEOUT, "%4d %4d %10.3f %10.3f %10.3f\n",
-	      mega[set][i].prev, mega[set][i].next, mega[set][i].x[0],
-	      mega[set][i].x[1], mega[set][i].x[2]);
-    }
-  fclose(FILEOUT);
-
-  /* update of targets- and rt_is-files */
-
-  if (filenumber < 10)        sprintf (fileout, "res/rt_is.%1d", filenumber);
-  else if (filenumber< 100)   sprintf (fileout, "res/rt_is.%2d",  filenumber);
-  else       sprintf (fileout, "res/rt_is.%3d",  filenumber);
-
-  /*  printf ("write file: %s\n",fileout); */
-  FILEOUT = fopen (fileout, "w");
-  if (! FILEOUT) printf("Can't open ascii file for writing\n");
-
-  fprintf(FILEOUT, "%d\n", m[set]);
-
-  for(i=0; i<m[set]; i++)
-    {
-      /*write dataset row by row*/
-      fprintf(FILEOUT, "%4d %9.3f %9.3f %9.3f %4d %4d %4d %4d\n",
-	     i+1, mega[set][i].x[0], mega[set][i].x[1], mega[set][i].x[2],
-	     c4[set][i].p[0], c4[set][i].p[1], c4[set][i].p[2], c4[set][i].p[3]);
-    }
-
-  fclose(FILEOUT);
+  write_path_frame(c4[set], mega[set], m[set], "res/rt_is", "res/ptv_is", 
+    filenumber);
 
   /* write targets of each camera */
   for (i=0; i<n_img; i++) {
