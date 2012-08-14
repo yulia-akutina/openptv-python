@@ -9,6 +9,7 @@ from scipy.misc import imread
 from ptv1 import py_start_proc_c, py_init_proc_c
 from ptv1 import py_sequence_init, py_sequence_loop, py_set_img
 from ptv1 import py_trackcorr_init, py_trackcorr_loop, py_trackcorr_finish
+from ptv1 import py_trackback_c
 
 def compare_directories(dir1, dir2, mask=None):
     """
@@ -97,5 +98,20 @@ class TestProcessing(unittest.TestCase):
         self.failUnless(compare_directories("res/", "after_tracking/"))
         self.failUnless(compare_directories(
             "scene83_event1/", "after_tracking_targets/",
+            mask=re.compile("_targets$")))
+    
+    def test_backtracking(self):
+        """Tracking back reproduces sample results"""
+        shutil.copytree("after_tracking/", "res/")
+        for fname in glob.iglob("after_tracking_targets/*"):
+            shutil.copy(fname, "scene83_event1/")
+        
+        py_init_proc_c()
+        py_start_proc_c()
+        py_trackback_c()
+        
+        self.failUnless(compare_directories("res/", "after_backtracking/"))
+        self.failUnless(compare_directories(
+            "scene83_event1/", "after_backtracking_targets/",
             mask=re.compile("_targets$")))
 
