@@ -149,6 +149,68 @@ START_TEST(test_create_frame)
 }
 END_TEST
 
+/* *_frame() are just simple wrappers around *_path_frame and *_targets, so
+   we only do a simple write-read cycle. The heavy testing is in the wrapped
+   functions. */
+START_TEST(test_read_write_frame)
+{
+    frame *frm, *readback;
+    char* target_files[2] = {
+        "testing_fodder/target_test_cam0", "testing_fodder/target_test_cam1"};
+    int alt_link;
+    
+    // Dummy things to store in the frame's buffers:
+    target t_target = {0, 1127.0000, 796.0000, 13320, 111, 120, 828903, 1};
+    corres t_corres = { 3, {96, 66, 26, 26} };
+    P t_path = {
+        .x = {45.219, -20.269, 25.946},
+        .prev = -1,
+        .next = -2,
+        .prio = 4,
+        .finaldecis = 1000000.0,
+        .inlist = 0.
+    };
+    for (alt_link = 0; alt_link < POSI; alt_link++) {
+        t_path.decis[alt_link] = 0.0;
+        t_path.linkdecis[alt_link] = -999;
+    }
+    
+    int cams = 2;
+    int max_targets = 100;
+    int cam_ix = 0;
+    
+    frm = create_frame(cams, max_targets);
+    
+    /* Try to write stuff into the allocated memory and see it doesn't
+    segfault.*/
+    frm->correspond[2] = t_corres;
+    frm->path_info[2] = t_path;
+    frm->num_parts = 3;
+    
+    for (cam_ix = 0; cam_ix < cams; cam_ix++) {
+        frm->targets[cam_ix][42] = t_target;
+        frm->num_targets[cam_ix] = 43;
+    }
+    
+    mark_point();
+    fail_unless(write_frame(frm, "testing_fodder/corres_test_write",
+        "testing_fodder/linkage_test_write", target_files, 7));
+    
+    readback = create_frame(cams, max_targets);
+    fail_unless(read_frame(readback, "testing_fodder/corres_test_write",
+        target_files, 7));
+    
+    fail_unless(compare_corres(&t_corres, readback->correspond + 2));
+    fail_unless(compare_path_info(&t_path, readback->path_info + 2));
+    fail_unless(compare_targets(&t_target, readback->targets[0] + 42));
+    
+    remove("testing_fodder/corres_test_write.7");
+    remove("testing_fodder/linkage_test_write.7");
+    remove("testing_fodder/target_test_cam10007_targets");
+    remove("testing_fodder/target_test_cam00007_targets");
+}
+END_TEST
+
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Frame Buffer");
 
@@ -172,6 +234,10 @@ Suite* fb_suite(void) {
     tcase_add_test(tc_tcf, test_create_frame);
     suite_add_tcase (s, tc_tcf);
     
+    TCase *tc_trwf = tcase_create ("Write/read frame");
+    tcase_add_test(tc_trwf, test_read_write_frame);
+    suite_add_tcase (s, tc_trwf);
+
     return s;
 }
 

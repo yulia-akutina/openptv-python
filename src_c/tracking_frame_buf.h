@@ -54,10 +54,16 @@ typedef struct {
     corres *correspond;
     target **targets;
     int num_cams, max_targets;
+    int num_parts; /* Number of 3D particles in the correspondence buffer */
+    int *num_targets; /* Pointer to array of 2D particle counts per image. */
 } frame;
 
 frame* create_frame(int num_cams, int max_targets);
 void free_frame(frame *self);
+int read_frame(frame *self, char *file_base, char **target_file_base,
+    int frame_num);
+int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
+    char **target_file_base, int frame_num);
 
 
 typedef struct {

@@ -321,15 +321,19 @@ frame* create_frame(int num_cams, int max_targets) {
     new_frame = (frame *) malloc(sizeof(frame));
     new_frame->path_info = (P *) calloc(max_targets, sizeof(P));
     new_frame->correspond = (corres *) calloc(max_targets, sizeof(corres));
+    
     new_frame->targets = (target**) calloc(num_cams, sizeof(target*));
+    new_frame->num_targets = (int *) calloc(max_targets, sizeof(int));
     
     for (cam = 0; cam < num_cams; cam++) {
         new_frame->targets[cam] = \
             (target *) calloc(max_targets, sizeof(target));
+        new_frame->num_targets[cam] = 0;
     }
     
     new_frame->num_cams = num_cams;
     new_frame->max_targets = max_targets;
+    new_frame->num_parts = 0;
     return new_frame;
 }
 
@@ -346,6 +350,9 @@ void free_frame(frame *self) {
     free(self->correspond);
     self->correspond = NULL;
     
+    free(self->num_targets);
+    self->num_targets = NULL;
+    
     for (; self->num_cams > 0; self->num_cams--) {
         free(self->targets[self->num_cams - 1]);
         self->targets[self->num_cams - 1] = NULL;
@@ -355,5 +362,77 @@ void free_frame(frame *self) {
     self->targets = NULL;
     
     free(self);
+}
+
+/* read_frame() reads all of the frame associated data: correspondnces,
+ * targets, and whatever else is needed.
+ * 
+ * Arguments:
+ * frame *self - the frame object to fill with the data read.
+ * char *file_base - base name of the correspondence file to read, to which a 
+ *   frame number is added. Without separator.
+ * char **target_file_base - an array of strings following the same rules as
+ *   for file_base; one for each camera in the frame.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added. The '.' separator is added
+ *   between the name and the frame number.
+ *
+ * Returns:
+ * True on success, false otherwise. In case of failure, the state of frame is
+ * undefined.
+ */
+int read_frame(frame *self, char *file_base, char **target_file_base,
+    int frame_num)
+{
+    int cam;
+    
+    self->num_parts = read_path_frame(self->correspond, self->path_info,
+        file_base, frame_num);
+    if (self->num_targets == 0) return 0;
+    
+    for (cam = 0; cam < self->num_cams; cam++) {
+        self->num_targets[cam] = read_targets(
+            self->targets[cam], target_file_base[cam], frame_num);
+        if (self->num_targets[cam] == 0) return 0;
+    }
+    
+    return 1;
+}
+
+/* write_frame() writes all of the frame associated data: correspondnces,
+ * targets, path info, and whatever else is needed.
+ * 
+ * Arguments:
+ * frame *self - the frame whose data is to be written.
+ * char *corres_file_base - base name of the correspondence file to read, to 
+ *   which a frame number is added. Without separator.
+ * char *linkage_file_base - same as corres_file_base, for the linkage file.
+ * char **target_file_base - an array of strings following the same rules as
+ *   for file_base; one for each camera in the frame.
+ * int frame_num - number of frame to add to file_base. A value of 0 or less
+ *   means that no frame number should be added. The '.' separator is added
+ *   between the name and the frame number.
+ *
+ * Returns:
+ * True on success, false otherwise. In case of failure, the state of output 
+ * files is undefined.
+ */
+int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
+    char **target_file_base, int frame_num)
+{
+    int cam, status;
+    
+    status = write_path_frame(self->correspond, self->path_info,
+        self->num_parts, corres_file_base, linkage_file_base, frame_num);
+    if (status == 0) return 0;
+    
+    for (cam = 0; cam < self->num_cams; cam++) {
+        status = write_targets(
+            self->targets[cam], self->num_targets[cam], target_file_base[cam],
+            frame_num);
+        if (status == 0) return 0;
+    }
+    
+    return 1;
 }
 
