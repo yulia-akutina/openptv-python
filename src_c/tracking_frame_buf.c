@@ -303,22 +303,17 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     return 1;
 }
 
-/* create_frame() allocates a frame object, allocates its arrays and sets up 
+/* init_frame() initializes a frame object, allocates its arrays and sets up 
  * the frame data.
  *  
  * Arguments:
  * int num_cams - number of cameras per frame.
  * int max_targets - number of elements to allocate for the different buffers
  *     held by a frame.
- * 
- * Returns:
- * a pointer to the new dynamically allocated frame structure.
  */
-frame* create_frame(int num_cams, int max_targets) {
-    frame *new_frame;
+void frame_init(frame *new_frame, int num_cams, int max_targets) {
     int cam;
     
-    new_frame = (frame *) malloc(sizeof(frame));
     new_frame->path_info = (P *) calloc(max_targets, sizeof(P));
     new_frame->correspond = (corres *) calloc(max_targets, sizeof(corres));
     
@@ -337,8 +332,7 @@ frame* create_frame(int num_cams, int max_targets) {
     return new_frame;
 }
 
-/* free_frame() frees all memory allocated for the frame buffers, then frees
- * the memory allocated for the frame itself.
+/* free_frame() frees all memory allocated for the frame arrays.
  * 
  * Arguments:
  * frame *self - the frame to free.
@@ -360,8 +354,6 @@ void free_frame(frame *self) {
     
     free(self->targets);
     self->targets = NULL;
-    
-    free(self);
 }
 
 /* read_frame() reads all of the frame associated data: correspondnces,
@@ -434,5 +426,68 @@ int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
     }
     
     return 1;
+}
+
+/* fb_init() allocates a frame buffer object and creates the frames
+ * it buffers. The buffer is a ring-buffer based on a double-size vector.
+ *  
+ * Arguments:
+ * int buf_len - number of frames in the buffer.
+ * int num_cams - number of cameras per frame.
+ * int max_targets - number of elements to allocate for the different buffers
+ *     held by a frame.
+ * char *rt_file_base
+ * 
+ * Returns:
+ * a pointer to the new dynamically allocated frame-buffer structure.
+ */
+
+void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
+    char *corres_file_base, char *linkage_file_base, char **target_file_base)
+{
+    frame *alloc_frame;
+    
+    new_buf->buf_len = buf_len;
+    new_buf->num_cams = num_cams;
+    new_buf->corres_file_base = corres_file_base;
+    new_buf->linkage_file_base = linkage_file_base;
+    new_buf->target_file_base = target_file_base;
+    
+    new_buf->_ring_vec = (frame *) calloc(buf_len*2, sizeof(frame *));
+    new_buf->buf = new_buf->_ring_vec + buf_len;
+    
+    while (new_buf->buf != new_buf->_ring_vec) {
+        new_buf->buf--;
+        
+        alloc_frame = (frame *) malloc(sizeof(frame));
+        frame_init(alloc_frame, num_cams, max_targets);
+        
+        /* The second half of _ring_vec points to the same objects as the
+           first half. This allows direct indexing like fb->buf[buf_len - 1]
+           even when fb->buf moves forward. */
+        *(new_buf->buf) = alloc_frame;
+        *(new_buf->buf + buf_len) = alloc_frame;
+    }
+    /* Leaves new_buf->buf pointing to the beginning of _ring_vec,
+    which is what we want. */
+}
+
+/* fb_free() frees all memory allocated for the frames and ring vector in a
+ * framebuf object.
+ * 
+ * Arguments:
+ * framebuf *self - the framebuf holding the memory to free.
+ */
+void fb_free(framebuf *self) {
+    self->buf = self->_ring_vec;
+    
+    while (self->buf != self->_ring_vec + self->buf_len) {
+        free_frame(*(self->buf));
+        free(*(self->buf));
+    }
+    self->buf = NULL;
+    
+    free(self->_ring_vec);
+    self->_ring_vec = NULL;
 }
 

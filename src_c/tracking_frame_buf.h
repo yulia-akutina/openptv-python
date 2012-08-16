@@ -58,7 +58,7 @@ typedef struct {
     int *num_targets; /* Pointer to array of 2D particle counts per image. */
 } frame;
 
-frame* create_frame(int num_cams, int max_targets);
+void frame_init(frame *new_frame, int num_cams, int max_targets);
 void free_frame(frame *self);
 int read_frame(frame *self, char *file_base, char **target_file_base,
     int frame_num);
@@ -67,15 +67,17 @@ int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
 
 
 typedef struct {
-    frame *buf;
+    /* _ring_vec is the underlying double-size vector, buf is the pointer to 
+    the start of the ring. */
+    frame **buf, **_ring_vec;
     int buf_len, num_cams;
-    char *rt_file_base;
+    char *corres_file_base, *linkage_file_base;
     char **target_file_base;
 } framebuf;
 
-framebuf* frame_buffer_create(int buff_len, int num_cams, int max_targets,\
-    char *rt_file_base, char **target_file_base);
-void frame_buffer_free(framebuf *self);
-void frame_buffer_shift(framebuf *self);
+void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
+    char *corres_file_base, char* linkage_file_base, char **target_file_base);
+void fb_free(framebuf *self);
+void fb_shift(framebuf *self);
 
 #endif

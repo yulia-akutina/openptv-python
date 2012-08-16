@@ -120,9 +120,9 @@ START_TEST(test_write_path_frame)
 }
 END_TEST
 
-START_TEST(test_create_frame)
+START_TEST(test_init_frame)
 {
-    frame *frm;
+    frame frm;
     
     // Dummy things to store in the frame's buffers:
     target t_target;
@@ -133,19 +133,19 @@ START_TEST(test_create_frame)
     int max_targets = 100;
     int cam_ix = 0;
     
-    frm = create_frame(cams, max_targets);
+    frame_init(&frm, cams, max_targets);
     
     /* Try to write stuff into the allocated memory and see it doesn't
     segfault.*/
-    frm->correspond[42] = t_corres;
-    frm->path_info[42] = t_path;
+    frm.correspond[42] = t_corres;
+    frm.path_info[42] = t_path;
     
     for (cam_ix = 0; cam_ix < cams; cam_ix ++) {
-        frm->targets[cam_ix][42] = t_target;
+        frm.targets[cam_ix][42] = t_target;
     }
     
-    fail_unless(frm->num_cams == cams);
-    fail_unless(frm->max_targets == max_targets);
+    fail_unless(frm.num_cams == cams);
+    fail_unless(frm.max_targets == max_targets);
 }
 END_TEST
 
@@ -154,7 +154,7 @@ END_TEST
    functions. */
 START_TEST(test_read_write_frame)
 {
-    frame *frm, *readback;
+    frame frm, readback;
     char* target_files[2] = {
         "testing_fodder/target_test_cam0", "testing_fodder/target_test_cam1"};
     int alt_link;
@@ -179,30 +179,29 @@ START_TEST(test_read_write_frame)
     int max_targets = 100;
     int cam_ix = 0;
     
-    frm = create_frame(cams, max_targets);
+    frame_init(&frm, cams, max_targets);
     
     /* Try to write stuff into the allocated memory and see it doesn't
     segfault.*/
-    frm->correspond[2] = t_corres;
-    frm->path_info[2] = t_path;
-    frm->num_parts = 3;
+    frm.correspond[2] = t_corres;
+    frm.path_info[2] = t_path;
+    frm.num_parts = 3;
     
     for (cam_ix = 0; cam_ix < cams; cam_ix++) {
-        frm->targets[cam_ix][42] = t_target;
-        frm->num_targets[cam_ix] = 43;
+        frm.targets[cam_ix][42] = t_target;
+        frm.num_targets[cam_ix] = 43;
     }
     
-    mark_point();
-    fail_unless(write_frame(frm, "testing_fodder/corres_test_write",
+    fail_unless(write_frame(&frm, "testing_fodder/corres_test_write",
         "testing_fodder/linkage_test_write", target_files, 7));
     
-    readback = create_frame(cams, max_targets);
-    fail_unless(read_frame(readback, "testing_fodder/corres_test_write",
+    frame_init(&readback, cams, max_targets);
+    fail_unless(read_frame(&readback, "testing_fodder/corres_test_write",
         target_files, 7));
     
-    fail_unless(compare_corres(&t_corres, readback->correspond + 2));
-    fail_unless(compare_path_info(&t_path, readback->path_info + 2));
-    fail_unless(compare_targets(&t_target, readback->targets[0] + 42));
+    fail_unless(compare_corres(&t_corres, readback.correspond + 2));
+    fail_unless(compare_path_info(&t_path, readback.path_info + 2));
+    fail_unless(compare_targets(&t_target, readback.targets[0] + 42));
     
     remove("testing_fodder/corres_test_write.7");
     remove("testing_fodder/linkage_test_write.7");
@@ -231,7 +230,7 @@ Suite* fb_suite(void) {
     suite_add_tcase (s, tc_twpf);
 
     TCase *tc_tcf = tcase_create ("Create frame");
-    tcase_add_test(tc_tcf, test_create_frame);
+    tcase_add_test(tc_tcf, test_init_frame);
     suite_add_tcase (s, tc_tcf);
     
     TCase *tc_trwf = tcase_create ("Write/read frame");

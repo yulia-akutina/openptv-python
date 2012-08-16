@@ -35,17 +35,16 @@ void allocate_tracking_structs(\
     int cams, int max_targets)
 {
   int i, k;
-  frame* scratch_frame;
+  frame scratch_frame;
 
   for (i = 0; i < 4; i++) {
-    scratch_frame = create_frame(cams, max_targets);
-    path_info[i] = scratch_frame->path_info;
-    correspond[i] = scratch_frame->correspond;
+    frame_init(&scratch_frame, cams, max_targets);
+    path_info[i] = scratch_frame.path_info;
+    correspond[i] = scratch_frame.correspond;
     
     for (k = 0; k < cams; k++) {
-      targets[i][k] = scratch_frame->targets[k];
+      targets[i][k] = scratch_frame.targets[k];
     }
-    free(scratch_frame);
   }
   trackallocflag = 1;
 }
