@@ -78,6 +78,7 @@ typedef struct {
 void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
     char *corres_file_base, char* linkage_file_base, char **target_file_base);
 void fb_free(framebuf *self);
-void fb_shift(framebuf *self);
+void fb_next(framebuf *self);
+void fb_read_frame_at_end(framebuf *self, int frame_num);
 
 #endif

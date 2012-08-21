@@ -491,3 +491,26 @@ void fb_free(framebuf *self) {
     self->_ring_vec = NULL;
 }
 
+/* fb_next() advances the start pointer of the frame buffer, reseting it to the
+ * beginning after exceeding the buffer length.
+ *
+ * Arguments:
+ * framebuf *self - the framebuf to advance.
+ */
+void fb_next(framebuf *self) {
+    self->buf++;
+    if (self->buf - self->_ring_vec >= self->buf_len)
+        self->buf = self->_ring_vec;
+}
+
+/* fb_read_frame_at_end() reads a frame to the last position in the ring.
+ *
+ * Arguments:
+ * framebuf *self - the framebuf object doing the reading.
+ * int frame_num - number of the frame to read in the sequence of frames.
+ */
+void fb_read_frame_at_end(framebuf *self, int frame_num) {
+    read_frame(self->buf + self->buf_len - 1, self->corres_file_base,
+        self->target_file_base, frame_num);
+}
+
