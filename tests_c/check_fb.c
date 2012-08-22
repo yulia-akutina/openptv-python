@@ -116,7 +116,7 @@ START_TEST(test_write_path_frame)
     int frame_num = 42;
     
     fail_unless(write_path_frame(cor_buf, path_buf, 2,\
-        corres_file_base, linkage_file_base, frame_num));
+        corres_file_base, linkage_file_base, NULL, frame_num));
 }
 END_TEST
 

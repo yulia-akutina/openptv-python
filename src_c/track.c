@@ -27,7 +27,7 @@ the current state of using a scatter of projectwide-globals, and will change to
 a framebuffer passed around when we get to the point we feel safe in changing 
 the functions' interface.
 */
-framebuf fb;
+framebuf *fb;
 
 /* The buffer space required for this algorithm: 
 Note that MAX_TARGETS is taken from the global M, but I want a separate
@@ -40,6 +40,7 @@ this file.
 int trackcorr_c_init () {
     int step, img;
     double Ymin=0, Ymax=0,lmax;
+    char* target_file_base[4];
     
     /* Remaining globals:
     fb - from this file, for this file only.
@@ -52,11 +53,16 @@ int trackcorr_c_init () {
     /* read configuration */
     readseqtrackcrit ();
     
-    fb_init(&fb, 4, n_img, "res/rt_is", "res/ptv_is", seq_name);
+    for (img = 0; img < n_img; img++) {
+        target_file_base[img] = seq_name[img];
+    }
+    fb = (framebuf *) malloc(sizeof(framebuf));
+    fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
+        target_file_base);
 
     /* Prime the buffer with first frames */
     for (step = seq_first; step < seq_first + 3); step++) {
-        fb_read_frame_at_end(fb);
+        fb_read_frame_at_end(fb, step);
         fb_next(fb);
     }
 
@@ -135,8 +141,8 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     int flag_m_tr=0;
     
     /* Shortcuts to inside current frame */
-    P curr_path_inf, ref_path_inf;
-    corres curr_corres, ref_corres;
+    P *curr_path_inf, *ref_path_inf;
+    corres *curr_corres, *ref_corres;
     target *curr_targets, *ref_targets;
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
@@ -150,29 +156,30 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
     count1=0; lost =0; zusatz=0;
     
+    curr_targets = fb->buf[1]->targets;
+    
     /* try to track correspondences from previous 0 - corp, variable h */
-    for (h=0; h < fb->buf[1]->num_parts; h++) {
+    for (h = 0; h < fb->buf[1]->num_parts; h++) {
 	    X1=Y1=Z1=X0=Y0=Z0=X2=Y2=Z2=X5=Y5=Z5=X3=Y3=Z3=X4=Y4=Z4=X6=Y6=Z6=-999;
         
-        curr_path_inf = fb->buf[1]->path_info[h];
-        curr_corres = fb->buf[1]->correspond[h];
-        curr_targets = fb->buf[1]->targets;
+        curr_path_inf = &(fb->buf[1]->path_info[h]);
+        curr_corres = &(fb->buf[1]->correspond[h]);
         
-	    curr_path_inf.inlist=0;
+	    curr_path_inf->inlist = 0;
         reset_foundpix_array(&p16, 16, fb->num_cams)
         
 	    /* 3D-position */
-	    X1 = curr_path_inf.x[0];
-	    Y1 = curr_path_inf.x[1];
-	    Z1 = curr_path_inf.x[2];
+	    X1 = curr_path_inf->x[0];
+	    Y1 = curr_path_inf->x[1];
+	    Z1 = curr_path_inf->x[2];
 
 	    /* use information from previous to locate new search position
 	       and to calculate values for search area */
-	    if (curr_path_inf.prev >= 0) {
-            ref_path_inf = fb->buf[0]->path_info[curr_path_inf.prev];
-	        X0 = ref_path_inf.x[0];
-	        Y0 = ref_path_inf.x[1];
-    	    Z0 = ref_path_inf.x[2];
+	    if (curr_path_inf->prev >= 0) {
+            ref_path_inf = &(fb->buf[0]->path_info[curr_path_inf->prev]);
+	        X0 = ref_path_inf->x[0];
+	        Y0 = ref_path_inf->x[1];
+    	    Z0 = ref_path_inf->x[2];
 	        X2 = 2*X1 - X0;
 	        Y2 = 2*Y1 - Y0;
     	    Z2 = 2*Z1 - Z0;
@@ -186,7 +193,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	    } else {  
             X2=X1; Y2=Y1; Z2=Z1;
 	        for (j=0; j < fb->num_cams; j++) {
-	            if (curr_corres.p[j] == -1) {
+	            if (curr_corres->p[j] == -1) {
 	                img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], 
                         &yn[j]);
 	                metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], 
@@ -195,7 +202,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	                x1[j]=xn[j];
 	                y1[j]=yn[j];
 	            } else {
-                    _ix = curr_corres.p[j];
+                    _ix = curr_corres->p[j];
                     x1[j] = curr_targets[j][_ix].x;
                     y1[j] = curr_targets[j][_ix].y;
                 }
@@ -239,12 +246,12 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
             reset_foundpix_array(&p16, 16, fb->num_cams)
 
 	        /* found 3D-position */
-            ref_path_inf = fb->buf[2]->path_info[w[mm].ftnr]
-	        X3 = ref_path_inf.x[0];
-	        Y3 = ref_path_inf.x[1];
-	        Z3 = ref_path_inf.x[2];
+            ref_path_inf = &(fb->buf[2]->path_info[w[mm].ftnr]);
+	        X3 = ref_path_inf->x[0];
+	        Y3 = ref_path_inf->x[1];
+	        Z3 = ref_path_inf->x[2];
 
-	        if (curr_path_inf.prev >= 0) {
+	        if (curr_path_inf->prev >= 0) {
 		        X5=0.5*(5.0*X3-4.0*X1+X0);
 		        Y5=0.5*(5.0*Y3-4.0*Y1+Y0);
 		        Z5=0.5*(5.0*Z3-4.0*Z1+Z0);
@@ -263,7 +270,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        }
 
 	        /* search for candidates in next time step */
-	        for (j=0;j<n_img;j++) {
+	        for (j=0; j < fb->num_cams; j++) {
 	            zaehler2 = candsearch_in_pix (fb->buf[3]->targets[j], 
                     fb->buf[3]->num_targets[j], x1[j], y1[j],
 					xl[j], xr[j], yu[j], yd[j], &philf[j]);
@@ -272,9 +279,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 				    if (philf[j][k] == -999) {
                         p16[j*4+k].ftnr=-1;
 				    } else {
-				        if( t4[3][j][philf[j][k]].tnr != -1){
-                            p16[j*4+k].ftnr=t4[3][j][philf[j][k]].tnr;
-                            p16[j*4+k].whichcam[j]=1;
+				        if (fb->buf[3]->targets[j][philf[j][k]].tnr != -1) {
+                            _ix = philf[j][k];
+                            p16[j*4+k].ftnr = b->buf[3]->targets[j][_ix].tnr;
+                            p16[j*4+k].whichcam[j] = 1;
 					    }
 				    }
 		        }
@@ -290,10 +298,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        /*end of candidate struct */
 	        /* ************************************************ */
 	        for (kk=0; kk < zaehler2; kk++)  { /* zaehler2-loop */
-                ref_path_inf = fb->buf[3]->path_info[wn[kk].ftnr]
-                X4 = ref_path_inf.x[0];
-        		Y4 = ref_path_inf.x[1];
-		        Z4 = ref_path_inf.x[2];
+                ref_path_inf = &(fb->buf[3]->path_info[wn[kk].ftnr]);
+                X4 = ref_path_inf->x[0];
+        		Y4 = ref_path_inf->x[1];
+		        Z4 = ref_path_inf->x[2];
 
 		        okay=0; rr=1000000; quali=0; dl=0;
         		acc=2*tpar.dacc; angle=2*tpar.dangle;
@@ -325,10 +333,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 		                rr=1000000;
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10)) {
-			                rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-			                curr_path_inf.decis[curr_path_inf.prev.inlist]=rr;
-			                curr_path_inf.linkdecis[curr_path_inf.inlist]=w[mm].ftnr;
-			                curr_path_inf.inlist++;
+			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+			                curr_path_inf->decis[curr_path_inf->prev.inlist] = rr;
+			                curr_path_inf->linkdecis[curr_path_inf->inlist] = w[mm].ftnr;
+			                curr_path_inf->inlist++;
 			            }
 		                okay=0;
 		            }
@@ -338,7 +346,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	        /* creating new particle position */
 	        /* *************************************************************** */
-	        for (j=0;j<n_img;j++) {
+	        for (j = 0;j < fb->num_cams; j++) {
 		        img_coord (X5, Y5, Z5, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
 	        }
@@ -396,32 +404,32 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
         			    +sqrt((X4-X3)*(X4-X3)+(Y4-Y3)*(Y4-Y3)+(Z4-Z3)*(Z4-Z3)))/2;
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
-			                rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali+w[mm].freq);
-			                curr_path_inf.decis[curr_path_inf.inlist]=rr;
-			                curr_path_inf.linkdecis[curr_path_inf.inlist]=w[mm].ftnr;
-			                curr_path_inf.inlist++;
+			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali+w[mm].freq);
+			                curr_path_inf->decis[curr_path_inf->inlist]=rr;
+			                curr_path_inf->linkdecis[curr_path_inf->inlist]=w[mm].ftnr;
+			                curr_path_inf->inlist++;
 
 			                if (tpar.add) {
-                                ref_path_inf = fb->buf[3]->path_info[
-                                    fb->buf[3]->num_parts];
-			                    ref_path_inf.x[0] = X4;
-			                    ref_path_inf.x[1] = Y4;
-			                    ref_path_inf.x[2] = Z4;
-			                    ref_path_inf.prev = -1;
-			                    ref_path_inf.next = -2;
-			                    ref_path_inf.prio = 2;
+                                ref_path_inf = &(fb->buf[3]->path_info[
+                                    fb->buf[3]->num_parts]);
+			                    ref_path_inf->x[0] = X4;
+			                    ref_path_inf->x[1] = Y4;
+			                    ref_path_inf->x[2] = Z4;
+			                    ref_path_inf->prev = -1;
+			                    ref_path_inf->next = -2;
+			                    ref_path_inf->prio = 2;
 
                                 _frame_parts = fb->buf[3]->num_parts
                                 ref_corres = fb->buf[3]->correspond[_frame_parts];
                                 ref_targets = fb->buf[3]->targets[_frame_parts];
 			                    for (j = 0;j < fb->num_cams; j++) {
-				                    ref_corres.p[j]=-1;
+				                    ref_corres->p[j]=-1;
                                     
 				                    if(philf[j][0]!=-999) {
                                         _ix = philf[j][0];
                     				    ref_targets[j][_ix].tnr = _frame_parts;
-				                        ref_corres.p[j] = _ix;
-				                        ref_corres.nr = _frame_parts;
+				                        ref_corres->p[j] = _ix;
+				                        ref_corres->nr = _frame_parts;
 				                    }
 			                    }
 			                    fb->buf[3]->num_parts++;
@@ -438,10 +446,8 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        /* end of creating new particle position */
 	        /* *************************************************************** */
             
-            // refactoring stopped here.
-
 	        /* try to link if kk is not found/good enough and prev exist */
-	        if ( curr_path_inf.inlist == 0 && curr_path_inf.prev >= 0 ) {
+	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
 		        acc = 2*tpar.dacc;
                 angle = 2*tpar.dangle;
 		        if ( tpar.dvxmin < (X3-X1) && (X3-X1) < tpar.dvxmax &&
@@ -458,10 +464,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			            +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
 
 			            if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
-			                rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-			                curr_path_inf.decis[curr_path_inf.inlist]=rr;
-			                curr_path_inf.linkdecis[curr_path_inf.inlist]=w[mm].ftnr;
-			                curr_path_inf.inlist++;
+			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+			                curr_path_inf->decis[curr_path_inf->inlist] = rr;
+			                curr_path_inf->linkdecis[curr_path_inf->inlist] = w[mm].ftnr;
+			                curr_path_inf->inlist++;
 			            }
 		            }
 		        }
@@ -473,7 +479,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	    /* begin of inlist still zero */
 	    if (tpar.add) {
-	        if ( curr_path_inf.inlist == 0 && curr_path_inf.prev >= 0 ) {
+	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
                 for (j = 0; j < fb->num_cams; j++) {
 		            img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
 		            metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
@@ -530,32 +536,32 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			                +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
 
 			                if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
-			                    rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-                                ref_path_inf = fb->buf[2]->path_info[
-                                    fb->buf[2]->num_parts];
-			                    ref_path_inf.x[0] = X3;
-			                    ref_path_inf.x[1] = Y3;
-			                    ref_path_inf.x[2] = Z3;
-			                    ref_path_inf.prev = -1;
-			                    ref_path_inf.next = -2;
-			                    ref_path_inf.prio = 2;
+			                    rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+                                ref_path_inf = &(fb->buf[2]->path_info[
+                                    fb->buf[2]->num_parts]);
+			                    ref_path_inf->x[0] = X3;
+			                    ref_path_inf->x[1] = Y3;
+			                    ref_path_inf->x[2] = Z3;
+			                    ref_path_inf->prev = -1;
+			                    ref_path_inf->next = -2;
+			                    ref_path_inf->prio = 2;
 
                                 _frame_parts = fb->buf[2]->num_parts
-			                    curr_path_inf.decis[curr_path_inf.prev.inlist]=rr;
-			                    curr_path_inf.linkdecis[curr_path_inf.inlist] = \
+			                    curr_path_inf->decis[curr_path_inf->inlist] = rr;
+			                    curr_path_inf->linkdecis[curr_path_inf->inlist] = \
                                     _frame_parts;
-			                    curr_path_inf.inlist++;
+			                    curr_path_inf->inlist++;
                                 
-                                ref_corres = fb->buf[2]->correspond[_frame_parts];
+                                ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
                                 ref_targets = fb->buf[2]->targets[_frame_parts];
 			                    for (j = 0;j < fb->num_cams; j++) {
-				                    ref_corres.p[j]=-1;
+				                    ref_corres->p[j]=-1;
                                     
 				                    if(philf[j][0]!=-999) {
                                         _ix = philf[j][0];
                     				    ref_targets[j][_ix].tnr = _frame_parts;
-				                        ref_corres.p[j] = _ix;
-				                        ref_corres.nr = _frame_parts;
+				                        ref_corres->p[j] = _ix;
+				                        ref_corres->nr = _frame_parts;
 				                    }
 			                    }
 			                    fb->buf[2]->num_parts++;
@@ -576,57 +582,63 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
     /* sort decis and give preliminary "finaldecis"  */
     for (h = 0; h < fb->buf[1]->num_parts; h++) {
-        curr_path_inf = fb->buf[1]->path_info[h];
+        curr_path_inf = &(fb->buf[1]->path_info[h]);
         
-	    if(curr_path_inf.inlist > 0 ) {
-	        sort(curr_path_inf.inlist, &curr_path_inf.decis, curr_path_inf.linkdecis);
-      	    curr_path_inf.finaldecis = curr_path_inf.decis[0];
-	        curr_path_inf.next = curr_path_inf.linkdecis[0];
+	    if(curr_path_inf->inlist > 0 ) {
+	        sort(curr_path_inf->inlist, &(curr_path_inf->decis),
+                curr_path_inf->linkdecis);
+      	    curr_path_inf->finaldecis = curr_path_inf->decis[0];
+	        curr_path_inf->next = curr_path_inf->linkdecis[0];
 	    }
 	}
 
     /* create links with decision check */
     for (h = 0;h < fb->buf[1]->num_parts; h++) {
-        curr_path_inf = fb->buf[1]->path_info[h];
+        curr_path_inf = &(fb->buf[1]->path_info[h]);
 
-	    if(curr_path_inf.inlist > 0 ) {
-            // refactoring stopped here.
+	    if(curr_path_inf->inlist > 0 ) {
+            ref_path_inf = &(fb->buf[2]->path_info[curr_path_inf->next]);
             
-	        /* best choice wasn't used yet, so link is created */
-	        if ( mega[2][mega[1][h].next].prev == -1) {	
-                mega[2][mega[1][h].next].prev=h; 
+	        if (ref_path_inf->prev == -1) {	
+	            /* best choice wasn't used yet, so link is created */
+                ref_path_inf->prev = h; 
             } else {
 	            /* best choice was already used by mega[2][mega[1][h].next].prev */
 	            /* check which is the better choice */
-	            if ( mega[1][mega[2][mega[1][h].next].prev].finaldecis > mega[1][h].finaldecis) {
-
+	            if ( fb->buf[1]->path_info[ref_path_inf->prev].finaldecis > \
+                    curr_path_inf->finaldecis) 
+                {
 		            /* remove link with prev */
-		            mega[1][mega[2][mega[1][h].next].prev].next= -2;
-		            mega[2][mega[1][h].next].prev=h;
+		            fb->buf[1]->path_info[ref_path_inf->prev]->next= -2;
+                    ref_path_inf->prev = h; 
 		        } else {
-		            mega[1][h].next=-2;
+		            curr_path_inf->next = -2;
 	            }
 	        }
-        }    
-        if (mega[1][h].next != -2 ) count1++;
+        }
+        if (curr_path_inf->next != -2 ) count1++;
     } 
     /* end of creation of links with decision check */
     /* ******** Draw links now ******** */
-    m1_tr=0;
+    m1_tr = 0;
     
     if (display) {
-        for (h=0;h<m[1];h++) {
-            if (mega[1][h].next != -2 ) {
+        for (h = 0; h < fb->buf[1]->num_parts; h++) {
+            curr_path_inf = &(fb->buf[1]->path_info[h]);
+            curr_corres = &(fb->buf[1]->correspond[h]);
+            ref_corres = &(fb->buf[2]->correspond[curr_path_inf->next]);
+            
+            if (curr_path_inf->next != -2 ) {
                 strcpy(buf,"");
                 sprintf(buf ,"green");
 	
-                for (j=0;j<n_img;j++) {
-                    if (c4[1][h].p[j]>0 && c4[2][mega[1][h].next].p[j]>0) {
+                for (j = 0; j < fb->num_cams; j++) {
+                    if (curr_corres->p[j] > 0 && ref_corres->p[j] > 0) {
                         flag_m_tr=1;  
-                        xp[j]=t4[1][j][c4[1][h].p[j]].x;
-               		    yp[j]=t4[1][j][c4[1][h].p[j]].y;
-               		    xc[j]=t4[2][j][c4[2][mega[1][h].next].p[j]].x;
-               		    yc[j]=t4[2][j][c4[2][mega[1][h].next].p[j]].y;
+                        xp[j] = curr_targets[j][curr_corres->p[j]].x;
+               		    yp[j] = curr_targets[j][curr_corres->p[j]].y;
+               		    xc[j] = fb->buf[2]->targets[j][ref_corres->p[j]].x;
+               		    yc[j] = fb->buf[2]->targets[j][ref_corres->p[j]].x;
                		    predict (xp[j], yp[j], xc[j], yc[j], &xn[j], &yn[j]);
                         
                		    if ( ( fabs(xp[j]-zoom_x[j]) < imx/(2*zoom_f[j]))
@@ -652,10 +664,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	                        pnr2_tr[j][m1_tr]=-1;
 	                        pnr3_tr[j][m1_tr]=-1;
 		
-	                        if (mega[1][h].finaldecis> 0.2) {
-	            	            pnr1_tr[j][m1_tr]=h;
-		                        pnr2_tr[j][m1_tr]=mega[1][h].next;
-		                        pnr3_tr[j][m1_tr]=mega[1][h].finaldecis;
+	                        if (curr_path_inf->finaldecis > 0.2) {
+	            	            pnr1_tr[j][m1_tr] = h;
+		                        pnr2_tr[j][m1_tr] = curr_path_inf->next;
+		                        pnr3_tr[j][m1_tr] = curr_path_inf->finaldecis;
 		                    }
                         }
                     }
@@ -679,16 +691,17 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     }
     /* ******** End of Draw links now ******** */
     sprintf (buf, "step: %d, curr: %d, next: %d, links: %d, lost: %d, add: %d",
-        step, m[1], m[2], count1, m[1]-count1, zusatz);
+        step, fb->buf[1]->num_parts, fb->buf[2]->num_parts, count1, 
+        fb->buf[1]->num_parts - count1, zusatz);
 
     /* for the average of particles and links */
-    npart = npart + m[1];
+    npart = npart + fb->buf[1]->num_parts;
     nlinks = nlinks + count1;
 
-    rotate_dataset();
-    write_ascii_data(step);
+    fb_next(fb);
+    fb_write_frame_from_start(fb, step);
     write_added(step);
-    if(step< seq_last-2) { read_ascii_data(step+3); }
+    if(step < seq_last - 2) { fb_read_frame_at_end(fb, step + 3); }
 } /* end of sequence loop */
 
 int trackcorr_c_finish(int step)

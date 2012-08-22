@@ -257,6 +257,7 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
  * char* corres_file_base, *linkage_file_base - base names of the output
  *   correspondence and likage files respectively, to which a frame number
  *   is added. Without separator.
+ * char *prio_file_base - for the linkage file with added 'prio' column.
  * int frame_num - number of frame to add to file_base. The '.' separator is 
  * added between the name and the frame number.
  * 
@@ -264,10 +265,12 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
  * True on success. 0 on failure.
  */
 int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
-    char *corres_file_base, char *linkage_file_base, int frame_num) {
-
-    FILE *corres_file, *linkage_file;
+    char *corres_file_base, char *linkage_file_base, char *prio_file_base,
+    int frame_num) 
+{
+    FILE *corres_file, *linkage_file, *prio_file;
     char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
+    char prio_fname[STR_MAX_LEN + 1]
     int	pix, j;
 
     sprintf(corres_fname, "%s.%d", corres_file_base, frame_num);
@@ -286,6 +289,16 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
 
     fprintf(corres_file, "%d\n", num_parts);
     fprintf(linkage_file, "%d\n", num_parts);
+    
+    if (prio_file_base != NULL) {
+        sprintf(prio_fname, "%s.%d", prio_file_base, frame_num);
+        prio_file = fopen (prio_fname, "w");
+        if (prio_file == NULL) {
+            printf("Can't open file %s for writing\n", prio_fname);
+            return 0;
+        }
+        fprintf(prio_file, "%d\n", num_parts);
+    }
 
     for(pix = 0; pix < num_parts; pix++) {
         fprintf(linkage_file, "%4d %4d %10.3f %10.3f %10.3f\n",
@@ -296,10 +309,16 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
 	        pix + 1, path_buf[pix].x[0], path_buf[pix].x[1], path_buf[pix].x[2],
     	    cor_buf[pix].p[0], cor_buf[pix].p[1], cor_buf[pix].p[2],
             cor_buf[pix].p[3]);
+        
+        if (prio_file_base == NULL) continue;
+        fprintf(prio_file, "%4d %4d %10.3f %10.3f %10.3f\n",
+            path_buf[pix].prev, path_buf[pix].next, path_buf[pix].x[0],
+            path_buf[pix].x[1], path_buf[pix].x[2], path_buf[pix].prio);
     }
 
     fclose(corres_file);
     fclose(linkage_file);
+    if (prio_file_base != NULL) fclose(prio_file);
     return 1;
 }
 
@@ -399,6 +418,7 @@ int read_frame(frame *self, char *file_base, char **target_file_base,
  * char *corres_file_base - base name of the correspondence file to read, to 
  *   which a frame number is added. Without separator.
  * char *linkage_file_base - same as corres_file_base, for the linkage file.
+ * char *prio_file_base - for the linkage file with added 'prio' column.
  * char **target_file_base - an array of strings following the same rules as
  *   for file_base; one for each camera in the frame.
  * int frame_num - number of frame to add to file_base. A value of 0 or less
@@ -410,12 +430,13 @@ int read_frame(frame *self, char *file_base, char **target_file_base,
  * files is undefined.
  */
 int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
-    char **target_file_base, int frame_num)
+    char *prio_file_base, char **target_file_base, int frame_num)
 {
     int cam, status;
     
     status = write_path_frame(self->correspond, self->path_info,
-        self->num_parts, corres_file_base, linkage_file_base, frame_num);
+        self->num_parts, corres_file_base, linkage_file_base, prio_file_base,
+        frame_num);
     if (status == 0) return 0;
     
     for (cam = 0; cam < self->num_cams; cam++) {
@@ -443,7 +464,8 @@ int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
  */
 
 void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
-    char *corres_file_base, char *linkage_file_base, char **target_file_base)
+    char *corres_file_base, char *linkage_file_base, char *prio_file_base,
+    char **target_file_base)
 {
     frame *alloc_frame;
     
@@ -451,6 +473,7 @@ void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
     new_buf->num_cams = num_cams;
     new_buf->corres_file_base = corres_file_base;
     new_buf->linkage_file_base = linkage_file_base;
+    new_buf->prio_file_base = prio_file_base;
     new_buf->target_file_base = target_file_base;
     
     new_buf->_ring_vec = (frame *) calloc(buf_len*2, sizeof(frame *));
@@ -508,9 +531,26 @@ void fb_next(framebuf *self) {
  * Arguments:
  * framebuf *self - the framebuf object doing the reading.
  * int frame_num - number of the frame to read in the sequence of frames.
+ *
+ * Returns:
+ * True on success, false on failure.
  */
 void fb_read_frame_at_end(framebuf *self, int frame_num) {
-    read_frame(self->buf + self->buf_len - 1, self->corres_file_base,
+    return read_frame(self->buf + self->buf_len - 1, self->corres_file_base,
         self->target_file_base, frame_num);
+}
+
+/* fb_write_frame_from_start() writes the frame to the first position in the ring.
+ *
+ * Arguments:
+ * framebuf *self - the framebuf object doing the reading.
+ * int frame_num - number of the frame to write in the sequence of frames.
+ *
+ * Returns:
+ * True on success, false on failure.
+ */
+void fb_write_frame_from_start(framebuf *self, int frame_num) {
+    return write_frame(self->buf + self->buf_len - 1, self->corres_file_base,
+        self->linkage_file_base, self->target_file_base, frame_num);
 }
 

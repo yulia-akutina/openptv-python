@@ -114,7 +114,7 @@ void write_ascii_data(int filenumber)
   set = 0;
 
   write_path_frame(c4[set], mega[set], m[set], "res/rt_is", "res/ptv_is", 
-    filenumber);
+    NULL, filenumber);
   
   /* write targets of each camera */
   for (i=0; i<n_img; i++) {
@@ -252,7 +252,7 @@ void write_ascii_datanew(int filenumber)
   set = 0;
 
   write_path_frame(c4[set], mega[set], m[set], "res/rt_is", "res/ptv_is", 
-    filenumber);
+    NULL, filenumber);
 
   /* write targets of each camera */
   for (i=0; i<n_img; i++) {

@@ -47,7 +47,8 @@ int compare_path_info(P *p1, P *p2);
 int read_path_frame(corres *cor_buf, P *path_buf, \
     char *file_base, int frame_num);
 int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
-    char *corres_file_base, char *linkage_file_base, int frame_num);
+    char *corres_file_base, char *linkage_file_base, 
+    char *prio_file_base, int frame_num);
 
 typedef struct {
     P *path_info;
@@ -63,7 +64,7 @@ void free_frame(frame *self);
 int read_frame(frame *self, char *file_base, char **target_file_base,
     int frame_num);
 int write_frame(frame *self, char *corres_file_base, char *linkage_file_base,
-    char **target_file_base, int frame_num);
+    char *prio_file_base, char **target_file_base, int frame_num);
 
 
 typedef struct {
@@ -71,14 +72,16 @@ typedef struct {
     the start of the ring. */
     frame **buf, **_ring_vec;
     int buf_len, num_cams;
-    char *corres_file_base, *linkage_file_base;
+    char *corres_file_base, *linkage_file_basei, *prio_file_base;
     char **target_file_base;
 } framebuf;
 
 void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
-    char *corres_file_base, char* linkage_file_base, char **target_file_base);
+    char *corres_file_base, char* linkage_file_base, char *prio_file_base,
+    char **target_file_base);
 void fb_free(framebuf *self);
 void fb_next(framebuf *self);
-void fb_read_frame_at_end(framebuf *self, int frame_num);
+int fb_read_frame_at_end(framebuf *self, int frame_num);
+int fb_write_frame_from_start(framebuf *self, int frame_num);
 
 #endif
