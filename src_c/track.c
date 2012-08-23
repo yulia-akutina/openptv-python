@@ -188,9 +188,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	        for (j = 0; j < fb->num_cams; j++) {
         		img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
-		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
-        		x1[j]=xn[j];
-		        y1[j]=yn[j];
+		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x1[j], &y1[j], chfield);
 	        }
 	    } else {  
             X2=X1; Y2=Y1; Z2=Z1;
@@ -198,11 +196,8 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	            if (curr_corres->p[j] == -1) {
 	                img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], 
                         &yn[j]);
-	                metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], 
-                        &yn[j], chfield);
-                
-	                x1[j]=xn[j];
-	                y1[j]=yn[j];
+	                metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x1[j], 
+                        &y1[j], chfield);
 	            } else {
                     _ix = curr_corres->p[j];
                     x1[j] = curr_targets[j][_ix].x;
@@ -266,9 +261,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	        for (j = 0; j < fb->num_cams; j++) {
 		        img_coord (X5, Y5, Z5, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
-		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
-		        x2[j]=xn[j];
-		        y2[j]=yn[j];
+		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x2[j], &y2[j], chfield);
 	        }
 
 	        /* search for candidates in next time step */
