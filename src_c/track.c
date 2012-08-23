@@ -708,7 +708,10 @@ int trackcorr_c_finish(int step)
 
   fb_next(fb);
   fb_write_frame_from_start(fb, step);
-
+  
+  fb_free(fb);
+  free(fb);
+    
   /* reset of display flag */
   display = 1;
 }

@@ -506,6 +506,7 @@ void fb_free(framebuf *self) {
     while (self->buf != self->_ring_vec + self->buf_len) {
         free_frame(*(self->buf));
         free(*(self->buf));
+        self->buf++;
     }
     self->buf = NULL;
     
