@@ -270,7 +270,7 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
 {
     FILE *corres_file, *linkage_file, *prio_file;
     char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
-    char prio_fname[STR_MAX_LEN + 1]
+    char prio_fname[STR_MAX_LEN + 1];
     int	pix, j;
 
     sprintf(corres_fname, "%s.%d", corres_file_base, frame_num);
@@ -311,7 +311,7 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
             cor_buf[pix].p[3]);
         
         if (prio_file_base == NULL) continue;
-        fprintf(prio_file, "%4d %4d %10.3f %10.3f %10.3f\n",
+        fprintf(prio_file, "%4d %4d %10.3f %10.3f %10.3f %d\n",
             path_buf[pix].prev, path_buf[pix].next, path_buf[pix].x[0],
             path_buf[pix].x[1], path_buf[pix].x[2], path_buf[pix].prio);
     }
@@ -348,7 +348,6 @@ void frame_init(frame *new_frame, int num_cams, int max_targets) {
     new_frame->num_cams = num_cams;
     new_frame->max_targets = max_targets;
     new_frame->num_parts = 0;
-    return new_frame;
 }
 
 /* free_frame() frees all memory allocated for the frame arrays.
@@ -476,7 +475,7 @@ void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
     new_buf->prio_file_base = prio_file_base;
     new_buf->target_file_base = target_file_base;
     
-    new_buf->_ring_vec = (frame *) calloc(buf_len*2, sizeof(frame *));
+    new_buf->_ring_vec = (frame **) calloc(buf_len*2, sizeof(frame *));
     new_buf->buf = new_buf->_ring_vec + buf_len;
     
     while (new_buf->buf != new_buf->_ring_vec) {
@@ -514,7 +513,7 @@ void fb_free(framebuf *self) {
     self->_ring_vec = NULL;
 }
 
-/* fb_next() advances the start pointer of the frame buffer, reseting it to the
+/* fb_next() advances the start pointer of the frame buffer, resetting it to the
  * beginning after exceeding the buffer length.
  *
  * Arguments:
@@ -526,6 +525,18 @@ void fb_next(framebuf *self) {
         self->buf = self->_ring_vec;
 }
 
+/* fb_prev() backs the start pointer of the frame buffer, setting it to the
+ * end after exceeding the buffer start.
+ *
+ * Arguments:
+ * framebuf *self - the framebuf to advance.
+ */
+void fb_prev(framebuf *self) {
+    self->buf--;
+    if (self->buf < self->_ring_vec)
+        self->buf = self->_ring_vec + self->buf_len - 1;
+}
+
 /* fb_read_frame_at_end() reads a frame to the last position in the ring.
  *
  * Arguments:
@@ -535,8 +546,8 @@ void fb_next(framebuf *self) {
  * Returns:
  * True on success, false on failure.
  */
-void fb_read_frame_at_end(framebuf *self, int frame_num) {
-    return read_frame(self->buf + self->buf_len - 1, self->corres_file_base,
+int fb_read_frame_at_end(framebuf *self, int frame_num) {
+    return read_frame(self->buf[self->buf_len - 1], self->corres_file_base,
         self->target_file_base, frame_num);
 }
 
@@ -549,8 +560,9 @@ void fb_read_frame_at_end(framebuf *self, int frame_num) {
  * Returns:
  * True on success, false on failure.
  */
-void fb_write_frame_from_start(framebuf *self, int frame_num) {
-    return write_frame(self->buf + self->buf_len - 1, self->corres_file_base,
-        self->linkage_file_base, self->target_file_base, frame_num);
+int fb_write_frame_from_start(framebuf *self, int frame_num) {
+    return write_frame(self->buf[0], self->corres_file_base,
+        self->linkage_file_base, self->prio_file_base, self->target_file_base,
+        frame_num);
 }
 

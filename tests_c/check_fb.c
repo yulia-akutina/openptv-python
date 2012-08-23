@@ -193,7 +193,7 @@ START_TEST(test_read_write_frame)
     }
     
     fail_unless(write_frame(&frm, "testing_fodder/corres_test_write",
-        "testing_fodder/linkage_test_write", target_files, 7));
+        "testing_fodder/linkage_test_write", NULL, target_files, 7));
     
     frame_init(&readback, cams, max_targets);
     fail_unless(read_frame(&readback, "testing_fodder/corres_test_write",

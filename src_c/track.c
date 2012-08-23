@@ -40,7 +40,7 @@ this file.
 int trackcorr_c_init () {
     int step, img;
     double Ymin=0, Ymax=0,lmax;
-    char* target_file_base[4];
+    char** target_file_base;
     
     /* Remaining globals:
     fb - from this file, for this file only.
@@ -53,6 +53,7 @@ int trackcorr_c_init () {
     /* read configuration */
     readseqtrackcrit ();
     
+    target_file_base = (char **) calloc(n_img, sizeof(char *));
     for (img = 0; img < n_img; img++) {
         target_file_base[img] = seq_name[img];
     }
@@ -61,10 +62,11 @@ int trackcorr_c_init () {
         target_file_base);
 
     /* Prime the buffer with first frames */
-    for (step = seq_first; step < seq_first + 3); step++) {
+    for (step = seq_first; step < seq_first + 3; step++) {
         fb_read_frame_at_end(fb, step);
         fb_next(fb);
     }
+    fb_prev(fb);
 
     lmax=sqrt((tpar.dvxmin-tpar.dvxmax)*(tpar.dvxmin-tpar.dvxmax)
 	    +(tpar.dvymin-tpar.dvymax)*(tpar.dvymin-tpar.dvymax)
@@ -96,7 +98,7 @@ void reset_foundpix_array(foundpix *arr, int arr_len, int num_cams) {
 	    arr[i].ftnr = -1;
         arr[i].freq = 0;
         
-        for(cam = 0; cam < num_cams; cam++) 
+        for(cam = 0; cam < num_cams; cam++) {
             arr[i].whichcam[cam] = 0;
 	    }
     }
@@ -116,7 +118,7 @@ void copy_foundpix_array(foundpix *dest, foundpix *src, int arr_len,
     for (i = 0; i < arr_len; i++) {
         dest[i].ftnr = src[i].ftnr;
         dest[i].freq = src[i].freq;
-        for (cam = 0; cam < num_cams; cam++)
+        for (cam = 0; cam < num_cams; cam++) {
             dest[i].whichcam[cam] = src[i].whichcam[cam];
         }
     }
@@ -143,7 +145,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     /* Shortcuts to inside current frame */
     P *curr_path_inf, *ref_path_inf;
     corres *curr_corres, *ref_corres;
-    target *curr_targets, *ref_targets;
+    target **curr_targets, **ref_targets;
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
 
@@ -166,7 +168,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
         curr_corres = &(fb->buf[1]->correspond[h]);
         
 	    curr_path_inf->inlist = 0;
-        reset_foundpix_array(&p16, 16, fb->num_cams)
+        reset_foundpix_array(p16, 16, fb->num_cams);
         
 	    /* 3D-position */
 	    X1 = curr_path_inf->x[0];
@@ -184,7 +186,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        Y2 = 2*Y1 - Y0;
     	    Z2 = 2*Z1 - Z0;
 
-	        for (j=0; j < fb->num_cams; j++) {
+	        for (j = 0; j < fb->num_cams; j++) {
         		img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
         		x1[j]=xn[j];
@@ -219,7 +221,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			    xl[j], xr[j], yu[j], yd[j], &philf[j]);
             
 	        for(k = 0; k < 4; k++) {
-                _ix = philf[j][k]
+                _ix = philf[j][k];
 			    if(_ix == -999) {
 				    p16[j*4+k].ftnr=-1;
 			    }else{
@@ -243,7 +245,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        /* search for found corr of current the corr in next
 		    with predicted location */
 
-            reset_foundpix_array(&p16, 16, fb->num_cams)
+            reset_foundpix_array(p16, 16, fb->num_cams);
 
 	        /* found 3D-position */
             ref_path_inf = &(fb->buf[2]->path_info[w[mm].ftnr]);
@@ -281,7 +283,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 				    } else {
 				        if (fb->buf[3]->targets[j][philf[j][k]].tnr != -1) {
                             _ix = philf[j][k];
-                            p16[j*4+k].ftnr = b->buf[3]->targets[j][_ix].tnr;
+                            p16[j*4+k].ftnr = fb->buf[3]->targets[j][_ix].tnr;
                             p16[j*4+k].whichcam[j] = 1;
 					    }
 				    }
@@ -293,7 +295,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        sortwhatfound(&p16, &zaehler2);
 	        wn = (foundpix *) calloc (zaehler2, sizeof (foundpix));
 	        if (zaehler2 > 0) count3++;
-            copy_foundpix_array(wn, p16, zaehler2, fb->num_cams)
+            copy_foundpix_array(wn, p16, zaehler2, fb->num_cams);
 
 	        /*end of candidate struct */
 	        /* ************************************************ */
@@ -321,7 +323,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 		                angle_acc(X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, &angle1, &acc1);
 
-		                if (curr_path_inf.prev >= 0) {
+		                if (curr_path_inf->prev >= 0) {
                             angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, 
                                 &angle0, &acc0);
 		                } else {
@@ -334,7 +336,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10)) {
 			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-			                curr_path_inf->decis[curr_path_inf->prev.inlist] = rr;
+			                curr_path_inf->decis[curr_path_inf->inlist] = rr;
 			                curr_path_inf->linkdecis[curr_path_inf->inlist] = w[mm].ftnr;
 			                curr_path_inf->inlist++;
 			            }
@@ -419,10 +421,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			                    ref_path_inf->next = -2;
 			                    ref_path_inf->prio = 2;
 
-                                _frame_parts = fb->buf[3]->num_parts
-                                ref_corres = fb->buf[3]->correspond[_frame_parts];
-                                ref_targets = fb->buf[3]->targets[_frame_parts];
-			                    for (j = 0;j < fb->num_cams; j++) {
+                                _frame_parts = fb->buf[3]->num_parts;
+                                ref_corres = &(fb->buf[3]->correspond[_frame_parts]);
+                                ref_targets = fb->buf[3]->targets;
+			                    for (j = 0; j < fb->num_cams; j++) {
 				                    ref_corres->p[j]=-1;
                                     
 				                    if(philf[j][0]!=-999) {
@@ -476,7 +478,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	        free(wn);
         } /* end of zaehler1-loop */
-
+        
 	    /* begin of inlist still zero */
 	    if (tpar.add) {
 	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
@@ -546,14 +548,14 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			                    ref_path_inf->next = -2;
 			                    ref_path_inf->prio = 2;
 
-                                _frame_parts = fb->buf[2]->num_parts
+                                _frame_parts = fb->buf[2]->num_parts;
 			                    curr_path_inf->decis[curr_path_inf->inlist] = rr;
 			                    curr_path_inf->linkdecis[curr_path_inf->inlist] = \
                                     _frame_parts;
 			                    curr_path_inf->inlist++;
                                 
                                 ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
-                                ref_targets = fb->buf[2]->targets[_frame_parts];
+                                ref_targets = fb->buf[2]->targets;
 			                    for (j = 0;j < fb->num_cams; j++) {
 				                    ref_corres->p[j]=-1;
                                     
@@ -579,7 +581,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	    free(w);
 	} /* end of h-loop */
-
+    
     /* sort decis and give preliminary "finaldecis"  */
     for (h = 0; h < fb->buf[1]->num_parts; h++) {
         curr_path_inf = &(fb->buf[1]->path_info[h]);
@@ -609,7 +611,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                     curr_path_inf->finaldecis) 
                 {
 		            /* remove link with prev */
-		            fb->buf[1]->path_info[ref_path_inf->prev]->next= -2;
+		            fb->buf[1]->path_info[ref_path_inf->prev].next= -2;
                     ref_path_inf->prev = h; 
 		        } else {
 		            curr_path_inf->next = -2;
@@ -700,7 +702,6 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
     fb_next(fb);
     fb_write_frame_from_start(fb, step);
-    write_added(step);
     if(step < seq_last - 2) { fb_read_frame_at_end(fb, step + 3); }
 } /* end of sequence loop */
 
@@ -712,10 +713,8 @@ int trackcorr_c_finish(int step)
   printf ("Average over sequence, particles: %5.1f, links: %5.1f, lost: %5.1f\n",
 	  npart, nlinks, npart-nlinks);
 
-
-  rotate_dataset();
-  write_ascii_data(step);
-  write_added(step);
+  fb_next(fb);
+  fb_write_frame_from_start(fb, step);
 
   /* reset of display flag */
   display = 1;

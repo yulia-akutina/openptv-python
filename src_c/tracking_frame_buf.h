@@ -72,7 +72,7 @@ typedef struct {
     the start of the ring. */
     frame **buf, **_ring_vec;
     int buf_len, num_cams;
-    char *corres_file_base, *linkage_file_basei, *prio_file_base;
+    char *corres_file_base, *linkage_file_base, *prio_file_base;
     char **target_file_base;
 } framebuf;
 
@@ -81,6 +81,7 @@ void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
     char **target_file_base);
 void fb_free(framebuf *self);
 void fb_next(framebuf *self);
+void fb_prev(framebuf *self);
 int fb_read_frame_at_end(framebuf *self, int frame_num);
 int fb_write_frame_from_start(framebuf *self, int frame_num);
 
