@@ -5,9 +5,7 @@ import os
 import shutil
 
 cwd = os.getcwd()
-src_path = os.path.join(os.path.split(os.path.abspath(os.getcwd()))[0],'src_c')
 
-os.chdir(src_path)
 
 for line in file('setup.py'):
 	if line.strip().startswith('ext_modules'):
@@ -23,6 +21,8 @@ newlines = []
 # for filename in (f for f in filenames if f.endswith('.c')):
 
 src_path = os.path.join(os.path.split(os.path.abspath(os.getcwd()))[0],'src_c')
+os.chdir(src_path)
+
 
 # or using only the given list
 for filename in filenames:
