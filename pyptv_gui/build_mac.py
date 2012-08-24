@@ -5,23 +5,24 @@ import os
 import shutil
 
 cwd = os.getcwd()
+src_path = os.path.join(os.path.split(os.path.abspath(os.getcwd()))[0],'src_c')
+
+os.chdir(src_path)
 
 for line in file('setup.py'):
 	if line.strip().startswith('ext_modules'):
 		lst = line
 
-# import pdb; pdb.set_trace()
 
 filenames = lst.partition('"ptv1.pyx",')[-1].lstrip().strip('],\n').split(',')
 print filenames
+# filenames = ["segmentation.c", "tools.c","image_processing.c", "trafo.c", "jw_ptv.c", "peakfitting.c", "rotation.c", "correspondences.c", "epi.c", "multimed.c", "ray_tracing.c","imgcoord.c","lsqadj.c", "orientation.c","sortgrid.c", "pointpos.c","intersect.c"]
 newlines = []
 
 # taking those which are C code:
 # for filename in (f for f in filenames if f.endswith('.c')):
 
-src_path = os.path.join(os.path.split(os.path.abspath(cwd))[0],'src_c')
-os.chdir(src_path)
-
+src_path = os.path.join(os.path.split(os.path.abspath(os.getcwd()))[0],'src_c')
 
 # or using only the given list
 for filename in filenames:
