@@ -79,8 +79,26 @@ START_TEST(test_read_path_frame)
     char *file_base = "testing_fodder/rt_is";
     int frame_num = 818;
     int targets_read = 0;
-
-    targets_read = read_path_frame(cor_buf, path_buf, file_base, frame_num);
+    
+    /* Test unlinked frame: */ 
+    targets_read = read_path_frame(cor_buf, path_buf, file_base, NULL, NULL,
+        frame_num);
+    fail_unless(targets_read == 80);
+    
+    fail_unless(compare_corres(cor_buf + 2, &c_correct), \
+        "Got corres: %d, [%d %d %d %d]", cor_buf[2].nr, \
+        cor_buf[2].p[0], cor_buf[2].p[1], cor_buf[2].p[2], cor_buf[2].p[3]);
+    fail_unless(compare_path_info(path_buf + 2, &path_correct));
+    
+    /* Test frame with links */
+    path_correct.prev = 0;
+    path_correct.next = 0;
+    path_correct.prio = 0;
+    char *linkage_base = "testing_fodder/ptv_is";
+    char *prio_base = "testing_fodder/added";
+    
+    targets_read = read_path_frame(cor_buf, path_buf, file_base, linkage_base,
+        prio_base, frame_num);
     fail_unless(targets_read == 80);
     fail_unless(compare_corres(cor_buf + 2, &c_correct), \
         "Got corres: %d, [%d %d %d %d]", cor_buf[2].nr, \
@@ -160,6 +178,10 @@ START_TEST(test_read_write_frame)
     frame frm, readback;
     char* target_files[2] = {
         "testing_fodder/target_test_cam0", "testing_fodder/target_test_cam1"};
+    char *corres_base = "testing_fodder/corres_test";
+    char *linkage_base = "testing_fodder/ptv_test";
+    char *prio_base = "testing_fodder/added_test";
+    char namebuf[100]; /* For removals */
     int alt_link;
     
     // Dummy things to store in the frame's buffers:
@@ -181,6 +203,7 @@ START_TEST(test_read_write_frame)
     int cams = 2;
     int max_targets = 100;
     int cam_ix = 0;
+    int frame_num = 7;
     
     frame_init(&frm, cams, max_targets);
     
@@ -195,19 +218,40 @@ START_TEST(test_read_write_frame)
         frm.num_targets[cam_ix] = 43;
     }
     
-    fail_unless(write_frame(&frm, "testing_fodder/corres_test_write",
-        "testing_fodder/linkage_test_write", NULL, target_files, 7));
+    fail_unless(write_frame(&frm, corres_base, linkage_base, NULL,
+        target_files, frame_num));
     
     frame_init(&readback, cams, max_targets);
-    fail_unless(read_frame(&readback, "testing_fodder/corres_test_write",
-        target_files, 7));
+    fail_unless(read_frame(&readback, corres_base, NULL, NULL, target_files,
+        frame_num));
     
     fail_unless(compare_corres(&t_corres, readback.correspond + 2));
     fail_unless(compare_path_info(&t_path, readback.path_info + 2));
     fail_unless(compare_targets(&t_target, readback.targets[0] + 42));
     
-    remove("testing_fodder/corres_test_write.7");
-    remove("testing_fodder/linkage_test_write.7");
+    /* Now read frame with links: */
+    t_path.prev = 0;
+    t_path.next = 0;
+    t_path.prio = 0;
+    frm.path_info[2] = t_path;
+    
+    fail_unless(write_frame(&frm, corres_base, linkage_base, prio_base,
+        target_files, frame_num));
+    
+    frame_init(&readback, cams, max_targets);
+    fail_unless(read_frame(&readback, corres_base, linkage_base, prio_base,
+        target_files, frame_num));
+    
+    fail_unless(compare_corres(&t_corres, readback.correspond + 2));
+    fail_unless(compare_path_info(&t_path, readback.path_info + 2));
+    fail_unless(compare_targets(&t_target, readback.targets[0] + 42));
+    
+    sprintf(namebuf, "%s.%d", corres_base, frame_num);
+    remove(namebuf);
+    sprintf(namebuf, "%s.%d", linkage_base, frame_num);
+    remove(namebuf);
+    sprintf(namebuf, "%s.%d", prio_base, frame_num);
+    remove(namebuf);
     remove("testing_fodder/target_test_cam10007_targets");
     remove("testing_fodder/target_test_cam00007_targets");
 }

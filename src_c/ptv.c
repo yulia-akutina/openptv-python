@@ -96,7 +96,7 @@ void read_ascii_data(int filenumber)
 {
   int	i;
 
-  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", filenumber);
+  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", NULL, NULL, filenumber);
   
   /* read targets of each camera */
   for (i = 0; i < n_img; i++) {
@@ -190,51 +190,10 @@ void write_addedback(int filenumber)
 
 void read_ascii_datanew(int filenumber)
 {
-  FILE	*FILEIN;
-  char	filein[256];
-  int	i, j;
-  int   dumy;
-  double fdumy;
+  int	i;
 
-  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", filenumber);
-  /* read ptv_is-file for prev and next info */
-
-  if (filenumber < 10)       sprintf (filein, "res/ptv_is.%1d", filenumber);
-  else if (filenumber< 100)  sprintf (filein, "res/ptv_is.%2d",  filenumber);
-  else       sprintf (filein, "res/ptv_is.%3d",  filenumber);
-
-  FILEIN = fopen (filein, "r");
-  if (! FILEIN) printf("Can't open ascii file for reading\n");
-
-  fscanf(FILEIN, "%d\n", &dumy);
-
-  for(i=0; i<=m[3]; i++)
-    {
-      /*read dataset row by row*/
-      fscanf(FILEIN, "%4d %4d %lf %lf %lf\n", &mega[3][i].prev, &mega[3][i].next, &fdumy, &fdumy, &fdumy);
-    }
-  fclose(FILEIN);
-  /* end of read ptv_is-file for prev and next info */
-
-
-  /* read added-file for prio info */
-
-  if (filenumber < 10)       sprintf (filein, "res/added.%1d", filenumber);
-  else if (filenumber< 100)  sprintf (filein, "res/added.%2d",  filenumber);
-  else       sprintf (filein, "res/added.%3d",  filenumber);
-
-  FILEIN = fopen (filein, "r");
-  if (! FILEIN) printf("Can't open ascii file for reading\n");
-
-  fscanf(FILEIN, "%d\n", &dumy);
-
-  for(i=0; i<=m[3]; i++)
-    {
-      /*read dataset row by row*/
-      fscanf(FILEIN, "%4d %4d %lf %lf %lf %d\n", &dumy, &dumy, &fdumy, &fdumy, &fdumy, &mega[3][i].prio);
-    }
-  fclose(FILEIN);
-  /* end of read added-file for prio info */
+  m[3] = read_path_frame(c4[3], mega[3], "res/rt_is", "res/ptv_is",
+    "res/added", filenumber);
 
   /* read targets of each camera */
   for (i = 0; i < n_img; i++) {

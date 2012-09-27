@@ -179,8 +179,10 @@ int compare_path_info(P *p1, P *p2) {
  * Arguments:
  * corres *cor_buf - a buffer of corres structs to fill in from the file.
  * P *path_buf - same for path info structures.
- * char* file_base - base name of the files to read, to which a frame number
+ * char* corres_file_base, *linkage_file_base - base names of the output
+ *   correspondence and likage files respectively, to which a frame number
  *   is added. Without separator.
+ * char *prio_file_base - for the linkage file with added 'prio' column.
  * int frame_num - number of frame to add to file_base. A value of 0 or less
  *   means that no frame number should be added. The '.' separator is added
  * between the name and the frame number.
@@ -189,13 +191,20 @@ int compare_path_info(P *p1, P *p2) {
  * The number of points read for this frame. 0 on failure.
 */
 int read_path_frame(corres *cor_buf, P *path_buf, \
-    char *file_base, int frame_num) {
-
-    FILE *filein;
+    char *corres_file_base, char *linkage_file_base, char *prio_file_base,
+    int frame_num)
+{
+    FILE *filein, *linkagein = NULL, *prioin = NULL;
     char fname[STR_MAX_LEN];
     int read_res = 0, targets = 0, alt_link = 0;
+    double discard; /* For position values that are to be read again from a 
+                       differnt file. */
     
-    sprintf(fname, "%s.%d", file_base, frame_num);
+    /* File format: first line contains the number of points, then each line is
+    a record of path and correspondence info. We don't need the nuber of points
+    because we read to EOF anyway. */
+    
+    sprintf(fname, "%s.%d", corres_file_base, frame_num);
     filein = fopen (fname, "r");
     if (!filein) {
         /* Keeping the printf until we have proper logging. */
@@ -203,18 +212,67 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         return 0;
     }
     
-    /* File format: first line contains the number of points, then each line is
-    a record of path and correspondence info. We don't need the nuber of points
-    because we read to EOF anyway. */
-    
     read_res = fscanf(filein, "%d\n", &read_res);
     if (!read_res) return 0;
     
+    if (linkage_file_base != NULL) {
+        sprintf(fname, "%s.%d", linkage_file_base, frame_num);
+        linkagein = fopen (fname, "r");
+        
+        if (!linkagein) {
+            /* Keeping the printf until we have proper logging. */
+            printf("Can't open linkage file: %s\n", fname);
+            return 0;
+        }
+    
+        read_res = fscanf(linkagein, "%d\n", &read_res);
+        if (!read_res) return 0;
+    }
+    
+    if (prio_file_base != NULL) {
+        sprintf(fname, "%s.%d", prio_file_base, frame_num);
+        prioin = fopen (fname, "r");
+        
+        if (!prioin) {
+            /* Keeping the printf until we have proper logging. */
+            printf("Can't open prio file: %s\n", fname);
+            return 0;
+        }
+    
+        read_res = fscanf(prioin, "%d\n", &read_res);
+        if (!read_res) return 0;
+    }
+    
     do {
-        /* Defaults: */
-        path_buf->prev = -1;
-        path_buf->next = -2;
-        path_buf->prio = 4;
+        if (linkagein != NULL) {
+            read_res = fscanf(linkagein, "%4d %4d %lf %lf %lf\n",
+	            &(path_buf->prev), &(path_buf->next), &discard, &discard, &discard);
+            if (!read_res) {
+                printf("Error with linkage file format in: %s.%d\n",
+                    linkage_file_base, frame_num);
+                return 0;
+            }
+        } else {
+            /* Defaults: */
+            path_buf->prev = -1;
+            path_buf->next = -2;
+        }
+        
+        if (prioin != NULL) {
+            read_res = fscanf( prioin, "%4d %4d %lf %lf %lf %d\n",
+                &read_res, &read_res, &discard, &discard, &discard,
+                &(path_buf->prio) );
+            if (!read_res) {
+                printf("Error with linkage file format in: %s.%d\n",
+                    linkage_file_base, frame_num);
+                return 0;
+            }
+        } else {
+            path_buf->prio = 4;
+        }
+        
+        /* Initialize tracking-related transient variables. These never get
+        saved or restored. */
         path_buf->inlist = 0;
         path_buf->finaldecis = 1000000.0;
         
@@ -375,12 +433,15 @@ void free_frame(frame *self) {
 }
 
 /* read_frame() reads all of the frame associated data: correspondnces,
- * targets, and whatever else is needed.
+ * targets, and whatever else is needed. Mark files to be ignored by passing 
+ * NULL as name (only the path-info and prio files).
  * 
  * Arguments:
  * frame *self - the frame object to fill with the data read.
- * char *file_base - base name of the correspondence file to read, to which a 
- *   frame number is added. Without separator.
+ * char* corres_file_base, *linkage_file_base - base names of the output
+ *   correspondence and likage files respectively, to which a frame number
+ *   is added. Without separator.
+ * char *prio_file_base - for the linkage file with added 'prio' column.
  * char **target_file_base - an array of strings following the same rules as
  *   for file_base; one for each camera in the frame.
  * int frame_num - number of frame to add to file_base. A value of 0 or less
@@ -391,13 +452,14 @@ void free_frame(frame *self) {
  * True on success, false otherwise. In case of failure, the state of frame is
  * undefined.
  */
-int read_frame(frame *self, char *file_base, char **target_file_base,
+int read_frame(frame *self, char *corres_file_base, char *linkage_file_base,
+    char *prio_file_base, char **target_file_base,
     int frame_num)
 {
     int cam;
     
     self->num_parts = read_path_frame(self->correspond, self->path_info,
-        file_base, frame_num);
+        corres_file_base, linkage_file_base, prio_file_base, frame_num);
     if (self->num_targets == 0) return 0;
     
     for (cam = 0; cam < self->num_cams; cam++) {
@@ -549,7 +611,7 @@ void fb_prev(framebuf *self) {
  */
 int fb_read_frame_at_end(framebuf *self, int frame_num) {
     return read_frame(self->buf[self->buf_len - 1], self->corres_file_base,
-        self->target_file_base, frame_num);
+        NULL, NULL, self->target_file_base, frame_num);
 }
 
 /* fb_write_frame_from_start() writes the frame to the first position in the ring.
