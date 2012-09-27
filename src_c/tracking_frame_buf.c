@@ -326,10 +326,10 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     char *corres_file_base, char *linkage_file_base, char *prio_file_base,
     int frame_num) 
 {
-    FILE *corres_file, *linkage_file, *prio_file;
+    FILE *corres_file, *linkage_file, *prio_file = NULL;
     char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
     char prio_fname[STR_MAX_LEN + 1];
-    int	pix, j;
+    int	pix;
 
     sprintf(corres_fname, "%s.%d", corres_file_base, frame_num);
     corres_file = fopen (corres_fname, "w");
