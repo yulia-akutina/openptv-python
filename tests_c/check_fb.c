@@ -117,6 +117,9 @@ START_TEST(test_write_path_frame)
     
     fail_unless(write_path_frame(cor_buf, path_buf, 2,\
         corres_file_base, linkage_file_base, NULL, frame_num));
+    
+    remove("testing_fodder/rt_is.42");
+    remove("testing_fodder/ptv_is.42");
 }
 END_TEST
 
