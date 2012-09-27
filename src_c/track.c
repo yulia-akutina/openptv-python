@@ -19,7 +19,6 @@ Routines contained:    	trackcorr_c
 #include "ptv.h"
 #include "tracking_frame_buf.h"
 
-void write_added();
 void write_addedback();
 
 /* For now, we'll use a file-global framebuf. It is the lesser evil compared to
@@ -720,350 +719,314 @@ int trackcorr_c_finish(int step)
 
 int trackback_c ()
 {
-  char  buf[256];
-  int i, j, h, k, step, okay=0, invol=0;
-  int zaehler1, philf[4][4];
-  int count1=0, count2=0, zusatz=0;
-  int quali=0;
-  double x2[4], y2[4], angle, acc, lmax, dl;
-  double xr[4], xl[4], yd[4], yu[4];
-  double X1, Y1, Z1, X0, Y0, Z0, X2, Y2, Z2, X5, Y5, Z5;
-  double X3, Y3, Z3, X4, Y4, Z4, X6, Y6, Z6;
-  double xn[4], yn[4];
-  double rr, Ymin=0, Ymax=0;
-  double npart=0, nlinks=0;
-  foundpix *w, p16[16];
+    char  buf[256];
+    int i, j, h, k, step, okay=0, invol=0;
+    int zaehler1, philf[4][4];
+    int count1=0, count2=0, zusatz=0;
+    int quali=0;
+    double x2[4], y2[4], angle, acc, lmax, dl;
+    double xr[4], xl[4], yd[4], yu[4];
+    double X1, Y1, Z1, X0, Y0, Z0, X2, Y2, Z2, X5, Y5, Z5;
+    double X3, Y3, Z3, X4, Y4, Z4, X6, Y6, Z6;
+    double xn[4], yn[4];
+    double rr, Ymin=0, Ymax=0;
+    double npart=0, nlinks=0;
+    foundpix *w, p16[16];
 
-  display = 1; //atoi(argv[1]);
+    display = 1; //atoi(argv[1]);
+    /* read data */
+    readseqtrackcrit ();
+    
+    /*Alloc space, if checkflag for mega, c4, t4 is zero */
+    if (!trackallocflag) {
+        allocate_tracking_structs(t4, c4, mega, n_img, M);
+    }
 
-  //Tcl_Eval( ".text delete 2");
-  //Tcl_Eval( ".text insert 2 \"Track established correspondences\"");
+    /*load again first data sets*/
+    step = seq_last;
+    read_ascii_datanew(step);
+    rotate_dataset();
+    read_ascii_datanew(step-1);
+    rotate_dataset();
+    read_ascii_datanew(step-2);
+    rotate_dataset();
+    read_ascii_datanew(step-3);
+    
+    lmax=sqrt((tpar.dvxmin-tpar.dvxmax)*(tpar.dvxmin-tpar.dvxmax)
+        +(tpar.dvymin-tpar.dvymax)*(tpar.dvymin-tpar.dvymax)
+        +(tpar.dvzmin-tpar.dvzmax)*(tpar.dvzmin-tpar.dvzmax));
 
-  /* read data */
-  readseqtrackcrit ();
+    volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
-  /*Alloc space, if checkflag for mega, c4, t4 is zero */
-  if (!trackallocflag) {
-    allocate_tracking_structs(t4, c4, mega, n_img, M);
-  }
+    /* sequence loop */
+    for (step = seq_last-1; step > seq_first; step--) {
+        sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
+        
+        for (h=0; h<m[1]; h++) {
+            if (mega[1][h].next>=0 && mega[1][h].prev==-1) {
+                X1=Y1=Z1=X0=Y0=Z0=X2=Y2=Z2=X5=Y5=Z5=X3=Y3=Z3=X4=Y4=Z4=X6=Y6=Z6=-999;
+                
+                mega[1][h].inlist=0;
+                for (i=0; i<16;i++) {
+                    p16[i].ftnr=-1;
+                    p16[i].freq=0;
+                    for(j=0;j<n_img;j++) p16[i].whichcam[j] =0;
+                }
+                
+                /* 3D-position */
+                X1=mega[1][h].x[0];
+                Y1=mega[1][h].x[1];
+                Z1=mega[1][h].x[2];
+                
+                /* use information from previous to locate new search position
+                and to calculate values for search area */
+                X0=mega[0][mega[1][h].next].x[0];
+                Y0=mega[0][mega[1][h].next].x[1];
+                Z0=mega[0][mega[1][h].next].x[2];
+                X2=2*X1-X0;
+                Y2=2*Y1-Y0;
+                Z2=2*Z1-Z0;
 
-  /*load again first data sets*/
-  step = seq_last;
-  read_ascii_datanew(step);
-  rotate_dataset();
-  read_ascii_datanew(step-1);
-  rotate_dataset();
-  read_ascii_datanew(step-2);
-  rotate_dataset();
-  read_ascii_datanew(step-3);
+                for (j=0; j<n_img; j++) {   
+                    img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
+                    metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
+                }
 
-  lmax=sqrt((tpar.dvxmin-tpar.dvxmax)*(tpar.dvxmin-tpar.dvxmax)
-	    +(tpar.dvymin-tpar.dvymax)*(tpar.dvymin-tpar.dvymax)
-	    +(tpar.dvzmin-tpar.dvzmax)*(tpar.dvzmin-tpar.dvzmax));
+                /* calculate searchquader and reprojection in image space */
+                searchquader(X2, Y2, Z2, &xr, &xl, &yd, &yu);
 
-  volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
+                /* search in pix for candidates in next time step */
+                for (j=0; j<n_img; j++) {
+                    zaehler1 = candsearch_in_pix (t4[2][j], nt4[2][j], xn[j], yn[j],
+                    xl[j], xr[j], yu[j], yd[j], &philf[j]);
 
-  /* sequence loop */
-  for (step = seq_last-1; step > seq_first; step--)
-    {
-      sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
-      //Tcl_SetVar( "tbuf", buf, TCL_GLOBAL_ONLY);
-      //Tcl_Eval( ".text delete 2");
-      //Tcl_Eval( ".text insert 2 $tbuf");
+                    for(k=0; k<4; k++) {
+                        if( zaehler1>0) {
+                            if (philf[j][k] == -999){
+                                p16[j*4+k].ftnr=-1;
+                            } else {
+                                p16[j*4+k].ftnr=t4[3][j][philf[j][k]].tnr;
+                                p16[j*4+k].whichcam[j]=1;
+                            }
+                        }
+                    }
+                }
 
-      for (h=0; h<m[1]; h++)
-	{
-	  if (mega[1][h].next>=0 && mega[1][h].prev==-1) {
-	    X1=Y1=Z1=X0=Y0=Z0=X2=Y2=Z2=X5=Y5=Z5=X3=Y3=Z3=X4=Y4=Z4=X6=Y6=Z6=-999;
+                /* fill and sort candidate struct */
+                sortwhatfound(&p16, &zaehler1);
+                w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
 
-	    mega[1][h].inlist=0;
-	    for (i=0; i<16;i++)
-	      {
-		p16[i].ftnr=-1;
-		p16[i].freq=0;
-		for(j=0;j<n_img;j++) p16[i].whichcam[j] =0;
-	      }
-	    /* 3D-position */
-	    X1=mega[1][h].x[0];
-	    Y1=mega[1][h].x[1];
-	    Z1=mega[1][h].x[2];
+                /*end of candidate struct */
+                if (zaehler1 > 0) count2++;
+                for (i=0; i<zaehler1;i++) {
+                    w[i].ftnr = p16[i].ftnr;
+                    w[i].freq = p16[i].freq;
+                    for (j=0; j<n_img; j++) w[i].whichcam[j] = p16[i].whichcam[j];
+                }
 
-	    /* use information from previous to locate new search position
-	       and to calculate values for search area */
-	    X0=mega[0][mega[1][h].next].x[0];
-	    Y0=mega[0][mega[1][h].next].x[1];
-	    Z0=mega[0][mega[1][h].next].x[2];
-	    X2=2*X1-X0;
-	    Y2=2*Y1-Y0;
-	    Z2=2*Z1-Z0;
+                if (zaehler1 > 0) for (i=0; i<zaehler1;i++) {
+                    X3=mega[2][w[i].ftnr].x[0];
+                    Y3=mega[2][w[i].ftnr].x[1];
+                    Z3=mega[2][w[i].ftnr].x[2];
 
-	    for (j=0; j<n_img; j++)
-	      {
-		img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
-		metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
-	      }
+                    okay = 0;
+                    acc = 2*tpar.dacc;
+                    angle = 2*tpar.dangle;
+                    rr = 1000000; quali = 0; dl = 0;
+                    
+                    /* displacement check */
+                    if ( tpar.dvxmin < (X1-X3) && (X1-X3) < tpar.dvxmax &&
+                        tpar.dvymin < (Y1-Y3) && (Y1-Y3) < tpar.dvymax &&
+                        tpar.dvzmin < (Z1-Z3) && (Z1-Z3) < tpar.dvzmax ) 
+                    {
+                        okay=1;
+                        /* end displacement check */
 
-	    /* calculate searchquader and reprojection in image space */
-	    searchquader(X2, Y2, Z2, &xr, &xl, &yd, &yu);
+                        if ( okay ==1 ) {
+                            dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
+                                +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
 
-	    /* search in pix for candidates in next time step */
-	    for (j=0; j<n_img; j++)
-	      {
-		/* xl[j]/=5; xr[j]/=5; yu[j]/=5; yd[j]/=5; */ /* reduced search area */
-		zaehler1 = candsearch_in_pix (t4[2][j], nt4[2][j], xn[j], yn[j],
-					      xl[j], xr[j], yu[j], yd[j], &philf[j]);
-		for(k=0; k<4; k++)
-		  {
-		    if( zaehler1>0) {
-		      if (philf[j][k] == -999){
-                     p16[j*4+k].ftnr=-1;
-				}else{
-                     p16[j*4+k].ftnr=t4[3][j][philf[j][k]].tnr;
-                     p16[j*4+k].whichcam[j]=1;
-				}
-			  //p16[j*4+k].ftnr=t4[3][j][philf[j][k]].tnr; //Beat 090325
-			  //if(philf[j][k] != -999) p16[j*4+k].whichcam[j]=1;
-			  //if(philf[j][k] == -999) p16[j*4+k].ftnr=-1;
-		    }
-		  }
-	      }
+                            quali=w[i].freq;
+                            angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
 
-	    /* fill and sort candidate struct */
-	    sortwhatfound(&p16, &zaehler1);
-	    w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
+                            /* *********************check link *****************************/
+                            if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
+                                rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/quali;
 
-	    /*end of candidate struct */
-	    if (zaehler1 > 0) count2++;
-	    for (i=0; i<zaehler1;i++)
-	      {
-		w[i].ftnr = p16[i].ftnr;
-		w[i].freq = p16[i].freq;
-		for (j=0; j<n_img; j++) w[i].whichcam[j] = p16[i].whichcam[j];
-	      }
+                                mega[1][h].decis[mega[1][h].inlist]=rr;
+                                mega[1][h].linkdecis[mega[1][h].inlist]=w[i].ftnr;
+                                mega[1][h].inlist++;
+                            }
+                        }
+                    } okay=0;
+                }
 
-	    if (zaehler1 > 0) for (i=0; i<zaehler1;i++) {
-	      X3=mega[2][w[i].ftnr].x[0];
-	      Y3=mega[2][w[i].ftnr].x[1];
-	      Z3=mega[2][w[i].ftnr].x[2];
+                free(w);
+                /******************/
+                quali=0;
 
-	      okay=0; acc=2*tpar.dacc;angle=2*tpar.dangle;rr=1000000;quali=0; dl=0;
+                /* reset img coord because of n_img smaller 4 */
+                for (j=0;j<4;j++) { x2[j]=-1e10; y2[j]=-1e10;}
 
-	      /* displacement check */
-	      if ( tpar.dvxmin < (X1-X3) && (X1-X3) < tpar.dvxmax &&
-		   tpar.dvymin < (Y1-Y3) && (Y1-Y3) < tpar.dvymax &&
-		   tpar.dvzmin < (Z1-Z3) && (Z1-Z3) < tpar.dvzmax ) { okay=1;
-		   /* end displacement check */
+                /* if old wasn't found try to create new particle position from rest */
+                if (tpar.add) {
+                    if ( mega[1][h].inlist == 0) {
+                        for (j=0;j<n_img;j++) {
+                            /* use fix distance to define xl, xr, yu, yd instead of searchquader */
+                            xl[j]= xr[j]= yu[j]= yd[j] = 3.0;
 
-		   if ( okay ==1 ) {
-		     dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
-			 +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
+                            zaehler1 = candsearch_in_pixrest (t4[2][j], nt4[2][j], xn[j], yn[j],
+                            xl[j], xr[j], yu[j], yd[j], &philf[j]);
+                            if(zaehler1>0 ) { x2[j]=t4[2][j][philf[j][0]].x; y2[j]=t4[2][j][philf[j][0]].y; }
+                        }
 
-		     quali=w[i].freq;
-		     angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
+                        for (j=0;j<n_img;j++) {
+                            if (x2[j] !=-1e10 && y2[j] != -1e10) {
+                                pixel_to_metric (x2[j],y2[j], imx,imy, pix_x,pix_y, &x2[j],&y2[j], chfield); quali++;
+                            }
+                        }
 
-		     /* *********************check link *****************************/
-		     if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) )
-		       {
-			 rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/quali;
+                        if (quali>=2) {
+                            X3 = X2; Y3 =Y2; Z3 = Z2;
+                            invol=0; okay=0;
 
-			 mega[1][h].decis[mega[1][h].inlist]=rr;
-			 mega[1][h].linkdecis[mega[1][h].inlist]=w[i].ftnr;
-			 mega[1][h].inlist++;
-			 /*
-printf("h: %d, old and ok: X3: %6.3f %6.3f %6.3f, ftnr: %d, prev: %d, next: %d, angle: %6.3f, acc: %6.3f, dl: %6.3f, rr: %6.3f, quali: %d\n", h, X3, Y3, Z3, w[i].ftnr, mega[2][w[i].ftnr].prev, mega[2][w[i].ftnr].next,angle, acc, dl, rr, quali);
-			 */
-		       }
-		   }
-	      } okay=0;
-	    }
+                            det_lsq_3d (Ex, I, G, ap, mmp,
+                                x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3], &X3, &Y3, &Z3);
 
-	    free(w);
-	    /******************/
-	    quali=0;
-	    /* reset img coord because of n_img smaller 4 */
-	    for (j=0;j<4;j++) { x2[j]=-1e10; y2[j]=-1e10;}
+                            /* volume check */
+                            if ( X_lay[0] < X3 && X3 < X_lay[1] && Ymin < Y3 && Y3 < Ymax &&
+                                Zmin_lay[0] < Z3 && Z3 < Zmax_lay[1]) {invol=1;}
 
-	    /* if old wasn't found try to create new particle position from rest */
-	    if (tpar.add) {
-	      if ( mega[1][h].inlist == 0)
-		{
-		  for (j=0;j<n_img;j++)
-		    {
-		      /* use fix distance to define xl, xr, yu, yd instead of searchquader */
-		      xl[j]= xr[j]= yu[j]= yd[j] = 3.0;
+                            okay=0; acc=2*tpar.dacc;angle=2*tpar.dangle;rr=1000000; dl=0;
 
-		      zaehler1 = candsearch_in_pixrest (t4[2][j], nt4[2][j], xn[j], yn[j],
-							xl[j], xr[j], yu[j], yd[j], &philf[j]);
-		      if(zaehler1>0 ) { x2[j]=t4[2][j][philf[j][0]].x; y2[j]=t4[2][j][philf[j][0]].y; }
-		    }
+                            /* displacement check */
+                            if ( invol==1 &&
+                                tpar.dvxmin < (X1-X3) && (X1-X3) < tpar.dvxmax &&
+                                tpar.dvymin < (Y1-Y3) && (Y1-Y3) < tpar.dvymax &&
+                                tpar.dvzmin < (Z1-Z3) && (Z1-Z3) < tpar.dvzmax ) 
+                            { 
+                                okay=1;
+                                /* end displacement check */
 
-		  for (j=0;j<n_img;j++)
-		    {
-		      if (x2[j] !=-1e10 && y2[j] != -1e10) {
-			pixel_to_metric (x2[j],y2[j], imx,imy, pix_x,pix_y, &x2[j],&y2[j], chfield); quali++;
-		      }
-		    }
+                                if ( okay ==1 ) {
+                                    dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
+                                        +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
 
-		  if (quali>=2) {
-		    X3 = X2; Y3 =Y2; Z3 = Z2;
-		    invol=0; okay=0;
+                                    angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
 
-		    det_lsq_3d (Ex, I, G, ap, mmp,
-			     x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3], &X3, &Y3, &Z3);
+                                    if ( (acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10) ) {
+                                        rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
 
-		    /* volume check */
-		    if ( X_lay[0] < X3 && X3 < X_lay[1] &&
-			 Ymin < Y3 && Y3 < Ymax &&
-			 Zmin_lay[0] < Z3 && Z3 < Zmax_lay[1]) {invol=1;}
+                                        mega[2][m[2]].x[0]= X3;
+                                        mega[2][m[2]].x[1]= Y3;
+                                        mega[2][m[2]].x[2]= Z3;
+                                        mega[2][m[2]].prev= -1;
+                                        mega[2][m[2]].next= -2;
+                                        mega[2][m[2]].prio= 2;
+                                        mega[1][h].decis[mega[1][h].inlist]=rr;
+                                        mega[1][h].linkdecis[mega[1][h].inlist]=m[2];
+    
+                                        for (j=0;j<n_img;j++) {
+                                            c4[2][m[2]].p[j]=-1;
+                                            if(philf[j][0]!=-999) {
+                                                t4[2][j][philf[j][0]].tnr=m[2];
+                                                c4[2][m[2]].p[j]= philf[j][0];
+                                                c4[2][m[2]].nr=m[2];
+                                            }
+                                        }
+                                        mega[1][h].inlist++;
+                                        m[2]++;
+                                    }
+                                }
+                                okay = 0;
+                            }
+                            invol=0;
+                        }
+                    }
+                } /* end of if old wasn't found try to create new particle position from rest */
+            }
+        } /* end of h-loop */
 
-		    okay=0; acc=2*tpar.dacc;angle=2*tpar.dangle;rr=1000000; dl=0;
+        /* sort decis  */
+        for (h=0;h<m[1];h++) {
+            if(mega[1][h].inlist > 0 ) {
+                sort(mega[1][h].inlist, &mega[1][h].decis, &mega[1][h].linkdecis); 
+            }
+        }
 
-		    /* displacement check */
-		    if ( invol==1 &&
-			 tpar.dvxmin < (X1-X3) && (X1-X3) < tpar.dvxmax &&
-			 tpar.dvymin < (Y1-Y3) && (Y1-Y3) < tpar.dvymax &&
-			 tpar.dvzmin < (Z1-Z3) && (Z1-Z3) < tpar.dvzmax ) { okay=1;
-			 /* end displacement check */
+        /* create links with decision check */
+        count1=0; zusatz=0;
+        for (h=0;h<m[1];h++) {
+            if (mega[1][h].inlist > 0 ) {
+            /* if old/new and unused prev == -1 and next == -2 link is created */
+                if ( mega[2][mega[1][h].linkdecis[0]].prev == -1 && mega[2][mega[1][h].linkdecis[0]].next == -2 ) {
+                    mega[1][h].finaldecis=mega[1][h].decis[0];
+                    mega[1][h].prev=mega[1][h].linkdecis[0];
+                    mega[2][mega[1][h].prev].next=h;
+                    zusatz++;
+                }
 
-			 if ( okay ==1 ) {
-			   dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
-			       +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
+                /* old which link to prev has to be checked */
+                if ( mega[2][mega[1][h].linkdecis[0]].prev != -1 && mega[2][mega[1][h].linkdecis[0]].next == -2 ) {
+                    X0=mega[0][mega[1][h].next].x[0];
+                    Y0=mega[0][mega[1][h].next].x[1];
+                    Z0=mega[0][mega[1][h].next].x[2];
 
-			   angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
+                    X1=mega[1][h].x[0];
+                    Y1=mega[1][h].x[1];
+                    Z1=mega[1][h].x[2];
 
-			   if ( (acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10) )
-			     {
-			       rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+                    X3=mega[2][mega[1][h].linkdecis[0]].x[0];
+                    Y3=mega[2][mega[1][h].linkdecis[0]].x[1];
+                    Z3=mega[2][mega[1][h].linkdecis[0]].x[2];
 
-			       mega[2][m[2]].x[0]= X3;
-			       mega[2][m[2]].x[1]= Y3;
-			       mega[2][m[2]].x[2]= Z3;
-			       mega[2][m[2]].prev= -1;
-			       mega[2][m[2]].next= -2;
-			       mega[2][m[2]].prio= 2;
-			       mega[1][h].decis[mega[1][h].inlist]=rr;
-			       mega[1][h].linkdecis[mega[1][h].inlist]=m[2];
+                    X4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[0];
+                    Y4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[1];
+                    Z4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[2];
 
-			       for (j=0;j<n_img;j++)
-				 {
-				   c4[2][m[2]].p[j]=-1;
-				   if(philf[j][0]!=-999)
-				     {
-				       t4[2][j][philf[j][0]].tnr=m[2];
-				       c4[2][m[2]].p[j]= philf[j][0];
-				       c4[2][m[2]].nr=m[2];
-				     }
-				 }
-			       mega[1][h].inlist++;
-			       m[2]++;
-			     }
-			 } okay =0; }
-		    invol=0;
-		  }
-		}
-	    } /* end of if old wasn't found try to create new particle position from rest */
-	  }
-	} /* end of h-loop */
+                    X5=0.5*(5.0*X3-4.0*X1+X0);
+                    Y5=0.5*(5.0*Y3-4.0*Y1+Y0);
+                    Z5=0.5*(5.0*Z3-4.0*Z1+Z0);
 
-      /* sort decis  */
-      for (h=0;h<m[1];h++)
-	{
-	  if(mega[1][h].inlist > 0 ) { sort(mega[1][h].inlist, &mega[1][h].decis, &mega[1][h].linkdecis); }
-	}
+                    acc=2*tpar.dacc;angle=2*tpar.dangle;
+                    angle_acc(X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, &angle, &acc);
+                    if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
+                        mega[1][h].finaldecis=mega[1][h].decis[0];
+                        mega[1][h].prev=mega[1][h].linkdecis[0];
+                        mega[2][mega[1][h].prev].next=h;
+                        zusatz++;
+                    }
+                }
+            }
 
-      /* create links with decision check */
-      count1=0; zusatz=0;
-      for (h=0;h<m[1];h++)
-	{
-	  if (mega[1][h].inlist > 0 ) {
-	    /* if old/new and unused prev == -1 and next == -2 link is created */
-	    if ( mega[2][mega[1][h].linkdecis[0]].prev == -1 && mega[2][mega[1][h].linkdecis[0]].next == -2 )
-	      {
-		mega[1][h].finaldecis=mega[1][h].decis[0];
-		mega[1][h].prev=mega[1][h].linkdecis[0];
-		mega[2][mega[1][h].prev].next=h;
-		zusatz++;
-	      }
+            if (mega[1][h].prev != -1 ) count1++;
+        } /* end of creation of links with decision check */
 
-	    /* old which link to prev has to be checked */
-	    if ( mega[2][mega[1][h].linkdecis[0]].prev != -1 && mega[2][mega[1][h].linkdecis[0]].next == -2 )
-	      {
-		X0=mega[0][mega[1][h].next].x[0];
-		Y0=mega[0][mega[1][h].next].x[1];
-		Z0=mega[0][mega[1][h].next].x[2];
+        sprintf (buf, "step: %d, curr: %d, next: %d, links: %d, lost: %d, add: %d",
+        step, m[1], m[2], count1, m[1]-count1, zusatz);
 
-		X1=mega[1][h].x[0];
-		Y1=mega[1][h].x[1];
-		Z1=mega[1][h].x[2];
+        /* for the average of particles and links */
+        npart = npart + m[1];
+        nlinks = nlinks + count1;
 
-		X3=mega[2][mega[1][h].linkdecis[0]].x[0];
-		Y3=mega[2][mega[1][h].linkdecis[0]].x[1];
-		Z3=mega[2][mega[1][h].linkdecis[0]].x[2];
-
-		X4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[0];
-		Y4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[1];
-		Z4=mega[3][mega[2][mega[1][h].linkdecis[0]].prev].x[2];
-
-		X5=0.5*(5.0*X3-4.0*X1+X0);
-		Y5=0.5*(5.0*Y3-4.0*Y1+Y0);
-		Z5=0.5*(5.0*Z3-4.0*Z1+Z0);
-
-		acc=2*tpar.dacc;angle=2*tpar.dangle;
-		angle_acc(X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, &angle, &acc);
-		/*
-printf("check X0: %6.3f %6.3f %6.3f\n", X0, Y0, Z0);
-printf("check X1: %6.3f %6.3f %6.3f\n", X1, Y1, Z1);
-printf("check X3: %6.3f %6.3f %6.3f\n", X3, Y3, Z3);
-printf("check X4: %6.3f %6.3f %6.3f\n", X4, Y4, Z4);
-printf("check X5: %6.3f %6.3f %6.3f\n", X5, Y5, Z5);
-printf("check old, new: X3: %6.3f, Y3: %6.3f, Z3: %6.3f, angle: %6.3f, acc: %6.3f\n", X3, Y3, Z3, angle, acc);
-*/
-		if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) )
-		  {
-		    mega[1][h].finaldecis=mega[1][h].decis[0];
-		    mega[1][h].prev=mega[1][h].linkdecis[0];
-		    mega[2][mega[1][h].prev].next=h;
-		    zusatz++;
-		  }
-	      }
-	  }
-
-	  if (mega[1][h].prev != -1 ) count1++;
-	} /* end of creation of links with decision check */
-
-      sprintf (buf, "step: %d, curr: %d, next: %d, links: %d, lost: %d, add: %d",
-	       step, m[1], m[2], count1, m[1]-count1, zusatz);
-
-      /* for the average of particles and links */
-      npart = npart + m[1];
-      nlinks = nlinks + count1;
-      /*
-	printf("%s\n", buf);
-      */
-
-      //Tcl_SetVar( "tbuf", buf, TCL_GLOBAL_ONLY);
-      //Tcl_Eval( ".text delete 3");
-      //Tcl_Eval( ".text insert 3 $tbuf");
-      //Tcl_Eval( "update idletasks");
-
-      rotate_dataset();
-      write_ascii_datanew(step);
-write_addedback(step);
-      if(step> seq_first+2) { read_ascii_datanew(step-3); }
+        rotate_dataset();
+        write_ascii_datanew(step);
+        write_addedback(step);
+        if(step> seq_first+2) { read_ascii_datanew(step-3); }
 
     } /* end of sequence loop */
 
-  /* average of all steps */
-  npart /= (seq_last-seq_first-1);
-  nlinks /= (seq_last-seq_first-1);
-  printf ("Average over sequence, particles: %5.1f, links: %5.1f, lost: %5.1f\n",
-	  npart, nlinks, npart-nlinks);
+    /* average of all steps */
+    npart /= (seq_last-seq_first-1);
+    nlinks /= (seq_last-seq_first-1);
+    printf ("Average over sequence, particles: %5.1f, links: %5.1f, lost: %5.1f\n",
+    npart, nlinks, npart-nlinks);
 
-  rotate_dataset();
-  write_ascii_datanew(step);
-write_addedback(step);
+    rotate_dataset();
+    write_ascii_datanew(step);
+    write_addedback(step);
 
-  /* reset of display flag */
-  display = 1;
-  //return TCL_OK;
+    /* reset of display flag */
+    display = 1;
 }
+
