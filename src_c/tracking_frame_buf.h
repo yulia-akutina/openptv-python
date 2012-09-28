@@ -32,9 +32,11 @@ corres;
 
 int compare_corres(corres *c1, corres *c2);
 
+typedef double coord_t;
+
 typedef struct Pstruct
 {
-  float x[3]; /*coordinates*/
+  coord_t x[3]; /*coordinates*/
   int prev, next; /*pointer to prev or next link*/
   int prio; /*Prority of link is used for differen levels*/
   float decis[POSI]; /*Bin for decision critera of possible links to next dataset*/
@@ -83,7 +85,7 @@ void fb_init(framebuf *new_buf, int buf_len, int num_cams, int max_targets,\
 void fb_free(framebuf *self);
 void fb_next(framebuf *self);
 void fb_prev(framebuf *self);
-int fb_read_frame_at_end(framebuf *self, int frame_num);
+int fb_read_frame_at_end(framebuf *self, int frame_num, int read_links);
 int fb_write_frame_from_start(framebuf *self, int frame_num);
 
 #endif

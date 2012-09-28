@@ -115,3 +115,6 @@ class TestProcessing(unittest.TestCase):
             "scene83_event1/", "after_backtracking_targets/",
             mask=re.compile("_targets$")))
 
+if __name__ == '__main__':
+    unittest.main()
+

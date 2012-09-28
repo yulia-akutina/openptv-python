@@ -282,7 +282,7 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         }
         
         /* Rest of values: */
-        read_res = fscanf(filein, "%d %f %f %f %d %d %d %d\n",\
+        read_res = fscanf(filein, "%d %lf %lf %lf %d %d %d %d\n",\
             &read_res, &(path_buf->x[0]), &(path_buf->x[1]), &(path_buf->x[2]),
             &(cor_buf->p[0]), &(cor_buf->p[1]), &(cor_buf->p[2]),
             &(cor_buf->p[3]) );
@@ -605,13 +605,20 @@ void fb_prev(framebuf *self) {
  * Arguments:
  * framebuf *self - the framebuf object doing the reading.
  * int frame_num - number of the frame to read in the sequence of frames.
+ * int read_links - whether or not to read data in the linkage/prio files.
  *
  * Returns:
  * True on success, false on failure.
  */
-int fb_read_frame_at_end(framebuf *self, int frame_num) {
-    return read_frame(self->buf[self->buf_len - 1], self->corres_file_base,
-        NULL, NULL, self->target_file_base, frame_num);
+int fb_read_frame_at_end(framebuf *self, int frame_num, int read_links) {
+    if (read_links) {
+        return read_frame(self->buf[self->buf_len - 1], self->corres_file_base,
+            self->linkage_file_base, self->prio_file_base, 
+            self->target_file_base, frame_num);
+    } else {
+        return read_frame(self->buf[self->buf_len - 1], self->corres_file_base,
+            NULL, NULL, self->target_file_base, frame_num);
+    }
 }
 
 /* fb_write_frame_from_start() writes the frame to the first position in the ring.

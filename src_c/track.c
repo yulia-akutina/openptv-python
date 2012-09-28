@@ -16,8 +16,10 @@ Description:   	        Tracking of particles in image- and objectspace
 Routines contained:    	trackcorr_c
 
 *******************************************************************/
+#include <math.h>
 #include "ptv.h"
 #include "tracking_frame_buf.h"
+#include "vec_utils.h"
 
 void write_addedback();
 
@@ -29,12 +31,17 @@ the functions' interface.
 framebuf *fb;
 
 /* The buffer space required for this algorithm: 
+
 Note that MAX_TARGETS is taken from the global M, but I want a separate
 definition because the fb created here should be local, not used outside
 this file. 
+
+MAX_CANDS is the max number of candidates sought in search volume for next 
+link.
 */
 #define BUFSPACE 4
 #define MAX_TARGETS 20000
+#define MAX_CANDS 4
 
 int trackcorr_c_init () {
     int step, img;
@@ -62,15 +69,13 @@ int trackcorr_c_init () {
 
     /* Prime the buffer with first frames */
     for (step = seq_first; step < seq_first + 3; step++) {
-        fb_read_frame_at_end(fb, step);
+        fb_read_frame_at_end(fb, step, 0);
         fb_next(fb);
     }
     fb_prev(fb);
 
-    lmax=sqrt((tpar.dvxmin-tpar.dvxmax)*(tpar.dvxmin-tpar.dvxmax)
-	    +(tpar.dvymin-tpar.dvymax)*(tpar.dvymin-tpar.dvymax)
-	    +(tpar.dvzmin-tpar.dvzmax)*(tpar.dvzmin-tpar.dvzmax));
-
+    lmax=norm((tpar.dvxmin - tpar.dvxmax), (tpar.dvymin - tpar.dvymax),
+	    (tpar.dvzmin - tpar.dvzmax));
     volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
     // Denis - globals below are passed to trackcorr_c_loop
@@ -123,20 +128,71 @@ void copy_foundpix_array(foundpix *dest, foundpix *src, int arr_len,
     }
 }
 
+/* register_closest_neighbs() finds candidates for continuing a particle's
+ * path in the search volume, and registers their data in a foundpix array
+ * that is later used by the tracking algorithm.
+ * TODO: the search area can be in a better data structure.
+ *
+ * Arguments:
+ * target *targets - the targets list to search.
+ * int num_targets - target array length.
+ * int cam - the index of the camera we're working on.
+ * double cent_x, cent_y - image coordinates of search area, [pixel]
+ * double dl, dr, du, dd - respectively the left, right, up, down distance to
+ *   the search area borders from its center, [pixel]
+ * foundpix *reg - an array of foundpix objects, one for each possible 
+ *   neighbour. Output array.
+ */
+void register_closest_neighbs(target *targets, int num_targets, int cam,
+    double cent_x, double cent_y, double dl, double dr, double du, double dd,
+    foundpix *reg)
+{
+    int cand, all_cands[MAX_CANDS];
+    
+    candsearch_in_pix (targets, num_targets, cent_x, cent_y, dl, dr, 
+        du, dd, all_cands);
+        
+    for (cand = 0; cand < MAX_CANDS; cand++) {
+        if(all_cands[cand] == -999) {
+            reg[cand].ftnr = -1;
+        } else {
+            reg[cand].whichcam[cam] = 1;
+            reg[cand].ftnr = targets[all_cands[cand]].tnr;
+        }
+    }
+}
+
+/* search_volume_center_moving() finds the position of the center of the search
+ * volume for a moving particle using the velocity of last step.
+ * 
+ * Arguments:
+ * pos3d prev_pos - previous position
+ * pos3d curr_pos - current position
+ * pos3d *output - output variable, for the  calculated 
+ *   position.
+ */
+void search_volume_center_moving(pos3d prev_pos, pos3d curr_pos, pos3d output)
+{
+    int dim;
+    
+    for (dim = 0; dim < 3; dim++) {
+        output[dim] = 2*curr_pos[dim] - prev_pos[dim];
+    }
+}
+
 int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     int display) {
    /* sequence loop */
     char  val[256], buf[256];
-    int i, j, h, k, mm, kk,  okay=0, invol=0;
-    int zaehler1, zaehler2,philf[4][4];
+    int j, h, k, mm, kk,  okay=0, invol=0;
+    int zaehler1, zaehler2, philf[4][MAX_CANDS];
     int count1=0, count2=0, count3=0, lost =0, zusatz=0;
     int intx0, intx1, inty0, inty1;
     int intx2, inty2,intx3, inty3;
     int quali=0;
+    pos3d diff_pos, X[7]; /* 7 reference points used in the algorithm, TODO: check if can reuse some */
     double x1[4], y1[4], x2[4], y2[4], angle, acc, angle0, acc0,  dl;
     double xr[4], xl[4], yd[4], yu[4], angle1, acc1;
-    double X1, Y1, Z1, X0, Y0, Z0, X2, Y2, Z2;
-    double X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, X6, Y6, Z6;
     double xp[4], yp[4], xc[4], yc[4], xn[4], yn[4];
     double rr;
     int flag_m_tr=0;
@@ -153,7 +209,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     calibration globals.
     */
     
-    foundpix *w, *wn, p16[16];
+    foundpix *w, *wn, p16[4*MAX_CANDS];
     sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
     count1=0; lost =0; zusatz=0;
     
@@ -161,7 +217,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     
     /* try to track correspondences from previous 0 - corp, variable h */
     for (h = 0; h < fb->buf[1]->num_parts; h++) {
-	    X1=Y1=Z1=X0=Y0=Z0=X2=Y2=Z2=X5=Y5=Z5=X3=Y3=Z3=X4=Y4=Z4=X6=Y6=Z6=-999;
+        for (j = 0; j < 7; j++) init_pos3d(X[j]);
         
         curr_path_inf = &(fb->buf[1]->path_info[h]);
         curr_corres = &(fb->buf[1]->correspond[h]);
@@ -170,33 +226,28 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
         reset_foundpix_array(p16, 16, fb->num_cams);
         
 	    /* 3D-position */
-	    X1 = curr_path_inf->x[0];
-	    Y1 = curr_path_inf->x[1];
-	    Z1 = curr_path_inf->x[2];
+	    copy_pos3d(X[1], curr_path_inf->x);
 
 	    /* use information from previous to locate new search position
 	       and to calculate values for search area */
 	    if (curr_path_inf->prev >= 0) {
             ref_path_inf = &(fb->buf[0]->path_info[curr_path_inf->prev]);
-	        X0 = ref_path_inf->x[0];
-	        Y0 = ref_path_inf->x[1];
-    	    Z0 = ref_path_inf->x[2];
-	        X2 = 2*X1 - X0;
-	        Y2 = 2*Y1 - Y0;
-    	    Z2 = 2*Z1 - Z0;
-
+	        copy_pos3d(X[0], ref_path_inf->x);
+            search_volume_center_moving(ref_path_inf->x, curr_path_inf->x, X[2]);
+            
 	        for (j = 0; j < fb->num_cams; j++) {
-        		img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
+                img_coord (X[2][0], X[2][1], X[2][2], Ex[j],I[j], G[j], ap[j],
+                    mmp, &xn[j], &yn[j]);
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x1[j], &y1[j], chfield);
 	        }
 	    } else {  
-            X2=X1; Y2=Y1; Z2=Z1;
+            copy_pos3d(X[2], X[1]);
 	        for (j=0; j < fb->num_cams; j++) {
 	            if (curr_corres->p[j] == -1) {
-	                img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], 
-                        &yn[j]);
-	                metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x1[j], 
-                        &y1[j], chfield);
+                    img_coord (X[2][0], X[2][1], X[2][2], Ex[j],I[j], G[j],
+                        ap[j], mmp, &xn[j], &yn[j]);
+                    metric_to_pixel (xn[j], yn[j], imx, imy, pix_x, pix_y,
+                        &x1[j], &y1[j], chfield);
 	            } else {
                     _ix = curr_corres->p[j];
                     x1[j] = curr_targets[j][_ix].x;
@@ -206,25 +257,14 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	    } 
         
 	    /* calculate searchquader and reprojection in image space */
-	    searchquader(X2, Y2, Z2, &xr, &xl, &yd, &yu);
+	    searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu);
 
 	    /* search in pix for candidates in next time step */
-	    for (j=0;j < fb->num_cams; j++) {
-	        zaehler1 = candsearch_in_pix (fb->buf[2]->targets[j], 
-                fb->buf[2]->num_targets[j], x1[j], y1[j],
-			    xl[j], xr[j], yu[j], yd[j], &philf[j]);
-            
-	        for(k = 0; k < 4; k++) {
-                _ix = philf[j][k];
-			    if(_ix == -999) {
-				    p16[j*4+k].ftnr=-1;
-			    }else{
-                    p16[j*4+k].whichcam[j]=1;
-				    p16[j*4+k].ftnr=fb->buf[2]->targets[j][_ix].tnr;
-			    }
-		    }
+	    for (j = 0; j < fb->num_cams; j++) {
+            register_closest_neighbs(fb->buf[2]->targets[j],
+                fb->buf[2]->num_targets[j], j, x1[j], y1[j],
+                xl[j], xr[j], yu[j], yd[j], &p16[j*MAX_CANDS]);
 	    }
-	    /* end of search in pix */
         
 	    /* fill and sort candidate struct */
 	    sortwhatfound(&p16, &zaehler1);
@@ -243,23 +283,19 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 	        /* found 3D-position */
             ref_path_inf = &(fb->buf[2]->path_info[w[mm].ftnr]);
-	        X3 = ref_path_inf->x[0];
-	        Y3 = ref_path_inf->x[1];
-	        Z3 = ref_path_inf->x[2];
+            copy_pos3d(X[3], ref_path_inf->x);
 
 	        if (curr_path_inf->prev >= 0) {
-		        X5=0.5*(5.0*X3-4.0*X1+X0);
-		        Y5=0.5*(5.0*Y3-4.0*Y1+Y0);
-		        Z5=0.5*(5.0*Z3-4.0*Z1+Z0);
+                for (j = 0; j < 3; j++) 
+                    X[5][j] = 0.5*(5.0*X[3][j] - 4.0*X[1][j] + X[0][j]);
 	        } else {
-		        X5=2*X3-X1;
-		        Y5=2*Y3-Y1;
-		        Z5=2*Z3-Z1; 
+                search_volume_center_moving(X[1], X[3], X[5]);
             }
-            searchquader(X5, Y5, Z5, &xr, &xl, &yd, &yu);
+            searchquader(X[5][0], X[5][1], X[5][2], &xr, &xl, &yd, &yu);
 
 	        for (j = 0; j < fb->num_cams; j++) {
-		        img_coord (X5, Y5, Z5, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
+                img_coord (X[5][0], X[5][1], X[5][2], Ex[j],I[j], G[j], ap[j],
+                    mmp, &xn[j], &yn[j]);
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &x2[j], &y2[j], chfield);
 	        }
 
@@ -293,9 +329,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        /* ************************************************ */
 	        for (kk=0; kk < zaehler2; kk++)  { /* zaehler2-loop */
                 ref_path_inf = &(fb->buf[3]->path_info[wn[kk].ftnr]);
-                X4 = ref_path_inf->x[0];
-        		Y4 = ref_path_inf->x[1];
-		        Z4 = ref_path_inf->x[2];
+                copy_pos3d(X[4], ref_path_inf->x);
 
 		        okay=0; rr=1000000; quali=0; dl=0;
         		acc=2*tpar.dacc; angle=2*tpar.dangle;
@@ -303,21 +337,25 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
         		acc1=2*tpar.dacc; angle1=2*tpar.dangle;
 
 		        /* displacement check */
-		        if ( tpar.dvxmin < (X4-X3) && (X4-X3) < tpar.dvxmax &&
-		            tpar.dvymin < (Y4-Y3) && (Y4-Y3) < tpar.dvymax &&
-		            tpar.dvzmin < (Z4-Z3) && (Z4-Z3) < tpar.dvzmax ) 
+                subst_pos3d(X[4], X[3], diff_pos);
+                if ( tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
+                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
+                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
                 { 
                     okay=1;
 
 		            if ( okay ==1 ) {
-		                dl=(sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3))
-			            +sqrt((X4-X3)*(X4-X3)+(Y4-Y3)*(Y4-Y3)+(Z4-Z3)*(Z4-Z3)))/2;
+                        dl = (diff_norm_pos3d(X[1], X[3]) + 
+                            diff_norm_pos3d(X[4], X[3]) )/2;
 
-		                angle_acc(X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, &angle1, &acc1);
+                        angle_acc(X[3][0], X[3][1], X[3][2],
+                            X[4][0], X[4][1], X[4][2],
+                            X[5][0], X[5][1], X[5][2], &angle1, &acc1);
 
 		                if (curr_path_inf->prev >= 0) {
-                            angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, 
-                                &angle0, &acc0);
+                            angle_acc(X[1][0], X[1][1], X[1][2],
+                                X[2][0], X[2][1], X[2][2],
+                                X[3][0], X[3][1], X[3][2], &angle0, &acc0);
 		                } else {
                             acc0=acc1; angle0=angle1;
                         }
@@ -341,7 +379,8 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        /* creating new particle position */
 	        /* *************************************************************** */
 	        for (j = 0;j < fb->num_cams; j++) {
-		        img_coord (X5, Y5, Z5, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
+                img_coord (X[5][0], X[5][1], X[5][2], Ex[j],I[j], G[j], ap[j],
+                    mmp, &xn[j], &yn[j]);
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
 	        }
 
@@ -371,31 +410,36 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 		    }
 
 	        if ( quali >= 2) {
-        		X4 = X5; Y4 =Y5; Z4 = Z5;
+                copy_pos3d(X[4], X[5]);
 		        invol=0; okay=0;
 
 		        det_lsq_3d (Ex, I, G, ap, mmp, x2[0], y2[0], x2[1], y2[1], 
-                    x2[2], y2[2], x2[3], y2[3], &X4, &Y4, &Z4);
+                    x2[2], y2[2], x2[3], y2[3], &(X[4][0]), &(X[4][1]), &(X[4][2]));
 
 		        /* volume check */
-		        if ( X_lay[0] < X4 && X4 < X_lay[1] &&
-		            Ymin < Y4 && Y4 < Ymax &&
-		            Zmin_lay[0] < Z4 && Z4 < Zmax_lay[1]) {invol=1;}
+		        if ( X_lay[0] < X[4][0] && X[4][0] < X_lay[1] &&
+		            Ymin < X[4][1] && X[4][1] < Ymax &&
+		            Zmin_lay[0] < X[4][2] && X[4][2] < Zmax_lay[1]) {invol=1;}
 
         		/* displacement check */
-		        if ( invol==1 &&
-		            tpar.dvxmin < (X3-X4) && (X3-X4) < tpar.dvxmax &&
-		            tpar.dvymin < (Y3-Y4) && (Y3-Y4) < tpar.dvymax &&
-		            tpar.dvzmin < (Z3-Z4) && (Z3-Z4) < tpar.dvzmax ) 
+                subst_pos3d(X[3], X[4], diff_pos);
+                if ( invol == 1 &&
+                    tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
+                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
+                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
                 { 
                     okay=1;
                     
 		            if (okay == 1) {
 		                rr=1000000; dl=0;
 		                acc=2*tpar.dacc; angle=2*tpar.dangle;
-		                angle_acc(X3, Y3, Z3, X4, Y4, Z4, X5, Y5, Z5, &angle, &acc);
-		                dl=(sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3))
-        			    +sqrt((X4-X3)*(X4-X3)+(Y4-Y3)*(Y4-Y3)+(Z4-Z3)*(Z4-Z3)))/2;
+                        
+		                dl=(diff_norm_pos3d(X[1], X[3]) + 
+                            diff_norm_pos3d(X[4], X[3]) )/2;
+
+                        angle_acc(X[3][0], X[3][1], X[3][2],
+                            X[4][0], X[4][1], X[4][2],
+                            X[5][0], X[5][1], X[5][2], &angle, &acc);
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
 			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali+w[mm].freq);
@@ -406,9 +450,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			                if (tpar.add) {
                                 ref_path_inf = &(fb->buf[3]->path_info[
                                     fb->buf[3]->num_parts]);
-			                    ref_path_inf->x[0] = X4;
-			                    ref_path_inf->x[1] = Y4;
-			                    ref_path_inf->x[2] = Z4;
+                                copy_pos3d(ref_path_inf->x, X[4]);
 			                    ref_path_inf->prev = -1;
 			                    ref_path_inf->next = -2;
 			                    ref_path_inf->prio = 2;
@@ -444,18 +486,22 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
 		        acc = 2*tpar.dacc;
                 angle = 2*tpar.dangle;
-		        if ( tpar.dvxmin < (X3-X1) && (X3-X1) < tpar.dvxmax &&
-		            tpar.dvymin < (Y3-Y1) && (Y3-Y1) < tpar.dvymax &&
-		            tpar.dvzmin < (Z3-Z1) && (Z3-Z1) < tpar.dvzmax ) 
+                
+                subst_pos3d(X[3], X[1], diff_pos);
+                if ( tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
+                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
+                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
                 {
                     okay=1;
                     
 		            if ( okay ==1 ) {
 			            rr=1000000; quali=0;
 			            quali=w[mm].freq;
-			            angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
-			            dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
-			            +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
+                        angle_acc(X[1][0], X[1][1], X[1][2],
+                            X[2][0], X[2][1], X[2][2],
+                            X[3][0], X[3][1], X[3][2], &angle, &acc);
+		                dl = (diff_norm_pos3d(X[1], X[3]) + 
+                            diff_norm_pos3d(X[0], X[1]) )/2;
 
 			            if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
 			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
@@ -475,7 +521,8 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 	    if (tpar.add) {
 	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
                 for (j = 0; j < fb->num_cams; j++) {
-		            img_coord (X2, Y2, Z2, Ex[j],I[j], G[j], ap[j], mmp, &xn[j], &yn[j]);
+                    img_coord (X[2][0], X[2][1], X[2][2], Ex[j],I[j], G[j],
+                        ap[j], mmp, &xn[j], &yn[j]);
 		            metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
 		            x2[j]=-1e10;
                     y2[j]=-1e10;
@@ -503,39 +550,41 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 		        }
 
 		        if (quali>=2) {
-		            X3 = X2; Y3 =Y2; Z3 = Z2;
+                    copy_pos3d(X[3], X[2]);
 		            invol=0; okay=0;
     
 	    	        det_lsq_3d (Ex, I, G, ap, mmp,
-		    	        x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3], &X3, &Y3, &Z3);
+                        x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3],
+                        &(X[3][0]), &(X[3][1]), &(X[3][2]));
 
 		            /* in volume check */
-		            if ( X_lay[0] < X3 && X3 < X_lay[1] &&
-		                Ymin < Y3 && Y3 < Ymax &&
-		                Zmin_lay[0] < Z3 && Z3 < Zmax_lay[1]) {invol=1;}
+		            if ( X_lay[0] < X[3][0] && X[3][0] < X_lay[1] &&
+		                Ymin < X[3][1] && X[3][1] < Ymax &&
+		                Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
 
 		            /* displacement check */
-		            if ( invol==1 &&
-		                tpar.dvxmin < (X2-X3) && (X2-X3) < tpar.dvxmax &&
-		                tpar.dvymin < (Y2-Y3) && (Y2-Y3) < tpar.dvymax &&
-		                tpar.dvzmin < (Z2-Z3) && (Z2-Z3) < tpar.dvzmax ) 
+                    subst_pos3d(X[2], X[3], diff_pos);
+                    if ( invol == 1 &&
+                        tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
+                        tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
+                        tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
                     { 
                         okay=1;
                     
 		                if (okay == 1) {
 			                rr=1000000; dl=0;
 			                acc=2*tpar.dacc;angle=2*tpar.dangle;
-			                angle_acc(X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3, &angle, &acc);
-			                dl=(sqrt((X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0)+(Z1-Z0)*(Z1-Z0))
-			                +sqrt((X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3)+(Z1-Z3)*(Z1-Z3)))/2;
+                            angle_acc(X[1][0], X[1][1], X[1][2],
+                                X[2][0], X[2][1], X[2][2],
+                                X[3][0], X[3][1], X[3][2], &angle, &acc);
+                            dl = (diff_norm_pos3d(X[1], X[3]) + 
+                                diff_norm_pos3d(X[0], X[1]) )/2;
 
 			                if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
 			                    rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
                                 ref_path_inf = &(fb->buf[2]->path_info[
                                     fb->buf[2]->num_parts]);
-			                    ref_path_inf->x[0] = X3;
-			                    ref_path_inf->x[1] = Y3;
-			                    ref_path_inf->x[2] = Z3;
+                                copy_pos3d(ref_path_inf->x, X[3]);
 			                    ref_path_inf->prev = -1;
 			                    ref_path_inf->next = -2;
 			                    ref_path_inf->prio = 2;
@@ -694,7 +743,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
     fb_next(fb);
     fb_write_frame_from_start(fb, step);
-    if(step < seq_last - 2) { fb_read_frame_at_end(fb, step + 3); }
+    if(step < seq_last - 2) { fb_read_frame_at_end(fb, step + 3, 0); }
 } /* end of sequence loop */
 
 int trackcorr_c_finish(int step)

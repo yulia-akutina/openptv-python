@@ -3,7 +3,8 @@
 lib_LTLIBRARIES = libptv.la libfb.la
 libptv_la_SOURCES = ptv.c tools.c ttools.c imgcoord.c multimed.c ray_tracing.c\
     lsqadj.c trafo.c ptv.h track.c pointpos.c intersect.c orientation.c \
-    rotation.c epi.c calibration.c tracking_frame_buf.c
+    rotation.c epi.c calibration.c tracking_frame_buf.c tracking_frame_buf.h \
+    vec_utils.c vec_utils.h
 libptv_la_LIBADD = -lm
 
 libfb_la_SOURCES = tracking_frame_buf.c tracking_frame_buf.h
