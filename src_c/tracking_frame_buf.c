@@ -172,6 +172,21 @@ int compare_path_info(P *p1, P *p2) {
     return 1;
 }
 
+/* register_link_candidate() adds information on a possible link to a path info
+ * structure.
+ *
+ * Arguments:
+ * P *self - the path info structure to modify.
+ * fitness_t fitness - the likelihood of the link candidate to actually be the
+ *     correct link, based on physical criteria.
+ * int cand - the candidate's index in next frame's target list.
+ */
+void register_link_candidate(P *self, fitness_t fitness, int cand) {
+    self->decis[self->inlist] = fitness;
+    self->linkdecis[self->inlist] = cand;
+    self->inlist++;
+}
+
 /* Reads rt_is files. these files contain both the path info and the 
  * information on correspondence between targets on the different images.
  * Sets fields not in file to default values.

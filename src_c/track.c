@@ -366,9 +366,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10)) {
 			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-			                curr_path_inf->decis[curr_path_inf->inlist] = rr;
-			                curr_path_inf->linkdecis[curr_path_inf->inlist] = w[mm].ftnr;
-			                curr_path_inf->inlist++;
+                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 			            }
 		                okay=0;
 		            }
@@ -442,10 +440,9 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                             X[5][0], X[5][1], X[5][2], &angle, &acc);
 
 		                if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
-			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali+w[mm].freq);
-			                curr_path_inf->decis[curr_path_inf->inlist]=rr;
-			                curr_path_inf->linkdecis[curr_path_inf->inlist]=w[mm].ftnr;
-			                curr_path_inf->inlist++;
+			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle) /
+                                (quali+w[mm].freq);
+                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 
 			                if (tpar.add) {
                                 ref_path_inf = &(fb->buf[3]->path_info[
@@ -505,9 +502,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
 			            if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
 			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
-			                curr_path_inf->decis[curr_path_inf->inlist] = rr;
-			                curr_path_inf->linkdecis[curr_path_inf->inlist] = w[mm].ftnr;
-			                curr_path_inf->inlist++;
+                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 			            }
 		            }
 		        }
@@ -590,10 +585,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 			                    ref_path_inf->prio = 2;
 
                                 _frame_parts = fb->buf[2]->num_parts;
-			                    curr_path_inf->decis[curr_path_inf->inlist] = rr;
-			                    curr_path_inf->linkdecis[curr_path_inf->inlist] = \
-                                    _frame_parts;
-			                    curr_path_inf->inlist++;
+                                register_link_candidate(curr_path_inf, rr, _frame_parts);
                                 
                                 ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
                                 ref_targets = fb->buf[2]->targets;

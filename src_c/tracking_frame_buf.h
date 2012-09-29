@@ -33,19 +33,22 @@ corres;
 int compare_corres(corres *c1, corres *c2);
 
 typedef double coord_t;
+typedef float fitness_t;
 
 typedef struct Pstruct
 {
   coord_t x[3]; /*coordinates*/
   int prev, next; /*pointer to prev or next link*/
   int prio; /*Prority of link is used for differen levels*/
-  float decis[POSI]; /*Bin for decision critera of possible links to next dataset*/
-  float finaldecis; /*final decision critera by which the link was established*/
+  fitness_t decis[POSI]; /*Bin for decision critera of possible links to next dataset*/
+  fitness_t finaldecis; /*final decision critera by which the link was established*/
   int linkdecis[POSI]; /* pointer of possible links to next data set*/
   int inlist; /* Counter of number of possible links to next data set*/
 } P;
 
 int compare_path_info(P *p1, P *p2);
+void register_link_candidate(P *self, fitness_t fitness, int cand);
+
 int read_path_frame(corres *cor_buf, P *path_buf, \
     char *corres_file_base, char *linkage_file_base, 
     char *prio_file_base, int frame_num);
