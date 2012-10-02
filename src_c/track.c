@@ -16,7 +16,6 @@ Description:   	        Tracking of particles in image- and objectspace
 Routines contained:    	trackcorr_c
 
 *******************************************************************/
-#include <math.h>
 #include "ptv.h"
 #include "tracking_frame_buf.h"
 #include "vec_utils.h"
@@ -838,7 +837,7 @@ int trackback_c ()
             /* calculate searchquader and reprojection in image space */
             searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu);
 
-            for (j=0; j<n_img; j++) {
+            for (j = 0; j < fb->num_cams; j++) {
                 zaehler1 = candsearch_in_pix (
                     fb->buf[2]->targets[j], fb->buf[2]->num_targets[j], xn[j], yn[j],
                     xl[j], xr[j], yu[j], yd[j], &philf[j]);
