@@ -4,6 +4,12 @@ cimport numpy as np
 cdef extern from "stdlib.h":
     void *memcpy(void *dst, void *src, long n)
 
+# Apologies. This is needed until orientation overhaul begins.
+cdef extern from "globals.h":
+    enum nmax
+    enum nfix
+
+cdef extern void prepare_eval(int n_img, int *n_fix)
 
 cdef extern void highpass(unsigned char *img, unsigned char *img_hp, int dim_lp, int filter_hp, int field)
 cdef extern int init_proc_c()
@@ -392,3 +398,31 @@ def py_get_pix_N(x,y,n_image):
       y1.append(pix[i][j].y)
       x.append(x1)
       y.append(y1)
+
+def py_prepare_eval(num_cams):
+    """
+    Wrapper around prepare_eval for regression-testing purposes.
+    
+    Arguments:
+    num_cams - number of cameras in the PTV system.
+    
+    Returns:
+    pix_arr - a (num_cams, nmax, 2) array, copy of the pix structre-array
+        that is filled-in by prepare_eval.
+    crd_arr - a (num_cams, nmax, 3) array, same for the crd struct-array.
+    """
+    prepare_eval(num_cams, 0) # the second argument is never used within.
+    
+    pix_arr = np.zeros((num_cams, nmax, 2))
+    crd_arr = np.zeros((num_cams, nmax, 3))
+    
+    for part, img in np.ndindex((nfix, num_cams)):
+        pix_arr[img, part, 0] = pix[img][part].x
+        pix_arr[img, part, 1] = pix[img][part].y
+        
+        crd_arr[img, part, 0] = pix[img][part].x
+        crd_arr[img, part, 0] = pix[img][part].y
+        crd_arr[img, part, 0] = pix[img][part].pnr
+    
+    return pix_arr, crd_arr
+
