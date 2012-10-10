@@ -1935,12 +1935,12 @@ int determination_proc_c (int dumbbell)
                 else
                     fprintf (fp2, "%4d %8.5f %8.5f    ", -999, x[j], y[j]);
             fprintf (fp2, "\n");
-            fclose (fp2);
         }
         
         if (Z < Zlo)  Zlo = Z;   if (Z > Zhi)  Zhi = Z;
     }
     
+    if (examine == 4) fclose (fp2);
     fclose (fp1);
     
     //Beat Mai 2010: now we should open the file db_is.* again, check
