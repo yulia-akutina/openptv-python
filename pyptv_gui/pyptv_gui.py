@@ -1040,12 +1040,7 @@ class MainGUI (HasTraits):
 				print self.base_name[i]
 
 		i=seq
-		if i<10:
-			seq_ch="%01d" % i
-		elif i<100:
-			seq_ch="%02d" % i
-		else:
-			seq_ch="%03d" % i
+		seq_ch = "%04d" % i
 
 		if not update_all:
 			j=self.current_camera
