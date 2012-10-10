@@ -3,11 +3,11 @@ cimport numpy as np
 
 cdef extern from "stdlib.h":
     void *memcpy(void *dst, void *src, long n)
+    enum: NULL
 
 # Apologies. This is needed until orientation overhaul begins.
-cdef extern from "globals.h":
-    enum nmax
-    enum nfix
+cdef extern enum:
+    nmax, nfix
 
 cdef extern void prepare_eval(int n_img, int *n_fix)
 
@@ -411,7 +411,7 @@ def py_prepare_eval(num_cams):
         that is filled-in by prepare_eval.
     crd_arr - a (num_cams, nmax, 3) array, same for the crd struct-array.
     """
-    prepare_eval(num_cams, 0) # the second argument is never used within.
+    prepare_eval(num_cams, NULL) # the second argument is never used within.
     
     pix_arr = np.zeros((num_cams, nmax, 2))
     crd_arr = np.zeros((num_cams, nmax, 3))
