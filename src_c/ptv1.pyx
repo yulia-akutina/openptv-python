@@ -6,8 +6,9 @@ cdef extern from "stdlib.h":
     enum: NULL
 
 # Apologies. This is needed until orientation overhaul begins.
-cdef extern enum:
-    nmax, nfix
+cdef enum:
+    nmax = 20240
+cdef extern int nfix 
 
 cdef extern void prepare_eval(int n_img, int *n_fix)
 
@@ -65,6 +66,7 @@ cdef extern target *t4[4][4]
 cdef extern int nt4[4][4]
 cdef extern target pix[4][20240]
 cdef extern coord_2d geo[4][20240]
+cdef extern coord_2d crd[4][20240]
 cdef extern n_tupel con[20240] 
 cdef extern int x_calib[4][1000]
 cdef extern int y_calib[4][1000]
@@ -420,9 +422,9 @@ def py_prepare_eval(num_cams):
         pix_arr[img, part, 0] = pix[img][part].x
         pix_arr[img, part, 1] = pix[img][part].y
         
-        crd_arr[img, part, 0] = pix[img][part].x
-        crd_arr[img, part, 0] = pix[img][part].y
-        crd_arr[img, part, 0] = pix[img][part].pnr
+        crd_arr[img, part, 0] = crd[img][part].x
+        crd_arr[img, part, 1] = crd[img][part].y
+        crd_arr[img, part, 2] = crd[img][part].pnr
     
     return pix_arr, crd_arr
 
