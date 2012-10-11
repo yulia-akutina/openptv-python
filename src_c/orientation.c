@@ -22,7 +22,10 @@ Routines contained:
 Related routines:
 
 ******************************************************************/
+#include "tracking_frame_buf.h"
 #include "ptv.h"
+
+#define MAX_TARGETS 20000
 
 //void orient (interp, Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
 void orient (Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
@@ -375,19 +378,25 @@ int *n_fix;
 int n_img;
 
 {
-    int     i_img,i,j,filenumber,step_shake,count=0,a,b,dumy,num_points;
-	int adress[4];
-	double  xa,ya,xb,yb,temp,m,bb,d=0.,dummy;
-	FILE	*FILEIN;
-    char	filein[256];
-    FILE	*FILEIN_T;
-    char	filein_T[256];
-
+    int     i_img, i, filenumber, step_shake, count = 0;
+	double  dummy;
+    
+    int part_pointer; /* Holds index of particle later */
+    
+    frame frm;
+    frame_init(&frm, n_img, MAX_TARGETS);
+    
+    /* Until configuration overhaul: */
+    char* target_file_base[4];
+    for (i_img = 0; i_img < n_img; i_img++) {
+        target_file_base[i_img] = (char *) malloc(STR_MAX_LEN);
+    }
+    
 	fpp = fopen ("parameters/sequence.par","r");
-    fscanf (fpp, "%s\n", seq_name[0]);     /* name of sequence */
-    fscanf (fpp, "%s\n", seq_name[1]);     /* name of sequence */
-    fscanf (fpp, "%s\n", seq_name[2]);     /* name of sequence */
-    fscanf (fpp, "%s\n", seq_name[3]);     /* name of sequence */
+    fscanf (fpp, "%s\n", target_file_base[0]);     /* name of sequence */
+    fscanf (fpp, "%s\n", target_file_base[1]);     /* name of sequence */
+    fscanf (fpp, "%s\n", target_file_base[2]);     /* name of sequence */
+    fscanf (fpp, "%s\n", target_file_base[3]);     /* name of sequence */
     fscanf (fpp,"%d\n", &seq_first);
     fscanf (fpp,"%d\n", &seq_last);
     fclose (fpp);
@@ -402,44 +411,21 @@ int n_img;
         fclose (fpp);
     }
 
-    for (filenumber=seq_first; filenumber<seq_last+1; filenumber=filenumber+step_shake){//chnaged by Beat Feb 08
+    for (filenumber = seq_first; filenumber <= seq_last; filenumber += step_shake)
+    {
+        read_frame(&frm, "res/db_is", NULL, NULL, target_file_base, filenumber);
 
-	    /* read targets of each camera */
-		for(i_img=0;i_img<n_img;i_img++){
-            nt4[3][i_img] = read_targets(t4[3][i_img], seq_name[i_img], \
-                filenumber);
-		}
-
-		/* read rt_is or db_is  */
-		sprintf (filein, "res/db_is.%d", filenumber);
-        FILEIN = fopen (filein, "r");
-        if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-        fscanf(FILEIN, "%d\n", &num_points);
-		for (i=0;i<num_points;i++){
-            //read points from rt_is
-            adress[0]=-1;adress[1]=-1;adress[2]=-1;adress[3]=-1;
-		    if (n_img==4){
-		        fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-	            &dumy, &fix[count].x, &fix[count].y, &fix[count].z, &adress[0], &adress[1], &adress[2], &adress[3]);
-		    }
-		    if (n_img==3){
-		        fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-	            &dumy, &fix[count].x, &fix[count].y, &fix[count].z, &adress[0], &adress[1], &adress[2]);
-		    }
-		    if (n_img==2){ 
-		        fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-	            &dumy, &fix[count].x, &fix[count].y, &fix[count].z, &adress[1]);
-		    }
-			//then fill in crd stuff
-			for(i_img=0;i_img<n_img;i_img++){
-				if(adress[i_img]>-1){
-			       pix[i_img][count].x=t4[3][i_img][adress[i_img]].x;
-		           pix[i_img][count].y=t4[3][i_img][adress[i_img]].y;
-				}
-				else{
-                   pix[i_img][count].x=-999;
-		           pix[i_img][count].y=-999;
-				}
+		for (i = 0; i < frm.num_parts; i++) {
+            for (i_img = 0; i_img < n_img; i_img++) {
+                part_pointer = frm.correspond[i].p[i_img];
+                if (part_pointer != CORRES_NONE) {
+                    pix[i_img][count].x = frm.targets[i_img][part_pointer].x;
+                    pix[i_img][count].y = frm.targets[i_img][part_pointer].y;
+                } else {
+                    pix[i_img][count].x = -999;
+                    pix[i_img][count].y = -999;
+                }
+                
 				if(pix[i_img][count].x>-999 && pix[i_img][count].y>-999){
 				   pixel_to_metric (pix[i_img][count].x, pix[i_img][count].y,
 			                        imx,imy, pix_x, pix_y,
@@ -454,8 +440,8 @@ int n_img;
 			}
 			count ++;
 		}
-        fclose(FILEIN);
 	}
+    free_frame(&frm);
 	nfix=count;
 }
 

@@ -31,6 +31,7 @@ typedef struct
 corres;
 
 int compare_corres(corres *c1, corres *c2);
+#define CORRES_NONE -1
 
 typedef double coord_t;
 typedef float fitness_t;
