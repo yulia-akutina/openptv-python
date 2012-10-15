@@ -99,10 +99,8 @@ printf("\ncheckpoint3\n " );
   /* -------------end of only one cam and 2D ------------ */
 
   /* matching  1 -> 2,3,4  +  2 -> 3,4  +  3 -> 4 */
-printf("\ncheckpoint4\n " );
   for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++)
     {
-	//printf("\ncheckpoint4.5\n " );
      printf ("Establishing correspondences  %d - %d\n", i1, i2);
     //  puts (buf);
 

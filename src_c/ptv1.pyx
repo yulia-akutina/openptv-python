@@ -62,8 +62,6 @@ ctypedef extern struct n_tupel:
     double  corr
 
 cdef extern target *p[4]
-cdef extern target *t4[4][4]
-cdef extern int nt4[4][4]
 cdef extern target pix[4][20240]
 cdef extern coord_2d geo[4][20240]
 cdef extern coord_2d crd[4][20240]
