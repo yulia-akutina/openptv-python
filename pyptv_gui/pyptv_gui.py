@@ -50,8 +50,9 @@ print 'src_path=', src_path
 if not os.path.isdir(src_path):
 	print("Wrong src_c path %s" % src_path)
 sys.path.append(src_path)
-import ptv1 as ptv
 
+import ptv1 as ptv
+from tracking_framebuf import read_targets
 
 # pyPTV specific imports
 import general
@@ -630,13 +631,18 @@ class TreeMenuHandler (Handler):
    
 	def detect_part_track(self, info):
 		""" track detected particles is handled by 2 bindings:
-			1) ptv.py_read_ascii_data(..)
+			1) tracking_framebuf.read_targets(..)
 			2) ptv.py_get_mark_track_c(..)
 		"""
 		info.object.clear_plots(remove_background=False) #clear everything
 		info.object.update_plots(info.object.orig_image,is_float=1)
-		seq_first=info.object.exp1.active_params.m_params.Seq_First #get sequence parameters
-		seq_last=info.object.exp1.active_params.m_params.Seq_Last
+		
+		prm = info.object.exp1.active_params.m_params
+		seq_first = prm.Seq_First #get sequence parameters
+		seq_last = prm.Seq_Last
+		base_names = [prm.Basename_1_Seq, prm.Basename_2_Seq, 
+			prm.Basename_3_Seq, prm.Basename_4_Seq]
+		
 		info.object.load_set_seq_image(seq_first) #load first seq image and set appropriate C array
 		n_images=len(info.object.camera_list)
 		print "Starting detect_part_track"
@@ -646,20 +652,24 @@ class TreeMenuHandler (Handler):
 			x2_a.append([])
 			y1_a.append([])
 			y2_a.append([])
+        
 		for i_seq in range(seq_first, seq_last+1): #loop over sequences
-			ptv.py_read_ascii_data(i_seq)
 			for i_img in range(n_images):
 				intx_green,inty_green,intx_blue,inty_blue=[],[],[],[]
-				nt4=ptv.py_get_nt4(i_img)
-				for h in range(nt4):
+				imx, imy, zoomx, zoomy, zoomf = ptv.py_get_mark_track_c(i_img)
+				targets = read_targets(base_names[i_img], i_seq)
+                
+				for h in range(len(targets)):
 					#get data from C
-					t4x, t4y, t4tnr, imx,imy,zoomx,zoomy,zoomf=ptv.py_get_mark_track_c(i_img,h)
-					if (t4tnr>-1):
-						intx_green.append(int(imx/2+zoomf*(t4x-zoomx)))
-						inty_green.append(int(imy/2+zoomf*(t4y-zoomy)))
+					tx, ty = targets[h].pos()
+					
+					if (targets[h].tnr() > -1):
+						intx_green.append(int(imx/2 + zoomf*(tx - zoomx)))
+						inty_green.append(int(imy/2 + zoomf*(ty - zoomy)))
 					else:
-						intx_blue.append(int(imx/2+zoomf*(t4x-zoomx)))
-						inty_blue.append(int(imy/2+zoomf*(t4y-zoomy)))
+						intx_blue.append(int(imx/2 + zoomf*(tx - zoomx)))
+						inty_blue.append(int(imy/2 + zoomf*(ty - zoomy)))
+			
 				x1_a[i_img]=x1_a[i_img]+intx_green # add current step to result array
 				x2_a[i_img]=x2_a[i_img]+intx_blue
 				y1_a[i_img]=y1_a[i_img]+inty_green

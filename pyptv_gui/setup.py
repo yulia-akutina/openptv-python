@@ -16,20 +16,25 @@ else:
 origdir = os.getcwd()
 os.chdir('../src_c')
 
-
-setup(
-    name="ptv1",
-    cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("ptv1", ["ptv1.pyx", "segmentation.c", "tools.c",
+ext_mods = [
+    Extension("ptv1", ["ptv1.pyx", "segmentation.c", "tools.c",
         "image_processing.c", "trafo.c", "jw_ptv.c", "peakfitting.c", 
         "rotation.c", "correspondences.c", "epi.c", "multimed.c", 
         "ray_tracing.c", "imgcoord.c", "lsqadj.c", "orientation.c","sortgrid.c",
         "pointpos.c", "intersect.c", "track.c", "ttools.c", "ptv.c", "draw.c",
         "mousefunction.c", "tracking_frame_buf.c", "vec_utils.c"],
-                             include_dirs = [np.get_include(),'.'],
-                             extra_compile_args=['-O3'])],
+        include_dirs = [np.get_include(),'.'],
+        extra_compile_args=['-O3']),
+    Extension("tracking_framebuf", ["tracking_framebuf.pyx",
+        "tracking_frame_buf.c"]) ]
+
+setup(
+    name="ptv1",
+    cmdclass = {'build_ext': build_ext},
+    ext_modules = ext_mods,
     py_modules = ['ptv1',],
 )
 
 import shutil
 shutil.copy2(output_name, os.path.join(origdir, output_name))
+

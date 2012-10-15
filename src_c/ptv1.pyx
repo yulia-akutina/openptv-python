@@ -332,16 +332,9 @@ def py_trackcorr_finish(step):
 def py_trackback_c():
     trackback_c ()
     
-def py_get_mark_track_c(i_img,h):
-    global t4,imx,imy,zoom_x,zoom_y,zoom_f
-    return t4[3][i_img][h].x, t4[3][i_img][h].y,t4[3][i_img][h].tnr,imx,imy,zoom_x[i_img],zoom_y[i_img],zoom_f[i_img]
-
-def py_get_nt4(i_img):
-    global nt4
-    return  nt4[3][i_img]
-
-def py_read_ascii_data(i_seq):
-    read_ascii_data(i_seq)
+def py_get_mark_track_c(i_img):
+    global imx,imy,zoom_x,zoom_y,zoom_f
+    return imx,imy,zoom_x[i_img],zoom_y[i_img],zoom_f[i_img]
 
 def py_traject_loop(seq):
     global intx1_tr,intx2_tr,inty1_tr,inty2_tr,m1_tr
