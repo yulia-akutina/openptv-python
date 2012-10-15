@@ -2,10 +2,6 @@
 
 from libc.stdlib cimport malloc, free
 
-# Needed until configuration overhaul. One step at a time.
-cdef extern from "ptv.h":
-    char seq_name[4][128]
-
 cdef extern from "tracking_frame_buf.h":
     int c_read_targets "read_targets" (target buffer[], \
         char* file_base, int frame_num)
