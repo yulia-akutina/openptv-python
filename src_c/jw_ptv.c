@@ -1393,8 +1393,8 @@ int calibration_proc_c (int sel)
 					/////////open target file(s)!
 					/* read targets of each camera */
 					
-                    nt4[3][i_img] = read_targets(t4[3][i_img], seq_name[i_img], \
-                        filenumber); /* Was nt4[3][i] but that seems wrong */
+                    nt4[3][i] = read_targets(t4[3][i], seq_name[i_img], \
+                        filenumber); 
 					
 					fscanf(FILEIN, "%d\n", &dumy); /* read # of 3D points on dumy */
 					fscanf(FILEIN_ptv, "%d\n", &dumy); /* read # of 3D points on dumy */
