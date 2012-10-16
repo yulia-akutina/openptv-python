@@ -37,6 +37,7 @@ int numn[4];                        /* no. of targets in next image */
 int n_trac[4];	           	/* no. of tracks */
 int	match=0;		      	/* no. of matches */
 int	match2=0;	      	       	/* no. of matches in 2nd pass */
+int match4_g, match3_g, match2_g, match1_g;
 
 int	nr[4][4];		     	/* point numbers for man. ori */
 int	imx, imy, imgsize;	      	/* image size */
@@ -54,6 +55,7 @@ int m[4];
 int trackallocflag = 0;      /* checkflag if mega, c4, t4 already allocated */
 int mask;						/*checkmark for subtract mask*/
 
+double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
 double	pix_x, pix_y;			      	/* pixel size */
 double	ro;			      	        /* 200/pi */
 double	cn, cnx, cny, csumg, eps0, corrmin;	/* correspondences par */
@@ -73,7 +75,7 @@ char   	img_addpar[4][128];    	/* image additional parameters */
 char   	safety[4][128];
 char    safety_addpar[4][128];
 char   	img_addpar0[4][128];   	/* ap approx. values */
-char   	seq_name[4][128];      	/* sequence names */
+char    seq_ch[128], seq_name[4][128];
 char	img_mask_name[4][256];	/* mask image names*/
 char	img_mask_path[256];
 char   	track_dir[128];	       	/* directory with dap track data */

@@ -20,6 +20,15 @@ Routines contained:    	trackcorr_c
 #include "tracking_frame_buf.h"
 #include "vec_utils.h"
 
+/* Global variables marked extern in 'globals.h' and not defined elsewhere: */
+int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
+    inty1_tr[4][10000], intx2_tr[4][10000], inty2_tr[4][10000], \
+    pnr1_tr[4][10000], pnr2_tr[4][10000], m1_tr;
+int seq_step_shake;
+double lmax_track, ymax_track, ymin_track;
+double pnr3_tr[4][10000];
+double npart, nlinks;
+
 /* For now, we'll use a file-global framebuf. It is the lesser evil compared to
 the current state of using a scatter of projectwide-globals, and will change to
 a framebuffer passed around when we get to the point we feel safe in changing 

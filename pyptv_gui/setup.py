@@ -24,7 +24,7 @@ ext_mods = [
         "pointpos.c", "intersect.c", "track.c", "ttools.c", "ptv.c", "draw.c",
         "mousefunction.c", "tracking_frame_buf.c", "vec_utils.c"],
         include_dirs = [np.get_include(),'.'],
-        extra_compile_args=['-O3']),
+        extra_compile_args=['-O3', '-fno-common']),
     Extension("tracking_framebuf", ["tracking_framebuf.pyx",
         "tracking_frame_buf.c"]) ]
 

@@ -1,5 +1,10 @@
 #include "ptv.h"
 
+/* Variables used here and defined extern in 'globals.h' */
+int rclick_intx1[4], rclick_inty1[4], rclick_intx2[4], rclick_inty2[4],\
+    rclick_points_x1[4][10000], rclick_points_y1[4][10000], rclick_count[4],\
+    rclick_points_intx1, rclick_points_inty1;
+
 int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
 
 {

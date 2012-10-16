@@ -1,4 +1,5 @@
 #include "ptv.h"
+int dumbbell_pyptv;
 
 double epi_line (xl, yl, Ex1, I1, G1, Ex2, I2, G2)
 

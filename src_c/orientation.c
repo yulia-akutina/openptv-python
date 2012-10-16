@@ -27,6 +27,10 @@ Related routines:
 
 #define MAX_TARGETS 20000
 
+/* Variables declared extern in 'globals.h' and not defined elsewhere: */
+int orient_x1[4][1000], orient_y1[4][1000], orient_x2[4][1000],\
+    orient_y2[4][1000], orient_n[4];
+
 //void orient (interp, Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
 void orient (Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
 //Tcl_Interp*     interp;

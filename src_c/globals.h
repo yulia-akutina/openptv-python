@@ -4,115 +4,120 @@
 
 #define nmax 20240
 
-	int    	n_img;			       /* no of images */
- 	 int		hp_flag;           	       /* flag for highpass */
- 	 int		allCam_flag;           	       /* flag for using all cams for points */
-	int    	tiff_flag;	               /* flag for tiff header */
-	int    	chfield;	               /* flag for field mode */
-	int    	nfix;	       		       /* no. of control points */
-	int    	num[]; 			       /* no. of particles per image */
-	int    	nump[4]; 	       	       /* no. of particles in previous image */
-	int    	numc[4]; 	       	       /* no. of particles in current image */
-	int    	numn[4]; 	       	       /* no. of particles in next image */
-	int    	n_trac[];      		       /* no. of tracks */
- 	 int    	match; 			       /* no. of matches */
-	int    	match2;		    	       /* no. of matches in 2nd pass */
-	int 	match4_g, match3_g, match2_g, match1_g;
- 	 int     corp, corc, corn;              /* no. of correspondences in p,c,n */
-	int             x_calib[4][1000];
-	int             y_calib[4][1000];
-	int             z_calib[4][1000];
-	int 		ncal_points[4];	
-	int             orient_x1[4][1000];
-	int             orient_y1[4][1000];
-	int             orient_x2[4][1000];
-	int             orient_y2[4][1000];
-	int 		orient_n[4];	
-	char    seq_ch[128], seq_name[4][128];
+extern int n_img;          /* no of images */
+extern int hp_flag;        /* flag for highpass */
+extern int allCam_flag;    /* flag for using all cams for points */
+extern int tiff_flag;      /* flag for tiff header */
+extern int chfield;	       /* flag for field mode */
+extern int nfix;           /* no. of control points */
+extern int num[];          /* no. of particles per image */
+extern int nump[4];        /* no. of particles in previous image */
+extern int numc[4];        /* no. of particles in current image */
+extern int numn[4];        /* no. of particles in next image */
+extern int n_trac[];       /* no. of tracks */
+extern int match;          /* no. of matches */
+extern int match2;         /* no. of matches in 2nd pass */
+extern int match4_g, match3_g, match2_g, match1_g;
+extern int corp, corc, corn;              /* no. of correspondences in p,c,n */
+extern int x_calib[4][1000];
+extern int y_calib[4][1000];
+extern int z_calib[4][1000];
+extern int ncal_points[4];	
+extern int orient_x1[4][1000];
+extern int orient_y1[4][1000];
+extern int orient_x2[4][1000];
+extern int orient_y2[4][1000];
+extern int orient_n[4];	
+extern char seq_ch[128], seq_name[4][128];
 	
-    double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
-    int dumbbell_pyptv;
-    
-    int seq_step_shake;
-    
+extern double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
+extern int dumbbell_pyptv;
+
+extern int seq_step_shake;
+
 //Denis - globals for tracking function
-	double lmax_track,ymax_track,ymin_track;
-	double npart,nlinks;
-	int intx0_tr[4][10000],inty0_tr[4][10000],intx1_tr[4][10000],inty1_tr[4][10000],intx2_tr[4][10000],inty2_tr[4][10000], pnr1_tr[4][10000],pnr2_tr[4][10000],m1_tr;
-	double pnr3_tr[4][10000];
+extern double lmax_track,ymax_track,ymin_track;
+extern double npart,nlinks;
+extern int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
+    inty1_tr[4][10000], intx2_tr[4][10000], inty2_tr[4][10000], \
+    pnr1_tr[4][10000], pnr2_tr[4][10000], m1_tr;
+extern double pnr3_tr[4][10000];
     
 // Denis - arrays for rclick mouse processing
-    int rclick_intx1[4],rclick_inty1[4],rclick_intx2[4],rclick_inty2[4], rclick_points_x1[4][10000],rclick_points_y1[4][10000],rclick_count[4],rclick_points_intx1,rclick_points_inty1;
+extern int rclick_intx1[4], rclick_inty1[4], rclick_intx2[4], rclick_inty2[4],\
+    rclick_points_x1[4][10000], rclick_points_y1[4][10000], rclick_count[4],\
+    rclick_points_intx1, rclick_points_inty1;
 // --------------------------------
 
-	int    	nr[4][4];		       /* point numbers for man. ori */
-	int    	imx, imy, imgsize;     	       /* image size */
-	int    	zoom_x[], zoom_y[], zoom_f[];  /* zoom parameters */
-	int    	pp1, pp2, pp3, pp4,pp5;	       /* for man. orientation */
-	int    	seq_first, seq_last;	       /* 1. and last img of seq */
-	int    	demo_nr;		       /* for demo purposes */
-	 int    	examine;       		       /* extra output */
-	int    	dump_for_rdb;		       /* # of dumpfiles for rdb */
- 	 int     cr_sz;                         /* size of crosses */
- 	 int     display;                       /* display flag */
- 	 int     m[4];
- 	 int     trackallocflag;  /* checkflag if mega, c4, t4 already allocated */
+extern int nr[4][4];                       /* point numbers for man. ori */
+extern int imx, imy, imgsize;              /* image size */
+extern int zoom_x[], zoom_y[], zoom_f[];   /* zoom parameters */
+extern int pp1, pp2, pp3, pp4,pp5;         /* for man. orientation */
+extern int seq_first, seq_last;            /* 1. and last img of seq */
+extern int demo_nr;                        /* for demo purposes */
+extern int examine;                        /* extra output */
+extern int dump_for_rdb;                   /* # of dumpfiles for rdb */
+extern int cr_sz;                          /* size of crosses */
+extern int display;                        /* display flag */
+extern int m[4];
+extern int trackallocflag;  /* checkflag if mega, c4, t4 already allocated */
 
-	double 	pix_x, pix_y;		     	/* pixel size */
-	double 	pi, ro;				/* pi, ro */
-	double 	cn, cnx, cny, csumg, eps0, corrmin;	 /* correspond. par */
-	double 	rmsX, rmsY, rmsZ, mean_sigma0;		 /* a priori rms */
-	double  X_lay[],   Zmin_lay[],   Zmax_lay[];         /* illu. layer current slice */
-  	double  db_scale;           /*dumbbell length, Beat Mai 2010*/ 
+extern double pix_x, pix_y;		     	/* pixel size */
+extern double pi, ro;
+extern double cn, cnx, cny, csumg, eps0, corrmin;    /* correspond. par */
+extern double rmsX, rmsY, rmsZ, mean_sigma0;         /* a priori rms */
+extern double X_lay[], Zmin_lay[], Zmax_lay[];       /* illu. layer current slice */
+extern double db_scale;           /*dumbbell length, Beat Mai 2010*/ 
 
-	FILE   	*fp1, *fp2, *fp3, *fp4, *fpp;	/* file pointers */
+extern FILE	*fp1, *fp2, *fp3, *fp4, *fpp;	/* file pointers */
 
-	char  img_name[4][256];	        /* original image names */
-	char  img_lp_name[4][256];    	/* lowpass image names */
-	char  img_hp_name[4][256];      /* highpass image names */
-	char  img_cal[4][128];		/* calibration image names */
-	char  img_ori[4][128];		/* image orientation data */
-	char  img_ori0[4][128];		/* orientation approx. values */
-	char  img_addpar0[4][128];	/* approx. image additional parameters */
-	char  img_addpar[4][128];	/* image additional parameters */
-	char  fixp_name[128];	/* testfield fixpoints */
-	char  seq_name[4][128];      	/* sequence names */
-	char  track_dir[128];	       	/* directory with dap track data */
-	char  res_name[128];	       	/* result destination */
-	char  buf[], val[];		       	/* buffer */
+extern char img_name[4][256];     /* original image names */
+extern char img_lp_name[4][256];  /* lowpass image names */
+extern char img_hp_name[4][256];  /* highpass image names */
+extern char img_cal[4][128];      /* calibration image names */
+extern char img_ori[4][128];      /* image orientation data */
+extern char img_ori0[4][128];     /* orientation approx. values */
+extern char img_addpar0[4][128];  /* approx. image additional parameters */
+extern char img_addpar[4][128];   /* image additional parameters */
+extern char fixp_name[128];       /* testfield fixpoints */
+extern char seq_name[4][128];     /* sequence names */
+extern char track_dir[128];       /* directory with dap track data */
+extern char res_name[128];        /* result destination */
+extern char buf[], val[];
 
-	unsigned char	*img[];			/* image data */
-	unsigned char	*zoomimg;		/* zomm image data */
+extern unsigned char *img[];        /* image data */
+extern unsigned char *zoomimg;      /* zomm image data */
 
- Exterior         Ex[];	       	/* exterior orientation */ //previous -  Exterior  Ex[];
-	Interior       	I[];	        /* interior orientation *///previous -  Exterior  I[];
-	Glass       	G[];	        /* glass orientation *///previous -  Exterior  G[];
-	ap_52	       	ap[];	       	/* add. parameters *///previous -  Exterior  ap[];
-	mm_np	       	mmp;	       	/* 3-media parameters */
-	target	       	pix[4][nmax];  	/* target pixel data */
-	target	       	pix0[4][12];    	/* pixel data for man_ori points */
-	coord_2d       	crd[4][nmax];  	/* (distorted) metric coordinates */
-	coord_2d       	geo[4][nmax];  	/* corrected metric coordinates */
-	coord_3d       	fix[];	        /* testfield points coordinates */
-	n_tupel	       	con[];	      	/* list of correspondences */
-	mm_LUT	       	mmLUT[4];     	/* LUT for mm radial displacement */
-  coord_3d        *p_c3d;
-  target          *p[4];
-  target          *c[4];
-  target          *n[4];
-  int             nt4[4][4];
-  corres          *corrp;
-  corres	       	*corrc;
-  corres	       	*corrn;
-  trackparameters tpar;
+extern Exterior Ex[];       /* exterior orientation */ //previous -  Exterior  Ex[];
+extern Interior I[];        /* interior orientation *///previous -  Exterior  I[];
+extern Glass    G[];        /* glass orientation *///previous -  Exterior  G[];
+extern ap_52    ap[];       /* add. parameters *///previous -  Exterior  ap[];
+extern mm_np    mmp;        /* 3-media parameters */
 
-	FILE	*fopen_r ();
-	double	multimed_r ();
+extern target   pix[4][nmax];  	/* target pixel data */
+extern target   pix0[4][12];    /* pixel data for man_ori points */
+extern coord_2d crd[4][nmax];   /* (distorted) metric coordinates */
+extern coord_2d geo[4][nmax];   /* corrected metric coordinates */
+extern coord_3d	fix[];          /* testfield points coordinates */
+extern n_tupel  con[];          /* list of correspondences */
+extern mm_LUT   mmLUT[4];       /* LUT for mm radial displacement */
+extern coord_3d *p_c3d;
+extern target   *p[4];
+extern target   *c[4];
+extern target   *n[4];
+extern corres   *corrp;
+extern corres  	*corrc;
+extern corres  	*corrn;
+extern trackparameters tpar;
+
+FILE *fopen_r ();
+double multimed_r ();
 
 //The following 3 are related.
-P *mega[4];
-target          *t4[4][4];
-corres	       	*c4[4];
+extern P *mega[4];
+extern target *t4[4][4];
+extern int nt4[4][4];
+extern corres *c4[4];
 void allocate_tracking_structs();
 
 // General functions:
