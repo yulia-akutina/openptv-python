@@ -42,6 +42,25 @@ START_TEST(test_allocate_tracking_structs)
 }
 END_TEST
 
+/* Generate a calibration object with example values matching those in the
+   files read by test_read_ori.
+*/
+Calibration test_cal(void) {
+    Exterior correct_ext = {
+        105.2632, 102.7458, 403.8822,
+        -0.2383291, 0.2442810, 0.0552577, 
+        {{0.9688305, -0.0535899, 0.2418587}, 
+        {-0.0033422, 0.9734041, 0.2290704},
+        {-0.2477021, -0.2227387, 0.9428845}}};
+    Interior correct_int = {-2.4742, 3.2567, 100.0000};
+    Glass correct_glass = {0.0001, 0.00001, 150.0};
+    ap_52 correct_addp = {0., 0., 0., 0., 0., 1., 0.};
+    Calibration correct_cal = {correct_ext, correct_int, correct_glass, 
+        correct_addp};
+    
+    return correct_cal;
+}
+
 /* Regression test for reading orientation files. Just reads a sample file and
    makes sure that nothing crashes and the orientation structures are filled
    out correctly.
@@ -49,25 +68,12 @@ END_TEST
 START_TEST(test_read_ori)
 {
     Exterior Ex;
-    Exterior correct_ext = {
-        105.2632, 102.7458, 403.8822,
-        -0.2383291, 0.2442810, 0.0552577, 
-        {{0.9688305, -0.0535899, 0.2418587}, 
-        {-0.0033422, 0.9734041, 0.2290704},
-        {-0.2477021, -0.2227387, 0.9428845}}};
-    
     Interior I;
-    Interior correct_int = {-2.4742, 3.2567, 100.0000};
-    
     Glass G;
-    Glass correct_glass = {0.0001, 0.00001, 150.0};
-    
     ap_52 addp;
-    ap_52 correct_addp = {0., 0., 0., 0., 0., 1., 0.};
+    Calibration cal, correct_cal;
     
-    Calibration cal;
-    Calibration correct_cal = {correct_ext, correct_int, correct_glass, 
-        correct_addp};
+    correct_cal = test_cal();
     
     char ori_file[] = "testing_fodder/cal/cam1.tif.ori";
     char add_file[] = "testing_fodder/cal/cam1.tif.addpar";
