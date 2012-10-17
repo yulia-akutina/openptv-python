@@ -535,9 +535,8 @@ int detection_proc_c()
                 /* added by Alex, 19.04.10 */
                 /* this works here only for the pre-processing stage, see img_name[i_img] is not from a sequence */
                 
-                nt4[3][i_img] = read_targets(pix[i_img], img_name[i_img], 0);
-                num[i_img] = nt4[3][i_img];
-                
+                num[i_img] = read_targets(pix[i_img], img_name[i_img], 0);
+                                
                 printf("pix.x0=%d\n",pix[i_img][0].x);
                 printf("pix.y0=%d\n",pix[i_img][0].y);
                 
@@ -774,7 +773,6 @@ int calibration_proc_c (int sel)
             strcpy (safety_addpar[3], "safety_3");
             strcat (safety_addpar[3], ".addpar");
             
-            //printf("\n Checkpoint4 \n");
             for (i=0; i<50; i++)
             {
                 printf("img0=%d\n",img[0][i]);
@@ -1753,7 +1751,6 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     if ( pft_version == 4) { 
 		for (k=0; k<n_img; k++) {
             num[k] = read_targets(pix[k], seq_name[k], i);
-            nt4[3][k] = num[k]; // Until we get to globals removal fulltime.
             
             /* proper sort of targets in y-direction for later binary search */
             /* and for dimitris' tracking */
