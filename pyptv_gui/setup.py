@@ -35,6 +35,4 @@ setup(
     py_modules = ['ptv1',],
 )
 
-import shutil
-shutil.copy2(output_name, os.path.join(origdir, output_name))
 
