@@ -8,7 +8,7 @@ import numpy as np
 import os
 
 import sys
-if sys.platform.startswith("linux"):
+if sys.platform.startswith(("linux","darwin")):
     output_name = 'ptv1.so'
 else:
     output_name = 'ptv1.pyd'
