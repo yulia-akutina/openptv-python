@@ -67,24 +67,14 @@ Calibration test_cal(void) {
 */
 START_TEST(test_read_ori)
 {
-    Exterior Ex;
-    Interior I;
-    Glass G;
-    ap_52 addp;
-    Calibration cal, correct_cal;
-    
+    Calibration correct_cal, *cal;
     correct_cal = test_cal();
     
     char ori_file[] = "testing_fodder/cal/cam1.tif.ori";
     char add_file[] = "testing_fodder/cal/cam1.tif.addpar";
     
-    fail_unless(read_ori(&Ex, &I, &G, ori_file, &addp, add_file, NULL));
-    cal.ext_par = Ex;
-    cal.int_par = I;
-    cal.glass_par = G;
-    cal.added_par = addp;
-    
-    fail_unless(compare_calib(&cal, &correct_cal));
+    fail_if((cal = read_calibration(ori_file, add_file, NULL)) == NULL);
+    fail_unless(compare_calib(cal, &correct_cal));
 }
 END_TEST
 

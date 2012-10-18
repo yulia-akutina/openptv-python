@@ -52,5 +52,8 @@ int compare_glass(Glass *g1, Glass *g2);
 int compare_addpar(ap_52 *a1, ap_52 *a2);
 int compare_calib(Calibration *c1, Calibration *c2);
 
+Calibration *read_calibration(char *ori_file, char *add_file,
+    char *fallback_file);
+
 #endif
 

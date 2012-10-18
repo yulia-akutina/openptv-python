@@ -1,5 +1,6 @@
 /* Implementation of calibration methods defined in calibration.h */
 
+#include <stdlib.h>
 #include "calibration.h"
 
 /************************************************
@@ -80,5 +81,36 @@ int compare_calib(Calibration *c1, Calibration *c2) {
         compare_interior(&(c1->int_par), &(c2->int_par)) && \
         compare_glass(&(c1->glass_par), &(c2->glass_par)) && \
         compare_addpar(&(c1->added_par), &(c2->added_par)));
+}
+
+/**************************************************
+ * read_calibration() reads orientation fiels and creates a Calibration object
+ * that represents the files' data.
+ * 
+ * Note: for now it uses read_ori(). This is scheduled to change soon.
+ * 
+ * Arguments:
+ * char *ori_file - name of the file containing interior, exterior, and glass
+ *   parameters.
+ * char *add_file - name of the file containing additional orientation
+ *   parameters.
+ * char *fallback_file - name of file to use if add_file can't be opened.
+ *
+ * Returns:
+ * On success, a pointer to a new Calibration object. On failure, NULL.
+ */
+Calibration *read_calibration(char *ori_file, char *add_file,
+    char *fallback_file)
+{
+    Calibration *ret = (Calibration *) malloc(sizeof(Calibration));
+    
+    if (read_ori(&(ret->ext_par), &(ret->int_par), &(ret->glass_par), ori_file,
+        &(ret->added_par), add_file, fallback_file))
+    {
+        return ret;
+    } else {
+        free(ret);
+        return NULL;
+    }
 }
 
