@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "ptv.h"
 
 /* declaration */
@@ -8,11 +9,25 @@ void qs_con ();
 void bubble_foundpix1 ();
 void bubble_foundpix2 ();
 
-void write_ori (Ex, I, G, filename)  /* write exterior and interior orientation */
+/* Write exterior and interior orientation, and - if available, parameters for
+   distortion corrections.
+
+   Arguments:
+   Exterior Ex - exterior orientation.
+   Interior I - interior orientation.
+   Glass G - glass parameters.
+   ap_52 addp - optional additional (distortion) parameters. NULL is fine if
+      add_file is NULL.
+   char *filename - path of file to contain interior, exterior and glass
+      orientation data.
+   char *add_file - path of file to contain added (distortions) parameters.
+*/
+void write_ori (Ex, I, G, ap, filename, add_file)
 Exterior Ex;
 Interior I;
 Glass    G;
-char	 filename[64];
+ap_52 ap;
+char *filename, *add_file;
 {
   FILE	*fp;
   int  	i;
@@ -25,7 +40,12 @@ char	 filename[64];
   fprintf (fp,"\n    %8.4f %8.4f\n    %8.4f\n", I.xh, I.yh, I.cc);
   fprintf (fp,"\n    %20.15f %20.15f  %20.15f\n", G.vec_x, G.vec_y, G.vec_z);
   fclose (fp);
-printf ("inside tools.c, yh=%f \n", I.yh);
+  
+  if (add_file == NULL) return;
+  fp = fopen (add_file, "w");
+  fprintf (fp, "%f %f %f %f %f %f %f", ap.k1, ap.k2, ap.k3, ap.p1, ap.p2,
+    ap.scx, ap.she);
+  fclose (fp);
 }
 
 

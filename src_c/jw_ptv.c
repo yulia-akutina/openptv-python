@@ -960,7 +960,7 @@ int calibration_proc_c (int sel)
                 /* raw orientation with 4 points */
                 raw_orient_v3 (Ex[i], I[i], G[i], ap[i], mmp, 4, fix4, crd0[i], &Ex[i],&G[i],0); //Beat Nov 2008
                 sprintf (filename, "raw%d.ori", i);
-                write_ori (Ex[i], I[i], G[i], filename);
+                write_ori (Ex[i], I[i], G[i], ap[i], filename, NULL); /*ap ignored*/
                 
                 /* sorting of detected points by back-projection */
                 sortgrid_man (Ex[i], I[i], G[i], ap[i], mmp,
@@ -1078,7 +1078,7 @@ int calibration_proc_c (int sel)
 				/* raw orientation with 4 points */
 				raw_orient_v3 (Ex[i], I[i], G[i], ap[i], mmp, 4, fix4, crd0[i], &Ex[i],&G[i],1); /* correction 0 to 1 , al*/
 				sprintf (filename, "raw%d.ori", i);
-				write_ori (Ex[i], I[i], G[i], filename);
+                write_ori (Ex[i], I[i], G[i], ap[i], filename, NULL); /*ap ignored*/
                 
 				/* sorting of detected points by back-projection */
 				sortgrid_man (Ex[i], I[i], G[i], ap[i], mmp,
@@ -1144,7 +1144,8 @@ int calibration_proc_c (int sel)
                     /* point coordinates */
                     //sprintf (filename, "resect_%s.fix", img_name[i_img]);
                     sprintf (filename, "%s.fix", img_name[i_img]);
-                    write_ori (Ex[i_img], I[i_img], G[i_img], img_ori[i_img]);
+                    write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
+                        img_ori[i_img], NULL); /* ap ignored */
                     fp1 = fopen (filename, "w");
                     for (i=0; i<nfix; i++)
                         fprintf (fp1, "%3d  %10.5f  %10.5f  %10.5f\n",
@@ -1162,13 +1163,8 @@ int calibration_proc_c (int sel)
                     fclose (fp1);
                     
                     /* orientation and calibration approx data */
-                    write_ori (Ex[i_img], I[i_img], G[i_img], "resect.ori0");
-                    fp1 = fopen ("resect.ap0", "w");
-                    fprintf (fp1, "%f %f %f %f %f %f %f",
-                             ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-                             ap[i_img].p1, ap[i_img].p2,
-                             ap[i_img].scx, ap[i_img].she);
-                    fclose (fp1);
+                    write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
+                        "resect.ori0", "resect.ap0");
                     printf ("resection data written to disk\n");
                 }
                 
@@ -1272,8 +1268,8 @@ int calibration_proc_c (int sel)
                 
                 
                 /* save orientation and additional parameters */
-                printf("inside jw_ptv.c I.yh=%f \n",I[i_img].yh);
-                write_ori (Ex[i_img], I[i_img], G[i_img], img_ori[i_img]);
+                write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
+                    img_ori[i_img], NULL);
                 fp1 = fopen( img_ori[i_img], "r" );
                 if(fp1 != NULL) {
                     fclose(fp1);
@@ -1281,44 +1277,16 @@ int calibration_proc_c (int sel)
                         img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
                         "addpar.raw");
                     
-                    write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
-                    fp1 = fopen (safety_addpar[i_img], "w");
-                    fprintf (fp1, "%f %f %f %f %f %f %f",
-                             sap[i_img].k1, sap[i_img].k2, sap[i_img].k3,
-                             sap[i_img].p1, sap[i_img].p2,
-                             sap[i_img].scx, sap[i_img].she);
-                    fclose (fp1);
+                    write_ori (sEx[i_img], sI[i_img], sG[i_img], sap, 
+                        safety[i_img], safety_addpar[i_img]);
                 }
                 else{
-                    write_ori (Ex[i_img], I[i_img], G[i_img], safety[i_img]);
-                    fp1 = fopen (safety_addpar[i_img], "w");
-                    fprintf (fp1, "%f %f %f %f %f %f %f",
-                             ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-                             ap[i_img].p1, ap[i_img].p2,
-                             ap[i_img].scx, ap[i_img].she);
-                    fclose (fp1);
-                    
+                    write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                        safety[i_img], safety_addpar[i_img]);
                 }
-                write_ori (Ex[i_img], I[i_img], G[i_img], img_ori[i_img]);
-                fp1 = fopen (img_addpar[i_img], "w");
-                fprintf (fp1, "%f %f %f %f %f %f %f",
-                         ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-                         ap[i_img].p1, ap[i_img].p2,
-                         ap[i_img].scx, ap[i_img].she);
-                fclose (fp1);
+                write_ori (Ex[i_img], I[i_img], G[i_img], ap, img_ori[i_img],
+                    img_addpar[i_img]);
             }
-            /*      Tcl_Eval(interp, ".text delete 3");*/
-            /*      Tcl_Eval(interp, ".text delete 1");*/
-            /*      Tcl_Eval(interp, ".text insert 1 \"Orientation and self calibration \"");*/
-            /*      Tcl_Eval(interp, ".text delete 2");*/
-            //  if (examine != 4)
-            /*         Tcl_Eval(interp, ".text insert 2 \"...done, sigma0 for each image -> \"");*/
-            
-            //  if (examine == 4 && multi==0)
-            /*		 Tcl_Eval(interp, ".text insert 2 \"resection data written to disk \"");*/
-            /*      Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);*/
-            /*      Tcl_Eval(interp, ".text insert 3 $tbuf");*/
-            
             break;
             
         case 10: puts ("Orientation from particles"); strcpy(buf, "");
@@ -1503,58 +1471,26 @@ int calibration_proc_c (int sel)
                         img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
                         "addpar.raw");
 					
-					write_ori (sEx[i_img], sI[i_img], sG[i_img], safety[i_img]);
-					fp1 = fopen (safety_addpar[i_img], "w");
-					fprintf (fp1, "%f %f %f %f %f %f %f",
-							 sap[i_img].k1, sap[i_img].k2, sap[i_img].k3,
-							 sap[i_img].p1, sap[i_img].p2,
-							 sap[i_img].scx, sap[i_img].she);
-					fclose (fp1);
+					write_ori (sEx[i_img], sI[i_img], sG[i_img], sap,
+                        safety[i_img], safety_addpar[i_img]);
 				}
 				else{
-					write_ori (Ex[i_img], I[i_img], G[i_img], safety[i_img]);
-					fp1 = fopen (safety_addpar[i_img], "w");
-					fprintf (fp1, "%f %f %f %f %f %f %f",
-							 ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-							 ap[i_img].p1, ap[i_img].p2,
-							 ap[i_img].scx, ap[i_img].she);
-					fclose (fp1);
-					
+					write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                        safety[i_img], safety_addpar[i_img]);
 				}
-				write_ori (Ex[i_img], I[i_img], G[i_img], img_ori[i_img]);
-				fp1 = fopen (img_addpar[i_img], "w");
-				fprintf (fp1, "%f %f %f %f %f %f %f",
-						 ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-						 ap[i_img].p1, ap[i_img].p2,
-						 ap[i_img].scx, ap[i_img].she);
-				fclose (fp1);
+				write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                    img_ori[i_img], img_addpar[i_img]);
 			}
-			/*
-             Tcl_Eval(".text delete 3");
-             Tcl_Eval(".text delete 1");
-             Tcl_Eval(".text insert 1 \"Orientation from particles \"");
-             Tcl_Eval(".text delete 2");
-             if (examine != 4)
-             Tcl_Eval(".text insert 2 \"...done, sigma0 for each image -> \"");
-             if (examine == 4 && multi==0)
-             Tcl_Eval(".text insert 2 \"resection data written to disk \"");
-             Tcl_SetVar("tbuf", buf, TCL_GLOBAL_ONLY);
-             Tcl_Eval(".text insert 3 $tbuf");
-             */
 			break;
+            
         case 12: puts ("Orientation from dumbbells"); strcpy(buf, "");
 			
             prepare_eval(n_img,&nfix); //goes and looks up what sequence is defined and takes all cord. from rt_is
             orient_v5 (n_img, nfix,&Ex, &I, &G, &ap);
 			
             for(i_img=0;i_img<n_img;i_img++){
-                write_ori (Ex[i_img], I[i_img], G[i_img], img_ori[i_img]);
-                fp1 = fopen (img_addpar[i_img], "w");
-                fprintf (fp1, "%f %f %f %f %f %f %f",
-						 ap[i_img].k1, ap[i_img].k2, ap[i_img].k3,
-						 ap[i_img].p1, ap[i_img].p2,
-						 ap[i_img].scx, ap[i_img].she);
-				fclose (fp1);
+                write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                    img_ori[i_img], img_addpar[i_img]);
             }
 			
             break;

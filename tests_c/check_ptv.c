@@ -7,6 +7,7 @@
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "../src_c/ptv.h"
 
@@ -78,6 +79,26 @@ START_TEST(test_read_ori)
 }
 END_TEST
 
+/* Unit test for writing orientation files. Writes a sample calibration,
+   reads it back and compares.
+*/
+START_TEST(test_write_ori)
+{
+    Calibration correct_cal, *cal;
+    correct_cal = test_cal();
+    char ori_file[] = "testing_fodder/test.ori";
+    char add_file[] = "testing_fodder/test.addpar";
+    
+    write_ori(correct_cal.ext_par, correct_cal.int_par,
+        correct_cal.glass_par, ori_file, NULL);
+    fail_if((cal = read_calibration(ori_file, "", NULL)) == NULL);
+    fail_unless(compare_calib(cal, &correct_cal));
+    
+    remove(ori_file);
+    remove(add_file);
+}
+END_TEST
+
 Suite* ptv_suite(void) {
     Suite *s = suite_create ("PTV");
 
@@ -88,6 +109,10 @@ Suite* ptv_suite(void) {
     TCase *tc_rori = tcase_create ("Read orientation file");
     tcase_add_test(tc_rori, test_read_ori);
     suite_add_tcase (s, tc_rori);
+
+    TCase *tc_wori = tcase_create ("Write orientation file");
+    tcase_add_test(tc_wori, test_write_ori);
+    suite_add_tcase (s, tc_wori);
 
     return s;
 }
