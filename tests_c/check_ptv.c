@@ -90,8 +90,8 @@ START_TEST(test_write_ori)
     char add_file[] = "testing_fodder/test.addpar";
     
     write_ori(correct_cal.ext_par, correct_cal.int_par,
-        correct_cal.glass_par, ori_file, NULL);
-    fail_if((cal = read_calibration(ori_file, "", NULL)) == NULL);
+        correct_cal.glass_par, correct_cal.added_par, ori_file, add_file);
+    fail_if((cal = read_calibration(ori_file, add_file, NULL)) == NULL);
     fail_unless(compare_calib(cal, &correct_cal));
     
     remove(ori_file);
