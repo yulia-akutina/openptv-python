@@ -778,9 +778,6 @@ int trackback_c ()
     double npart=0, nlinks=0;
     foundpix *w, p16[4*MAX_CANDS];
 
-    display = 1; //atoi(argv[1]);
-    /* read data */
-    readseqtrackcrit ();
     
     framebuf *fb;  /* No need to use the global as the process is fully
                       enclosed here */
@@ -793,6 +790,10 @@ int trackback_c ()
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
     
+    display = 1; //atoi(argv[1]);
+    /* read data */
+    readseqtrackcrit ();
+
     target_file_base = (char **) calloc(n_img, sizeof(char *));
     for (j = 0; j < n_img; j++) {
         target_file_base[j] = seq_name[j];

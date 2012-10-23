@@ -382,6 +382,7 @@ int *n_fix;
 int n_img;
 
 {
+    char* target_file_base[4];
     int     i_img, i, filenumber, step_shake, count = 0;
 	double  dummy;
     
@@ -391,7 +392,6 @@ int n_img;
     frame_init(&frm, n_img, MAX_TARGETS);
     
     /* Until configuration overhaul: */
-    char* target_file_base[4];
     for (i_img = 0; i_img < n_img; i_img++) {
         target_file_base[i_img] = (char *) malloc(STR_MAX_LEN);
     }
