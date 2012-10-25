@@ -454,9 +454,9 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                                 ref_path_inf = &(fb->buf[3]->path_info[
                                     fb->buf[3]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[4]);
-			                    ref_path_inf->prev = -1;
-			                    ref_path_inf->next = -2;
-			                    ref_path_inf->prio = 2;
+			                    ref_path_inf->prev = PREV_NONE;
+			                    ref_path_inf->next = NEXT_NONE;
+			                    ref_path_inf->prio = PRIO_DEFAULT;
 
                                 _frame_parts = fb->buf[3]->num_parts;
                                 ref_corres = &(fb->buf[3]->correspond[_frame_parts]);
@@ -586,9 +586,9 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                                 ref_path_inf = &(fb->buf[2]->path_info[
                                     fb->buf[2]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[3]);
-			                    ref_path_inf->prev = -1;
-			                    ref_path_inf->next = -2;
-			                    ref_path_inf->prio = 2;
+			                    ref_path_inf->prev = PREV_NONE;
+			                    ref_path_inf->next = NEXT_NONE;
+			                    ref_path_inf->prio = PRIO_DEFAULT;
 
                                 _frame_parts = fb->buf[2]->num_parts;
                                 register_link_candidate(curr_path_inf, rr, _frame_parts);
@@ -650,10 +650,10 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                     curr_path_inf->finaldecis) 
                 {
 		            /* remove link with prev */
-		            fb->buf[1]->path_info[ref_path_inf->prev].next= -2;
+		            fb->buf[1]->path_info[ref_path_inf->prev].next = NEXT_NONE;
                     ref_path_inf->prev = h; 
 		        } else {
-		            curr_path_inf->next = -2;
+		            curr_path_inf->next = NEXT_NONE;
 	            }
 	        }
         }
@@ -983,9 +983,9 @@ int trackback_c ()
                                     ref_path_inf = &(fb->buf[2]->path_info[
                                         fb->buf[2]->num_parts]);
                                     copy_pos3d(ref_path_inf->x, X[3]);
-			                        ref_path_inf->prev = -1;
-			                        ref_path_inf->next = -2;
-			                        ref_path_inf->prio = 2;
+			                        ref_path_inf->prev = PREV_NONE;
+			                        ref_path_inf->next = NEXT_NONE;
+			                        ref_path_inf->prio = PRIO_DEFAULT;
 
                                     _frame_parts = fb->buf[2]->num_parts;
                                     register_link_candidate(curr_path_inf, rr,
@@ -1033,7 +1033,9 @@ int trackback_c ()
                 /* if old/new and unused prev == -1 and next == -2 link is created */
                 ref_path_inf = &(fb->buf[2]->path_info[curr_path_inf->linkdecis[0]]);
                 
-                if ( ref_path_inf->prev == -1 && ref_path_inf->next == -2 ) {
+                if ( ref_path_inf->prev == PREV_NONE && \
+                    ref_path_inf->next == NEXT_NONE )
+                {
                     curr_path_inf->finaldecis = curr_path_inf->decis[0];
                     curr_path_inf->prev = curr_path_inf->linkdecis[0];
                     fb->buf[2]->path_info[curr_path_inf->prev].next = h;
@@ -1041,7 +1043,9 @@ int trackback_c ()
                 }
 
                 /* old which link to prev has to be checked */
-                if ( ref_path_inf->prev != -1 && ref_path_inf->next == -2 ) {
+                if ((ref_path_inf->prev != PREV_NONE) && \
+                    (ref_path_inf->next == NEXT_NONE) )
+                {
                     copy_pos3d(X[0], fb->buf[0]->path_info[curr_path_inf->next].x);
                     copy_pos3d(X[1], curr_path_inf->x);
                     copy_pos3d(X[3], ref_path_inf->x);

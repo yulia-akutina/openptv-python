@@ -49,6 +49,9 @@ typedef struct Pstruct
 
 int compare_path_info(P *p1, P *p2);
 void register_link_candidate(P *self, fitness_t fitness, int cand);
+#define PREV_NONE -1
+#define NEXT_NONE -2
+#define PRIO_DEFAULT 2 
 
 int read_path_frame(corres *cor_buf, P *path_buf, \
     char *corres_file_base, char *linkage_file_base, 
