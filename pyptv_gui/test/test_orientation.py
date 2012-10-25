@@ -1,10 +1,11 @@
 # Regression tests for the orienbtation.
 
 import unittest
-import os, shutil
+import os, shutil, glob
 import numpy as np
 
-from ptv1 import py_start_proc_c, py_init_proc_c, py_prepare_eval
+from ptv1 import py_start_proc_c, py_init_proc_c, py_prepare_eval, get_pix_crd
+from ptv1 import py_calibration
 
 class TestOrient(unittest.TestCase):
     def setUp(self):
@@ -39,6 +40,38 @@ class TestOrient(unittest.TestCase):
             np.loadtxt('db_res/pix_regress.dat'))
         np.testing.assert_array_equal(crd.reshape(-1, 3),
             np.loadtxt('db_res/crd_regress.dat'))
+    
+    def test_ori_from_particles(self):
+        """Orientation preparation in ori from particles."""
+        # Note: this result set isn't great for testing shaking - it is only
+        # used for testing the prepare_eval part!
+        shutil.copytree("db_targ/", "scene83_event1/")
+        shutil.copytree("shaking_res/", "res/")
+        shutil.copyfile("parameters/sequence.par", "parameters/sequence_scene.par")
+        shutil.copyfile("parameters/sequence_db.par", "parameters/sequence.par")
+        
+        if os.path.exists("cal_bk/"):
+            shutil.rmtree("cal_bk/")
+        shutil.copytree("cal/", "cal_bk/")
+        
+        py_init_proc_c()
+        py_start_proc_c()
+        
+        py_calibration(10)
+        pix, crd = get_pix_crd(4)
+
+        #np.savetxt('shaking_res/pix_regress.dat', pix.reshape(-1, 2))
+        #np.savetxt('shaking_res/crd_regress.dat', crd.reshape(-1, 3))
+        np.testing.assert_array_equal(pix.reshape(-1, 2),
+            np.loadtxt('shaking_res/pix_regress.dat'))
+        np.testing.assert_array_equal(crd.reshape(-1, 3),
+            np.loadtxt('shaking_res/crd_regress.dat'))
+
+        shutil.rmtree("cal/")
+        shutil.copytree("cal_bk/", "cal/")
+        shutil.rmtree("cal_bk/")
+        for file in glob.glob("safety_*"):
+            os.remove(file)
         
 if __name__ == '__main__':
     unittest.main()

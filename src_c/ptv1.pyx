@@ -392,6 +392,32 @@ def py_get_pix_N(x,y,n_image):
       x.append(x1)
       y.append(y1)
 
+def get_pix_crd(num_cams):
+    """
+    For testing purposes, while pix and crd arrays exist, return them as
+    numpy arrays.
+    
+    Arguments:
+    num_cams - number of cameras in the PTV system.
+    
+    Returns:
+    pix_arr - a (num_cams, nmax, 2) array, copy of the pix structre-array
+        that is filled-in by prepare_eval.
+    crd_arr - a (num_cams, nmax, 3) array, same for the crd struct-array.
+    """
+    pix_arr = np.zeros((num_cams, nmax, 2))
+    crd_arr = np.zeros((num_cams, nmax, 3))
+    
+    for part, img in np.ndindex((nfix, num_cams)):
+        pix_arr[img, part, 0] = pix[img][part].x
+        pix_arr[img, part, 1] = pix[img][part].y
+        
+        crd_arr[img, part, 0] = crd[img][part].x
+        crd_arr[img, part, 1] = crd[img][part].y
+        crd_arr[img, part, 2] = crd[img][part].pnr
+    
+    return pix_arr, crd_arr
+    
 def py_prepare_eval(num_cams):
     """
     Wrapper around prepare_eval for regression-testing purposes.
@@ -405,17 +431,5 @@ def py_prepare_eval(num_cams):
     crd_arr - a (num_cams, nmax, 3) array, same for the crd struct-array.
     """
     prepare_eval(num_cams, NULL) # the second argument is never used within.
-    
-    pix_arr = np.zeros((num_cams, nmax, 2))
-    crd_arr = np.zeros((num_cams, nmax, 3))
-    
-    for part, img in np.ndindex((nfix, num_cams)):
-        pix_arr[img, part, 0] = pix[img][part].x
-        pix_arr[img, part, 1] = pix[img][part].y
-        
-        crd_arr[img, part, 0] = crd[img][part].x
-        crd_arr[img, part, 1] = crd[img][part].y
-        crd_arr[img, part, 2] = crd[img][part].pnr
-    
-    return pix_arr, crd_arr
+    return get_pix_crd()
 
