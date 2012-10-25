@@ -1277,14 +1277,14 @@ int calibration_proc_c (int sel)
                         img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
                         "addpar.raw");
                     
-                    write_ori (sEx[i_img], sI[i_img], sG[i_img], sap, 
+                    write_ori (sEx[i_img], sI[i_img], sG[i_img], sap[i_img], 
                         safety[i_img], safety_addpar[i_img]);
                 }
                 else{
-                    write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                    write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
                         safety[i_img], safety_addpar[i_img]);
                 }
-                write_ori (Ex[i_img], I[i_img], G[i_img], ap, img_ori[i_img],
+                write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img], img_ori[i_img],
                     img_addpar[i_img]);
             }
             break;
@@ -1341,6 +1341,7 @@ int calibration_proc_c (int sel)
 				printf("\nframe step size for camera %d is %d\n", i_img+1, step_shake);
 				for (filenumber=seq_first+2; filenumber<seq_last+1-2; filenumber=filenumber+step_shake){//chnaged by Beat Feb 08
 					
+                    printf("%d\n", filenumber);
 					if (filenumber < 10)        sprintf (filein, "res/rt_is.%1d", filenumber);
 					else if (filenumber < 100)  sprintf (filein, "res/rt_is.%2d",  filenumber);
 					else       sprintf (filein, "res/rt_is.%3d", filenumber);
@@ -1471,14 +1472,14 @@ int calibration_proc_c (int sel)
                         img_ori[i_img], &(sap[i_img]), img_addpar0[i_img],
                         "addpar.raw");
 					
-					write_ori (sEx[i_img], sI[i_img], sG[i_img], sap,
+					write_ori (sEx[i_img], sI[i_img], sG[i_img], sap[i_img],
                         safety[i_img], safety_addpar[i_img]);
 				}
 				else{
-					write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+					write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
                         safety[i_img], safety_addpar[i_img]);
 				}
-				write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+				write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
                     img_ori[i_img], img_addpar[i_img]);
 			}
 			break;
