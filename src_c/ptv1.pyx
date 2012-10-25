@@ -431,5 +431,5 @@ def py_prepare_eval(num_cams):
     crd_arr - a (num_cams, nmax, 3) array, same for the crd struct-array.
     """
     prepare_eval(num_cams, NULL) # the second argument is never used within.
-    return get_pix_crd()
+    return get_pix_crd(num_cams)
 
