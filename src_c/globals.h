@@ -59,8 +59,6 @@ extern int examine;                        /* extra output */
 extern int dump_for_rdb;                   /* # of dumpfiles for rdb */
 extern int cr_sz;                          /* size of crosses */
 extern int display;                        /* display flag */
-extern int m[4];
-extern int trackallocflag;  /* checkflag if mega, c4, t4 already allocated */
 
 extern double pix_x, pix_y;		     	/* pixel size */
 extern double pi, ro;
@@ -112,13 +110,6 @@ extern trackparameters tpar;
 
 FILE *fopen_r ();
 double multimed_r ();
-
-//The following 3 are related.
-extern P *mega[4];
-extern target *t4[4][4];
-extern int nt4[4][4];
-extern corres *c4[4];
-void allocate_tracking_structs();
 
 // General functions:
 int  jw_Init();

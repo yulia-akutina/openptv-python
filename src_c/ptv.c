@@ -16,6 +16,17 @@
 
 #define STR_MAX_LEN 255
 
+/* These file-level globals are superceded by tracking_frame_buf.{c,h} in other
+   places, but here we have no testing data to go with and no connection to GUI
+   so we leave them confined here.
+*/
+int trackallocflag;  /* checkflag if mega, c4, t4 already allocated */
+int m[4];
+P *mega[4];
+target *t4[4][4];
+int nt4[4][4];
+corres *c4[4];
+
 /*  allocate_tracking_structs() Allocates memory for information needed for
     tracking. Each of the output buffer arrays has a first dimension of 4 sets,
     which is for 4 consecutive frames held in memory at the same time.

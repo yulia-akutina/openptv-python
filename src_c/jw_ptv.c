@@ -51,8 +51,6 @@ int	dump_for_rdb;		       	/* # of dumpfiles for rdb */
 int cr_sz;                          /* size of crosses */
 int display;                        /* display flag */
 int corp, corc, corn;
-int m[4];
-int trackallocflag = 0;      /* checkflag if mega, c4, t4 already allocated */
 int mask;						/*checkmark for subtract mask*/
 
 double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
@@ -101,8 +99,6 @@ mm_np	       	mmp;	       	/* n-media parameters */
 target	       	pix[4][nmax]; 	/* target pixel data */
 target	       	pix0[4][12];    	/* pixel data for man_ori points */
 
-target          *t4[4][4];
-int             nt4[4][4];
 int             x_calib[4][1000];
 int             y_calib[4][1000];
 int             z_calib[4][1000];
@@ -113,12 +109,10 @@ coord_2d       	geo[4][nmax];  	/* corrected metric coordinates */
 coord_3d       	fix[20096];     	/* testfield points coordinates */ //Beat changed it on 090325
 n_tupel	       	con[nmax];     	/* list of correspondences */
 
-corres	       	*c4[4];
 trackparameters tpar;           /* tracking parameters */
 
 mm_LUT	       	mmLUT[4];     	/* LUT for multimedia radial displacement */
 coord_3d        *p_c3d;
-P *mega[4];
 
 /***************************************************************************/
 
@@ -365,11 +359,6 @@ int start_proc_c()
     printf("image0:\n");
     for (i=0;i<50;i++) {
         printf("val1 =%d",im0[i]);
-    }
-    
-    /* Make sure arrays of tracking-related data are allocated */
-    if (!trackallocflag) {
-        allocate_tracking_structs(t4, c4, mega, n_img, M);
     }
     
     //return TCL_OK; denis 26-10-2010

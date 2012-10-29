@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "../src_c/ptv.h"
+extern int trackallocflag;
 
 START_TEST(test_allocate_tracking_structs)
 {
