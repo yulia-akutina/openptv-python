@@ -1308,159 +1308,17 @@ int calibration_proc_c (int sel)
 			strcpy (safety_addpar[3], "safety_3");
 			strcat (safety_addpar[3], ".addpar");
 			
+            fpp = fopen_r ("parameters/ptv.par");
+            fscanf (fpp, "%d\n", &n_img);
+            fclose (fpp);
+            
+            prepare_eval_shake(n_img);
+            
 			for (i_img=0; i_img<n_img; i_img++)
 			{
-				
-				/* read control point coordinates for man_ori points */
-				
-				
-				fpp = fopen_r ("parameters/sequence.par");
-				for (i=0; i<4; i++){
-					fscanf (fpp, "%s\n", seq_name[i]);     /* name of sequence */
-					//fscanf (fpp,"%d\n", &seq_first);
-					//fscanf (fpp,"%d\n", &seq_last);
-				}
-				fclose (fpp);
-				
-				fpp = fopen_r ("parameters/shaking.par");
-				fscanf (fpp,"%d\n", &seq_first); 
-				fscanf (fpp,"%d\n", &seq_last);
-				fscanf (fpp,"%d\n", &max_shake_points);
-				fscanf (fpp,"%d\n", &max_shake_frames);
-				fclose (fpp);
-				
-				/*  read from main parameter file  */
-				fpp = fopen_r ("parameters/ptv.par");
-				fscanf (fpp, "%d\n", &n_img);
-				fclose (fpp);
-				
-				i=0;
-				frameCount=0;
-				currentFrame=0;
-				step_shake=(int)((double)(seq_last-seq_first+1)/(double)max_shake_frames+0.5);
-				printf("\nframe step size for camera %d is %d\n", i_img+1, step_shake);
-				for (filenumber=seq_first+2; filenumber<seq_last+1-2; filenumber=filenumber+step_shake){//chnaged by Beat Feb 08
-					
-                    printf("%d\n", filenumber);
-					if (filenumber < 10)        sprintf (filein, "res/rt_is.%1d", filenumber);
-					else if (filenumber < 100)  sprintf (filein, "res/rt_is.%2d",  filenumber);
-					else       sprintf (filein, "res/rt_is.%3d", filenumber);
-					
-					FILEIN = fopen (filein, "r");
-					if (! FILEIN) printf("Can't open ascii file: %s\n", filein);
-					/////////open target file(s)!
-					/* read targets of each camera */
-					
-					if (filenumber < 10)        sprintf (filein_ptv, "res/ptv_is.%1d", filenumber);
-					else if (filenumber < 100)  sprintf (filein_ptv, "res/ptv_is.%2d",  filenumber);
-					else       sprintf (filein_ptv, "res/ptv_is.%3d", filenumber);
-					
-					
-					// to only use quadruplets for shaking that can be linked
-					FILEIN_ptv = fopen (filein_ptv, "r");
-					if (! FILEIN_ptv) printf("Can't open ascii file: %s\n", filein_ptv);
-					/////////open target file(s)!
-					/* read targets of each camera */
-					
-                    nt4[3][i] = read_targets(t4[3][i], seq_name[i_img], \
-                        filenumber); 
-					
-					fscanf(FILEIN, "%d\n", &dumy); /* read # of 3D points on dumy */
-					fscanf(FILEIN_ptv, "%d\n", &dumy); /* read # of 3D points on dumy */
-					do{
-						/*read dataset row by row, x,y,z and correspondences */
-						a[0]=-1;a[1]=-1;a[2]=-1;a[3]=-1;
-						if (n_img==4){
-							fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-								   &dumy, &fix[i].x, &fix[i].y, &fix[i].z,
-								   &a[0], &a[1], &a[2], &a[3]);
-							fscanf(FILEIN_ptv, "%d %d %lf %lf %lf\n",
-								   &prev, &next, &dummy_float, &dummy_float, &dummy_float);
-						}
-						if (n_img==3){
-							fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-								   &dumy, &fix[i].x, &fix[i].y, &fix[i].z,
-								   &a[0], &a[1], &a[2]);
-							fscanf(FILEIN_ptv, "%d %d %lf %lf %lf\n",
-								   &prev, &next, &dummy_float, &dummy_float, &dummy_float);
-						}
-						if (n_img==2){ // Alex's patch. 24.09.09. Working on Wesleyan data of 2 cameras only
-							fscanf(FILEIN, "%d %lf %lf %lf %d %d %d %d\n",
-								   &dumy, &fix[i].x, &fix[i].y, &fix[i].z,
-								   &a[0], &a[1]);
-							fscanf(FILEIN_ptv, "%d %d %lf %lf %lf\n",
-								   &prev, &next, &dummy_float, &dummy_float, &dummy_float);
-						}
-						////////////auch pix lesen according a0,a1,a2,a3!!! 
-						//fix[i].x>-25 && 
-						//fix[i].x>-25 && 
-						if( (a[i_img]>-1 && next>-1 && prev>-1 && i<max_shake_points && frameCount<max_shake_frames+1  )  ||
-						   (a[0]>-1 && a[1]>-1 && a[2]>-1 && a[3]>-1 && next>-1 && prev>-1 && filenumber==seq_first+2 ) ){// OR ALLE QUADRUPLETS
-							pix[i_img][i].x=t4[3][i_img][a[i_img]].x;
-							pix[i_img][i].y=t4[3][i_img][a[i_img]].y;
-							pix[i_img][i].pnr=i; 
-							fix[i].pnr=i;
-							
-							i++;
-							nfix =i;
-							if(currentFrame<filenumber){
-								currentFrame=filenumber;
-								frameCount++;
-							}
-						}
-						/*if (n_img==4){
-						 if(a[0]>-1 && a[1]>-1 && a[2]>-1 && a[3]>-1 && next>-1 && prev>-1){
-						 pix[i_img][i].x=t4[3][i_img][a[i_img]].x;
-						 pix[i_img][i].y=t4[3][i_img][a[i_img]].y;
-						 pix[i_img][i].pnr=i; 
-						 fix[i].pnr=i;
-						 
-						 i++;
-						 nfix =i;
-						 }
-						 }
-						 if (n_img==3){
-						 if(a[0]>-1 && a[1]>-1 && a[2]>-1 && next>-1 && prev>-1){
-						 pix[i_img][i].x=t4[3][i_img][a[i_img]].x;
-						 pix[i_img][i].y=t4[3][i_img][a[i_img]].y;
-						 pix[i_img][i].pnr=i; 
-						 fix[i].pnr=i;
-						 
-						 i++;
-						 nfix =i;
-						 }
-						 }*/
-						
-					}while(!feof(FILEIN));
-					fclose(FILEIN);
-					
-					
-					
-				}//end of loop through seq, but loop i_img still open
-				if (frameCount==1){
-					printf("Using %d linked points of %d frame for camera %d\n", nfix,frameCount, i_img+1);
-				}
-				else{
-					printf("Using %d linked points of %d frames for camera %d\n", nfix,frameCount, i_img+1);    
-				}	
-				for (i=0; i<nfix ; i++)
-				{
-					pixel_to_metric (pix[i_img][i].x, pix[i_img][i].y,
-									 imx,imy, pix_x, pix_y,
-									 &crd[i_img][i].x, &crd[i_img][i].y,
-									 chfield);
-					crd[i_img][i].pnr = pix[i_img][i].pnr;
-				}
-				
-				
-				/* ================= */
-				
 				orient_v3 (Ex[i_img], I[i_img], G[i_img], ap[i_img], mmp,
 						   nfix, fix, crd[i_img],
 						   &Ex[i_img], &I[i_img], &G[i_img], &ap[i_img], i_img);
-				
-				/* ================= */
-				
 				
 				/* save orientation and additional parameters */
 				//make safety copy of ori files

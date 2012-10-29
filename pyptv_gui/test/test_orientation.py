@@ -62,9 +62,9 @@ class TestOrient(unittest.TestCase):
 
         #np.savetxt('shaking_res/pix_regress.dat', pix.reshape(-1, 2))
         #np.savetxt('shaking_res/crd_regress.dat', crd.reshape(-1, 3))
-        np.testing.assert_array_equal(pix.reshape(-1, 2),
+        np.testing.assert_array_almost_equal(pix.reshape(-1, 2),
             np.loadtxt('shaking_res/pix_regress.dat'))
-        np.testing.assert_array_equal(crd.reshape(-1, 3),
+        np.testing.assert_array_almost_equal(crd.reshape(-1, 3),
             np.loadtxt('shaking_res/crd_regress.dat'))
 
         shutil.rmtree("cal/")
