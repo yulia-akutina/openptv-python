@@ -10,39 +10,6 @@
 #include <stdio.h>
 
 #include "../src_c/ptv.h"
-extern int trackallocflag;
-
-START_TEST(test_allocate_tracking_structs)
-{
-    // Output buffers:
-    target *targs[4][4];
-    corres *correspond[4];
-    P *path_info[4];
-    
-    // Dummy things to store in the buffers:
-    target t_target;
-    corres t_corres;
-    P t_path;
-    
-    int cams = 4;
-    int max_targets = 100;
-    int frame_ix = 0, cam_ix = 0;
-    
-    allocate_tracking_structs(targs, correspond, path_info, cams, max_targets);
-    fail_unless(trackallocflag == 1);
-    
-    /* Try to write stuff into the allocated memory and see it doesn't
-    segfault.*/
-    for (frame_ix = 0; frame_ix < 4; frame_ix++) {
-        correspond[frame_ix][42] = t_corres;
-        path_info[frame_ix][42] = t_path;
-        
-        for (cam_ix = 0; cam_ix < cams; cam_ix ++) {
-            targs[frame_ix][cam_ix][42] = t_target;
-        }
-    }
-}
-END_TEST
 
 /* Generate a calibration object with example values matching those in the
    files read by test_read_ori.
@@ -102,10 +69,6 @@ END_TEST
 
 Suite* ptv_suite(void) {
     Suite *s = suite_create ("PTV");
-
-    TCase *tc_tw = tcase_create ("Tracking window");
-    tcase_add_test(tc_tw, test_allocate_tracking_structs);
-    suite_add_tcase (s, tc_tw);
 
     TCase *tc_rori = tcase_create ("Read orientation file");
     tcase_add_test(tc_rori, test_read_ori);
