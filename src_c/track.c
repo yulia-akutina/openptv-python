@@ -454,9 +454,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                                 ref_path_inf = &(fb->buf[3]->path_info[
                                     fb->buf[3]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[4]);
-			                    ref_path_inf->prev = PREV_NONE;
-			                    ref_path_inf->next = NEXT_NONE;
-			                    ref_path_inf->prio = PRIO_DEFAULT;
+                                reset_links(ref_path_inf);
 
                                 _frame_parts = fb->buf[3]->num_parts;
                                 ref_corres = &(fb->buf[3]->correspond[_frame_parts]);
@@ -586,9 +584,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
                                 ref_path_inf = &(fb->buf[2]->path_info[
                                     fb->buf[2]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[3]);
-			                    ref_path_inf->prev = PREV_NONE;
-			                    ref_path_inf->next = NEXT_NONE;
-			                    ref_path_inf->prio = PRIO_DEFAULT;
+                                reset_links(ref_path_inf);
 
                                 _frame_parts = fb->buf[2]->num_parts;
                                 register_link_candidate(curr_path_inf, rr, _frame_parts);
@@ -983,9 +979,7 @@ int trackback_c ()
                                     ref_path_inf = &(fb->buf[2]->path_info[
                                         fb->buf[2]->num_parts]);
                                     copy_pos3d(ref_path_inf->x, X[3]);
-			                        ref_path_inf->prev = PREV_NONE;
-			                        ref_path_inf->next = NEXT_NONE;
-			                        ref_path_inf->prio = PRIO_DEFAULT;
+                                    reset_links(ref_path_inf);
 
                                     _frame_parts = fb->buf[2]->num_parts;
                                     register_link_candidate(curr_path_inf, rr,

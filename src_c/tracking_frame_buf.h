@@ -52,6 +52,7 @@ void register_link_candidate(P *self, fitness_t fitness, int cand);
 #define PREV_NONE -1
 #define NEXT_NONE -2
 #define PRIO_DEFAULT 2 
+void reset_links(P *self);
 
 int read_path_frame(corres *cor_buf, P *path_buf, \
     char *corres_file_base, char *linkage_file_base, 

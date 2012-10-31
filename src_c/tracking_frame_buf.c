@@ -187,6 +187,18 @@ void register_link_candidate(P *self, fitness_t fitness, int cand) {
     self->inlist++;
 }
 
+/* reset_links() sets the prev, next and prio integer pointers to the
+ * default value representing no link.
+ *
+ * Arguments:
+ * P *self - the path info structure to modify.
+ */
+void reset_links(P *self) {
+    self->prev = PREV_NONE;
+    self->next = NEXT_NONE;
+    self->prio = PRIO_DEFAULT;
+}
+
 /* Reads rt_is files. these files contain both the path info and the 
  * information on correspondence between targets on the different images.
  * Sets fields not in file to default values.
