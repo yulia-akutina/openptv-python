@@ -56,12 +56,12 @@ int read_targets(target buffer[], char* file_base, int frame_num) {
     FILEIN = fopen (filein, "r");
     if (! FILEIN) {
         printf("Can't open ascii file: %s\n", filein);
-        return 0;
+        goto handle_error;
     }
 
     if (fscanf(FILEIN, "%d\n", &num_targets) == 0) {
         printf("Bad format for file: %s\n", filein);
-        return 0;
+        goto handle_error;
     }
     for (tix = 0; tix < num_targets; tix++)	{
 	  scanf_ok = fscanf (FILEIN, "%4d %lf %lf %d %d %d %d %d\n",
@@ -72,12 +72,16 @@ int read_targets(target buffer[], char* file_base, int frame_num) {
       
       if (scanf_ok == 0) {
         printf("Bad format for file: %s\n", filein);
-        return 0;
+        goto handle_error;
       }
 	}
+    
     fclose (FILEIN);
-
 	return num_targets;
+
+handle_error:
+    fclose (FILEIN);
+    return 0;
 }
 
 /* Writes targets to a file. The number of targets is written to the first
@@ -99,7 +103,7 @@ int write_targets(target buffer[], int num_targets, char* file_base, \
     int frame_num) {
     
     FILE *FILEOUT;
-    int	tix, printf_ok;
+    int	tix, printf_ok, success = 0;
     char fileout[STR_MAX_LEN + 1];
     
     sprintf(fileout, "%s%04d%s", file_base, frame_num, "_targets");
@@ -107,12 +111,12 @@ int write_targets(target buffer[], int num_targets, char* file_base, \
     FILEOUT = fopen(fileout, "w");
     if (! FILEOUT) {
         printf("Can't open ascii file: %s\n", fileout);
-        return 0;
+        goto finalize;
     }
     
     if (fprintf (FILEOUT, "%d\n", num_targets) <= 0) {
         printf("Write error in file %s\n", fileout);
-        return 0;
+        goto finalize;
     }
     
     for (tix = 0; tix < num_targets; tix++)	{
@@ -123,12 +127,14 @@ int write_targets(target buffer[], int num_targets, char* file_base, \
 		    buffer[tix].sumg, buffer[tix].tnr);
         if (printf_ok <= 0) {
             printf("Write error in file %s\n", fileout);
-            return 0;
+            goto finalize;
         }
 	}
+    success = 1;
+
+finalize:
     fclose (FILEOUT);
-    
-    return 1;
+    return success;
 }
 
 /* Check that two correspondence structs are equal, i.e. all their fields are 
@@ -223,7 +229,7 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
 {
     FILE *filein, *linkagein = NULL, *prioin = NULL;
     char fname[STR_MAX_LEN];
-    int read_res = 0, targets = 0, alt_link = 0;
+    int read_res = 0, targets = 0, alt_link = 0, retval = 0;
     double discard; /* For position values that are to be read again from a 
                        differnt file. */
     
@@ -236,11 +242,11 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
     if (!filein) {
         /* Keeping the printf until we have proper logging. */
         printf("Can't open ascii file: %s\n", fname);
-        return 0;
+        goto finalize;
     }
     
     read_res = fscanf(filein, "%d\n", &read_res);
-    if (!read_res) return 0;
+    if (!read_res) goto finalize;
     
     if (linkage_file_base != NULL) {
         sprintf(fname, "%s.%d", linkage_file_base, frame_num);
@@ -249,11 +255,11 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         if (!linkagein) {
             /* Keeping the printf until we have proper logging. */
             printf("Can't open linkage file: %s\n", fname);
-            return 0;
+            goto finalize;
         }
     
         read_res = fscanf(linkagein, "%d\n", &read_res);
-        if (!read_res) return 0;
+        if (!read_res) goto finalize;
     }
     
     if (prio_file_base != NULL) {
@@ -263,11 +269,11 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         if (!prioin) {
             /* Keeping the printf until we have proper logging. */
             printf("Can't open prio file: %s\n", fname);
-            return 0;
+            goto finalize;
         }
     
         read_res = fscanf(prioin, "%d\n", &read_res);
-        if (!read_res) return 0;
+        if (!read_res) goto finalize;
     }
     
     do {
@@ -277,7 +283,8 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
             if (!read_res) {
                 printf("Error with linkage file format in: %s.%d\n",
                     linkage_file_base, frame_num);
-                return 0;
+                targets = 0;
+                break;
             }
         } else {
             /* Defaults: */
@@ -292,7 +299,8 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
             if (!read_res) {
                 printf("Error with linkage file format in: %s.%d\n",
                     linkage_file_base, frame_num);
-                return 0;
+                targets = 0;
+                break;
             }
         } else {
             path_buf->prio = 4;
@@ -325,7 +333,10 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
         path_buf++;
     } while (!feof(filein));
     
-    fclose(filein);
+finalize:
+    if (filein != NULL) fclose(filein);
+    if (linkagein != NULL) fclose(linkagein);
+    if (prioin != NULL) fclose(prioin);
     return targets;
 }
 
@@ -356,20 +367,20 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     FILE *corres_file, *linkage_file, *prio_file = NULL;
     char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
     char prio_fname[STR_MAX_LEN + 1];
-    int	pix;
+    int	pix, success = 0;
 
     sprintf(corres_fname, "%s.%d", corres_file_base, frame_num);
     corres_file = fopen (corres_fname, "w");
     if (corres_file == NULL) {
         printf("Can't open file %s for writing\n", corres_fname);
-        return 0;
+        goto finalize;
     }
     
     sprintf(linkage_fname, "%s.%d", linkage_file_base, frame_num);
     linkage_file = fopen (linkage_fname, "w");
     if (linkage_file == NULL) {
         printf("Can't open file %s for writing\n", linkage_fname);
-        return 0;
+        goto finalize;
     }
 
     fprintf(corres_file, "%d\n", num_parts);
@@ -380,7 +391,7 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
         prio_file = fopen (prio_fname, "w");
         if (prio_file == NULL) {
             printf("Can't open file %s for writing\n", prio_fname);
-            return 0;
+            goto finalize;
         }
         fprintf(prio_file, "%d\n", num_parts);
     }
@@ -400,11 +411,14 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
             path_buf[pix].prev, path_buf[pix].next, path_buf[pix].x[0],
             path_buf[pix].x[1], path_buf[pix].x[2], path_buf[pix].prio);
     }
+    success = 1;
 
-    fclose(corres_file);
-    fclose(linkage_file);
-    if (prio_file_base != NULL) fclose(prio_file);
-    return 1;
+finalize:
+    if (corres_file != NULL) fclose(corres_file);
+    if (linkage_file != NULL) fclose(linkage_file);
+    if (prio_file != NULL) fclose(prio_file);
+    
+    return success;
 }
 
 /* init_frame() initializes a frame object, allocates its arrays and sets up 
