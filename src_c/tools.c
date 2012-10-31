@@ -611,6 +611,28 @@ int    	left, right;
 }
 
 
+/***SORTING ALGORIHTMUS****/
+
+void sort(int n, float a[], int b[])
+{
+  int flag = 0, i, itemp;
+  float ftemp;
+
+  do {
+    flag = 0;
+    for(i=0; i<(n-1); i++)
+      if(a[i] > a[i+1]) {
+	ftemp =  a[i];
+	itemp =  b[i];
+	a[i] = a[i+1];
+	b[i] = b[i+1];
+	a[i+1] = ftemp;
+	b[i+1] = itemp;
+        flag = 1;
+      }
+  }while(flag);
+}
+
 /***********************************************************************/
 
 
