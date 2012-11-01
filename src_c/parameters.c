@@ -19,7 +19,7 @@
    any reason, returns NULL.
 */
 sequence_par* read_sequence_par(char *filename) {
-    char line[SEQ_FNAME_MAX_LEN], *line_check;
+    char line[SEQ_FNAME_MAX_LEN];
     FILE* par_file;
     int cam, read_ok;
     sequence_par *ret;
@@ -35,8 +35,8 @@ sequence_par* read_sequence_par(char *filename) {
     /* Note the assumption of 4 cameras. Fixing this requires changing the
        file format. */
     for (cam = 0; cam < 4; cam++) {
-        line_check = fgets(line, SEQ_FNAME_MAX_LEN, par_file);
-        if (line_check == NULL) goto handle_error;
+        read_ok = fscanf(par_file, "%s\n", line);
+        if (read_ok == 0) goto handle_error;
         
         ret->img_base_name[cam] = (char *) malloc(SEQ_FNAME_MAX_LEN);
         strncpy(ret->img_base_name[cam], line, SEQ_FNAME_MAX_LEN);

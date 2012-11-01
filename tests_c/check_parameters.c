@@ -13,9 +13,10 @@ START_TEST(test_read_sequence_par)
     seqp = read_sequence_par("testing_fodder/parameters/sequence.par");
     
     for (cam = 0; cam < 4; cam++) {
-        sprintf(fname, "dumbbell/cam%d_Scene77_", cam);
+        printf("%s", seqp->img_base_name[cam]);
+        sprintf(fname, "dumbbell/cam%d_Scene77_", cam + 1);
         fail_unless(strncmp(fname, seqp->img_base_name[cam],
-            SEQ_FNAME_MAX_LEN - 1));
+            SEQ_FNAME_MAX_LEN - 1) == 0);
     }
     fail_unless(seqp->first == 497);
     fail_unless(seqp->last == 597);
