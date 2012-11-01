@@ -1,5 +1,5 @@
-TESTS = check_ptv check_fb check_vutils
-check_PROGRAMS = check_ptv check_fb check_vutils
+TESTS = check_ptv check_fb check_vutils check_parameters
+check_PROGRAMS = check_ptv check_fb check_vutils check_parameters
 
 check_ptv_SOURCES = check_ptv.c $(top_builddir)/src_c/ptv.h
 check_ptv_CFLAGS = @CHECK_CFLAGS@
@@ -12,3 +12,7 @@ check_fb_LDADD = $(top_builddir)/src_c/libfb.la @CHECK_LIBS@
 check_vutils_SOURCES = check_vutils.c $(top_builddir)/src_c/vec_utils.h
 check_vutils_CFLAGS = @CHECK_CFLAGS@
 check_vutils_LDADD = $(top_builddir)/src_c/libvecutils.la @CHECK_LIBS@
+
+check_parameters_SOURCES = check_parameters.c $(top_builddir)/src_c/parameters.h
+check_parameters_CFLAGS = @CHECK_CFLAGS@
+check_parameters_LDADD = $(top_builddir)/src_c/libpar.la @CHECK_LIBS@

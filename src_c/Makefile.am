@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = libptv.la libfb.la libvecutils.la
+lib_LTLIBRARIES = libptv.la libfb.la libpar.la libvecutils.la
 
 libptv_la_SOURCES = tools.c ttools.c imgcoord.c multimed.c ray_tracing.c\
     lsqadj.c trafo.c ptv.h track.c pointpos.c intersect.c orientation.c \
@@ -10,6 +10,8 @@ libptv_la_SOURCES = tools.c ttools.c imgcoord.c multimed.c ray_tracing.c\
 libptv_la_LIBADD = -lm
 
 libfb_la_SOURCES = tracking_frame_buf.c tracking_frame_buf.h
+
+libpar_la_SOURCES = parameters.c parameters.h
 
 libvecutils_la_SOURCES = vec_utils.c vec_utils.h
 libvecutils_la_LIBADD = -lm
