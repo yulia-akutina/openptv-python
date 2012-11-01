@@ -204,16 +204,6 @@ double x1, y1, x2, y2, *x3, *y3;
 void readseqtrackcrit ()
 {
   int i_img;
-  /* reads pixfiles and try to track particles in imagespace
-     over the sequence */
-  fpp = fopen_r ("parameters/sequence.par");
-  for (i_img=0; i_img<4; i_img++) {
-    fscanf (fpp, "%s\n", seq_name[i_img]);
-  }
-  /* name of sequence */
-  fscanf (fpp,"%d\n", &seq_first);
-  fscanf (fpp,"%d\n", &seq_last);
-  fclose (fpp);
 
   fpp = fopen_r ("parameters/track.par");
   fscanf (fpp, "%lf\n", &tpar.dvxmin);

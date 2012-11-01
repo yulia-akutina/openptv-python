@@ -19,6 +19,7 @@ Routines contained:    	trackcorr_c
 #include "ptv.h"
 #include "tracking_frame_buf.h"
 #include "vec_utils.h"
+#include "parameters.h"
 
 /* Global variables marked extern in 'globals.h' and not defined elsewhere: */
 int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
@@ -50,28 +51,29 @@ link.
 #define MAX_CANDS 4
 
 int trackcorr_c_init () {
-    int step, img;
+    int step;
     double Ymin=0, Ymax=0,lmax;
-    char** target_file_base;
+    sequence_par *seq_par;
     
     /* Remaining globals:
     fb - from this file, for this file only.
     n_img, seq_name - set in jw_ptv.c in init_proc_c().
-    seq_first, seq_lasti, tpar.*, all parameters of volumedimension - set in 
+    seq_first, seq_last, tpar.*, all parameters of volumedimension - set in 
         readseqtrackcrit().
     see below for communication globals.
     */
 
-    /* read configuration */
+    /* read configuration: this will be turned into parameters soon and moved
+    out of this file.
+    */
+    seq_par = read_sequence_par("parameters/sequence.par");
+    seq_last = seq_par->last;
+    seq_first = seq_par->first;
     readseqtrackcrit ();
     
-    target_file_base = (char **) calloc(n_img, sizeof(char *));
-    for (img = 0; img < n_img; img++) {
-        target_file_base[img] = seq_name[img];
-    }
     fb = (framebuf *) malloc(sizeof(framebuf));
     fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
-        target_file_base);
+        seq_par->img_base_name);
 
     /* Prime the buffer with first frames */
     for (step = seq_first; step < seq_first + 3; step++) {
@@ -192,9 +194,9 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     char  val[256], buf[256];
     int j, h, k, mm, kk,  okay=0, invol=0;
     int zaehler1, zaehler2, philf[4][MAX_CANDS];
-    int count1=0, count2=0, count3=0, lost =0, zusatz=0;
+    int count1=0, count2=0, count3=0, zusatz=0;
     int intx0, intx1, inty0, inty1;
-    int intx2, inty2,intx3, inty3;
+    int intx2, inty2;
     int quali=0;
     pos3d diff_pos, X[7]; /* 7 reference points used in the algorithm, TODO: check if can reuse some */
     double x1[4], y1[4], x2[4], y2[4], angle, acc, angle0, acc0,  dl;
@@ -217,7 +219,7 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     
     foundpix *w, *wn, p16[4*MAX_CANDS];
     sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
-    count1=0; lost =0; zusatz=0;
+    count1=0; zusatz=0;
     
     curr_targets = fb->buf[1]->targets;
     
@@ -774,32 +776,28 @@ int trackback_c ()
     double npart=0, nlinks=0;
     foundpix *w, p16[4*MAX_CANDS];
 
-    
+    sequence_par *seq_par;
     framebuf *fb;  /* No need to use the global as the process is fully
                       enclosed here */
-    char** target_file_base;
     
     /* Shortcuts to inside current frame */
     P *curr_path_inf, *ref_path_inf;
-    corres *curr_corres, *ref_corres;
-    target **curr_targets, **ref_targets;
+    corres *ref_corres;
+    target **ref_targets;
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
     
-    display = 1; //atoi(argv[1]);
+    display = 1; 
     /* read data */
+    seq_par = read_sequence_par("parameters/sequence.par");
     readseqtrackcrit ();
 
-    target_file_base = (char **) calloc(n_img, sizeof(char *));
-    for (j = 0; j < n_img; j++) {
-        target_file_base[j] = seq_name[j];
-    }
     fb = (framebuf *) malloc(sizeof(framebuf));
     fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
-        target_file_base);
+        seq_par->img_base_name);
 
     /* Prime the buffer with first frames */
-    for (step = seq_last; step > seq_last - 4; step--) {
+    for (step = seq_par->last; step > seq_par->last - 4; step--) {
         fb_read_frame_at_end(fb, step, 1);
         fb_next(fb);
     }
@@ -810,12 +808,12 @@ int trackback_c ()
     volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
     /* sequence loop */
-    for (step = seq_last - 1; step > seq_first; step--) {
-        sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step - seq_first, step);
+    for (step = seq_par->last - 1; step > seq_par->first; step--) {
+        sprintf (buf, "Time step: %d, seqnr: %d, Particle info:",
+            step - seq_par->first, step);
         
         for (h = 0; h < fb->buf[1]->num_parts; h++) {
             curr_path_inf = &(fb->buf[1]->path_info[h]);
-            curr_corres = &(fb->buf[1]->correspond[h]);
             
             /* We try to find link only if the forward search failed to. */ 
             if ((curr_path_inf->next < 0) || (curr_path_inf->prev != -1)) continue;
@@ -1078,8 +1076,9 @@ int trackback_c ()
     } /* end of sequence loop */
 
     /* average of all steps */
-    npart /= (seq_last-seq_first-1);
-    nlinks /= (seq_last-seq_first-1);
+    npart /= (seq_par->last - seq_par->first - 1);
+    nlinks /= (seq_par->last - seq_par->first - 1);
+
     printf ("Average over sequence, particles: %5.1f, links: %5.1f, lost: %5.1f\n",
     npart, nlinks, npart-nlinks);
 
