@@ -23,6 +23,7 @@ Related routines:
 
 ******************************************************************/
 #include "tracking_frame_buf.h"
+#include "parameters.h"
 #include "ptv.h"
 
 #define MAX_TARGETS 20000
@@ -382,28 +383,16 @@ int *n_fix;
 int n_img;
 
 {
-    char* target_file_base[4];
     int     i_img, i, filenumber, step_shake, count = 0;
 	double  dummy;
+    sequence_par *seq_par;
     
     int part_pointer; /* Holds index of particle later */
     
     frame frm;
     frame_init(&frm, n_img, MAX_TARGETS);
     
-    /* Until configuration overhaul: */
-    for (i_img = 0; i_img < n_img; i_img++) {
-        target_file_base[i_img] = (char *) malloc(STR_MAX_LEN);
-    }
-    
-	fpp = fopen ("parameters/sequence.par","r");
-    fscanf (fpp, "%s\n", target_file_base[0]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[1]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[2]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[3]);     /* name of sequence */
-    fscanf (fpp,"%d\n", &seq_first);
-    fscanf (fpp,"%d\n", &seq_last);
-    fclose (fpp);
+	seq_par = read_sequence_par("parameters/sequence.par");
 
 	fpp = fopen ("parameters/dumbbell.par", "r");
     if (fpp){
@@ -415,9 +404,11 @@ int n_img;
         fclose (fpp);
     }
 
-    for (filenumber = seq_first; filenumber <= seq_last; filenumber += step_shake)
+    for (filenumber = seq_par->first; filenumber <= seq_par->last; \
+        filenumber += step_shake)
     {
-        read_frame(&frm, "res/db_is", NULL, NULL, target_file_base, filenumber);
+        read_frame(&frm, "res/db_is", NULL, NULL, seq_par->img_base_name,
+            filenumber);
 
 		for (i = 0; i < frm.num_parts; i++) {
             for (i_img = 0; i_img < n_img; i_img++) {
@@ -458,23 +449,14 @@ void prepare_eval_shake(int n_img) {
     int frame_used, part_used;
     int max_shake_points, max_shake_frames;
 	double  dummy;
+    sequence_par *seq_par;
     
     int part_pointer; /* Holds index of particle later */
     
     frame frm;
     frame_init(&frm, n_img, MAX_TARGETS);
     
-    /* Until configuration overhaul: */
-    for (i_img = 0; i_img < n_img; i_img++) {
-        target_file_base[i_img] = (char *) malloc(STR_MAX_LEN);
-    }
-    
-	fpp = fopen ("parameters/sequence.par","r");
-    fscanf (fpp, "%s\n", target_file_base[0]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[1]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[2]);     /* name of sequence */
-    fscanf (fpp, "%s\n", target_file_base[3]);     /* name of sequence */
-    fclose (fpp);
+	seq_par = read_sequence_par("parameters/sequence.par");
 
 	fpp = fopen ("parameters/shaking.par", "r");
     fscanf (fpp,"%d\n", &seq_first);
@@ -489,8 +471,8 @@ void prepare_eval_shake(int n_img) {
         filenumber += step_shake)
     {
         frame_used = 0;
-        read_frame(&frm, "res/rt_is", "res/ptv_is", NULL, target_file_base,
-            filenumber);
+        read_frame(&frm, "res/rt_is", "res/ptv_is", NULL,
+            seq_par->img_base_name, filenumber);
 
         for (i = 0; i < frm.num_parts; i++) {
             part_used = 0;
