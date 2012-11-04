@@ -28,23 +28,6 @@ int trajectories_c(int i)
   double color;
   coord_2d p1[4], p2[4];
 
-  //~ cr_sz = atoi(Tcl_GetVar2(interp, "mp", "pcrossize",  TCL_GLOBAL_ONLY));
-
-  //~ fpp = fopen_r ("parameters/sequence.par");
-
-  //~ /* name of sequence */
-  //~ fscanf (fpp,"%d\n", &seq_first);
-  //~ fscanf (fpp,"%d\n", &seq_last);
-  //~ fclose (fpp);
-  
-  //~ sprintf (buf, "Show trajectories "); puts (buf);
-  //~ Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-  //~ Tcl_Eval(interp, ".text delete 2");
-  //~ Tcl_Eval(interp, ".text insert 2 $tbuf");
-
-
-  //~ for (i=seq_first; i<seq_last;i++)
-    //~ {
       if (i < 10)             sprintf (val, "res/ptv_is.%1d", i);
       else if (i < 100)       sprintf (val, "res/ptv_is.%2d",  i);
       else       sprintf (val, "res/ptv_is.%3d",  i);
