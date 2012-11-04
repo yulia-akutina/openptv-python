@@ -1072,7 +1072,7 @@ int trackback_c ()
 
         fb_next(fb);
         fb_write_frame_from_start(fb, step);
-        if(step > seq_first + 2) { fb_read_frame_at_end(fb, step - 3, 1); }
+        if(step > seq_par->first + 2) { fb_read_frame_at_end(fb, step - 3, 1); }
     } /* end of sequence loop */
 
     /* average of all steps */
