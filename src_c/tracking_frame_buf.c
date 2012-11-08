@@ -229,7 +229,7 @@ int read_path_frame(corres *cor_buf, P *path_buf, \
 {
     FILE *filein, *linkagein = NULL, *prioin = NULL;
     char fname[STR_MAX_LEN];
-    int read_res = 0, targets = 0, alt_link = 0, retval = 0;
+    int read_res = 0, targets = 0, alt_link = 0;
     double discard; /* For position values that are to be read again from a 
                        differnt file. */
     
@@ -364,7 +364,7 @@ int write_path_frame(corres *cor_buf, P *path_buf, int num_parts,\
     char *corres_file_base, char *linkage_file_base, char *prio_file_base,
     int frame_num) 
 {
-    FILE *corres_file, *linkage_file, *prio_file = NULL;
+    FILE *corres_file, *linkage_file = NULL, *prio_file = NULL;
     char corres_fname[STR_MAX_LEN + 1], linkage_fname[STR_MAX_LEN + 1];
     char prio_fname[STR_MAX_LEN + 1];
     int	pix, success = 0;

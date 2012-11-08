@@ -3,6 +3,9 @@
    the same code.
 */
 
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
+
 /* Length of basenames. Smaller enough than the buffer lengths used by the
    tracking framebuffer, that suffixes can be added. */
 #define SEQ_FNAME_MAX_LEN 240
@@ -13,4 +16,6 @@ typedef struct {
 } sequence_par;
 
 sequence_par* read_sequence_par(char *filename);
+
+#endif
 
