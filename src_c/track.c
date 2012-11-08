@@ -18,6 +18,7 @@ Routines contained:    	trackcorr_c
 *******************************************************************/
 #include "ptv.h"
 #include "tracking_frame_buf.h"
+#include "tracking_run.h"
 #include "vec_utils.h"
 #include "parameters.h"
 
@@ -29,13 +30,6 @@ int seq_step_shake;
 double lmax_track, ymax_track, ymin_track;
 double pnr3_tr[4][10000];
 double npart, nlinks;
-
-/* For now, we'll use a file-global framebuf. It is the lesser evil compared to
-the current state of using a scatter of projectwide-globals, and will change to
-a framebuffer passed around when we get to the point we feel safe in changing 
-the functions' interface.
-*/
-framebuf *fb;
 
 /* The buffer space required for this algorithm: 
 
@@ -50,37 +44,35 @@ link.
 #define MAX_TARGETS 20000
 #define MAX_CANDS 4
 
-int trackcorr_c_init () {
+tracking_run* trackcorr_c_init() {
     int step;
     double Ymin=0, Ymax=0,lmax;
-    sequence_par *seq_par;
+    tracking_run *ret;
     
     /* Remaining globals:
-    fb - from this file, for this file only.
-    n_img, seq_name - set in jw_ptv.c in init_proc_c().
-    seq_first, seq_last, tpar.*, all parameters of volumedimension - set in 
+    n_img - set in jw_ptv.c in init_proc_c().
+    tpar.*, all parameters of volumedimension - set in 
         readseqtrackcrit().
     see below for communication globals.
     */
-
+    
+    ret = (tracking_run *) malloc(sizeof(tracking_run));
+    tr_init(ret, "parameters/sequence.par");
+    
     /* read configuration: this will be turned into parameters soon and moved
     out of this file.
     */
-    seq_par = read_sequence_par("parameters/sequence.par");
-    seq_last = seq_par->last;
-    seq_first = seq_par->first;
     readseqtrackcrit ();
     
-    fb = (framebuf *) malloc(sizeof(framebuf));
-    fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
-        seq_par->img_base_name);
+    fb_init(ret->fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
+        ret->seq_par->img_base_name);
 
     /* Prime the buffer with first frames */
-    for (step = seq_first; step < seq_first + 3; step++) {
-        fb_read_frame_at_end(fb, step, 0);
-        fb_next(fb);
+    for (step = ret->seq_par->first; step < ret->seq_par->first + 3; step++) {
+        fb_read_frame_at_end(ret->fb, step, 0);
+        fb_next(ret->fb);
     }
-    fb_prev(fb);
+    fb_prev(ret->fb);
 
     lmax=norm((tpar.dvxmin - tpar.dvxmax), (tpar.dvymin - tpar.dvymax),
 	    (tpar.dvzmin - tpar.dvzmax));
@@ -95,6 +87,8 @@ int trackcorr_c_init () {
     // Denis - globals below are used in trackcorr_finish
     npart=0;
     nlinks=0;
+    
+    return ret;
 }
 
 /* reset_foundpix_array() sets default values for foundpix objects in an array.
@@ -188,8 +182,9 @@ void search_volume_center_moving(pos3d prev_pos, pos3d curr_pos, pos3d output)
     }
 }
 
-int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
-    int display) {
+int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin,
+    double Ymax, int display)
+{
    /* sequence loop */
     char  val[256], buf[256];
     int j, h, k, mm, kk,  okay=0, invol=0;
@@ -212,15 +207,19 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
 
+    framebuf *fb;
+    
     /* Remaining globals:
     all those in trackcorr_c_init.
     calibration globals.
     */
     
     foundpix *w, *wn, p16[4*MAX_CANDS];
-    sprintf (buf, "Time step: %d, seqnr: %d, Particle info:", step- seq_first, step);
+    sprintf (buf, "Time step: %d, seqnr: %d, Particle info:",
+        step - run_info->seq_par->first, step);
     count1=0; zusatz=0;
     
+    fb = run_info->fb;
     curr_targets = fb->buf[1]->targets;
     
     /* try to track correspondences from previous 0 - corp, variable h */
@@ -739,22 +738,25 @@ int trackcorr_c_loop (int step, double lmax, double Ymin, double Ymax,
 
     fb_next(fb);
     fb_write_frame_from_start(fb, step);
-    if(step < seq_last - 2) { fb_read_frame_at_end(fb, step + 3, 0); }
+    if(step < run_info->seq_par->last - 2) {
+        fb_read_frame_at_end(fb, step + 3, 0); 
+    }
 } /* end of sequence loop */
 
-int trackcorr_c_finish(int step)
+int trackcorr_c_finish(tracking_run *run_info, int step)
 {
+  int range = run_info->seq_par->last - run_info->seq_par->first;
+  
   /* average of all steps */
-  npart /= (seq_last-seq_first);
-  nlinks /= (seq_last-seq_first);
+  npart /= range;
+  nlinks /= range;
   printf ("Average over sequence, particles: %5.1f, links: %5.1f, lost: %5.1f\n",
 	  npart, nlinks, npart-nlinks);
 
-  fb_next(fb);
-  fb_write_frame_from_start(fb, step);
+  fb_next(run_info->fb);
+  fb_write_frame_from_start(run_info->fb, step);
   
-  fb_free(fb);
-  free(fb);
+  fb_free(run_info->fb);
     
   /* reset of display flag */
   display = 1;

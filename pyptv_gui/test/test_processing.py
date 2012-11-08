@@ -91,9 +91,9 @@ class TestProcessing(unittest.TestCase):
         init_args = py_trackcorr_init()
         
         for frame in range(497, 597):
-            args = (frame,) + init_args[:-1]
-            py_trackcorr_loop(*args)
-        py_trackcorr_finish(597)
+            args = (init_args[-1], frame) + init_args[:-1]
+            py_trackcorr_loop(*args, display=0)
+        py_trackcorr_finish(init_args[-1], 597)
         
         self.failUnless(compare_directories("res/", "after_tracking/"))
         self.failUnless(compare_directories(

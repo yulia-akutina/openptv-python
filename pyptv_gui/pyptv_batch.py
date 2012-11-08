@@ -91,13 +91,13 @@ def sequence_tracking(n_img):
 		
 
 #	forward tracking
-	lmax_track,ymin_track,ymax_track, seq_first, seq_last=ptv.py_trackcorr_init()
-	print lmax_track,ymin_track,ymax_track, seq_first, seq_last
-	for step in range (seq_first, seq_last):
+	lmax_track, ymin_track, ymax_track, run_info = ptv.py_trackcorr_init()
+	print lmax_track,ymin_track,ymax_track, run_info.get_sequence_range()
+	for step in range(*run_info.get_sequence_range()):
 		print step
-		ptv.py_trackcorr_loop(step, lmax_track, ymin_track, ymax_track,display=0)
+		ptv.py_trackcorr_loop(run_info, step, lmax_track, ymin_track, ymax_track,display=0)
  
-	ptv.py_trackcorr_finish(step+1)
+	ptv.py_trackcorr_finish(run_info, step + 1)
 	print "tracking without display finished"
 	ptv.py_trackback_c() 
 	print "tracking backwards is finished"

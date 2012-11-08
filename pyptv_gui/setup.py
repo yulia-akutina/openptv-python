@@ -23,11 +23,13 @@ ext_mods = [
         "ray_tracing.c", "imgcoord.c", "lsqadj.c", "orientation.c","sortgrid.c",
         "pointpos.c", "intersect.c", "track.c", "ttools.c", "draw.c",
         "mousefunction.c", "tracking_frame_buf.c", "vec_utils.c",
-        "parameters.c"],
+        "parameters.c", "tracking_run.c"],
         include_dirs = [np.get_include(),'.'],
         extra_compile_args=['-O3', '-fno-common']),
     Extension("tracking_framebuf", ["tracking_framebuf.pyx",
-        "tracking_frame_buf.c"]) ]
+        "tracking_frame_buf.c"]),
+    Extension("tracking_run_py", ["tracking_run_py.pyx", "tracking_run.c",
+        "tracking_frame_buf.c", "parameters.c"]) ]
 
 setup(
     name="ptv1",
