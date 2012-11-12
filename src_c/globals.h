@@ -28,7 +28,7 @@ extern int orient_y1[4][1000];
 extern int orient_x2[4][1000];
 extern int orient_y2[4][1000];
 extern int orient_n[4];	
-extern char seq_ch[128], seq_name[4][128];
+extern char seq_ch[128];
 	
 extern double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
 extern int dumbbell_pyptv;
@@ -53,7 +53,6 @@ extern int nr[4][4];                       /* point numbers for man. ori */
 extern int imx, imy, imgsize;              /* image size */
 extern int zoom_x[], zoom_y[], zoom_f[];   /* zoom parameters */
 extern int pp1, pp2, pp3, pp4,pp5;         /* for man. orientation */
-extern int seq_first, seq_last;            /* 1. and last img of seq */
 extern int demo_nr;                        /* for demo purposes */
 extern int examine;                        /* extra output */
 extern int dump_for_rdb;                   /* # of dumpfiles for rdb */
@@ -78,7 +77,6 @@ extern char img_ori0[4][128];     /* orientation approx. values */
 extern char img_addpar0[4][128];  /* approx. image additional parameters */
 extern char img_addpar[4][128];   /* image additional parameters */
 extern char fixp_name[128];       /* testfield fixpoints */
-extern char seq_name[4][128];     /* sequence names */
 extern char track_dir[128];       /* directory with dap track data */
 extern char res_name[128];        /* result destination */
 extern char buf[], val[];

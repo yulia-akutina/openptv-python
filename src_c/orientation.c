@@ -446,6 +446,7 @@ int n_img;
 void prepare_eval_shake(int n_img) {
     char* target_file_base[4];
     int i_img, i, filenumber, step_shake, count = 0, frame_count = 0;
+    int seq_first, seq_last;
     int frame_used, part_used;
     int max_shake_points, max_shake_frames;
 	double  dummy;

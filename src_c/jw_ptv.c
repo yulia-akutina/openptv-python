@@ -179,15 +179,6 @@ int init_proc_c()
     
     mmp.nlay = 1;
     
-    /* read sequence parameters (needed for some demos) */
-    
-    fpp = fopen_r ("parameters/sequence.par");
-    
-    for (i=0; i<4; i++)		fscanf (fpp, "%s\n", seq_name[i]);
-    fscanf (fpp,"%d\n", &seq_first);
-    fscanf (fpp,"%d\n", &seq_last);
-    fclose (fpp);
-    
     /* initialize zoom parameters and image positions */
     for (i=0; i<n_img; i++)
     {
@@ -310,15 +301,6 @@ int start_proc_c()
     fclose (fpp);
     
     mmp.nlay = 1;
-    
-    /* read sequence parameters (needed for some demos) */
-    
-    fpp = fopen_r ("parameters/sequence.par");
-    
-    for (i=0; i<4; i++)		fscanf (fpp, "%s\n", seq_name[i]);
-    fscanf (fpp,"%d\n", &seq_first);
-    fscanf (fpp,"%d\n", &seq_last);
-    fclose (fpp);
     
     /*  create file names  */
     for (i=0; i<n_img; i++)
