@@ -31,6 +31,8 @@ double lmax_track, ymax_track, ymin_track;
 double pnr3_tr[4][10000];
 double npart, nlinks;
 
+track_par *tpar;
+
 /* The buffer space required for this algorithm: 
 
 Note that MAX_TARGETS is taken from the global M, but I want a separate
@@ -51,13 +53,14 @@ tracking_run* trackcorr_c_init() {
     
     /* Remaining globals:
     n_img - set in jw_ptv.c in init_proc_c().
-    tpar.*, all parameters of volumedimension - set in 
+    all parameters of volumedimension - set in 
         readseqtrackcrit().
     see below for communication globals.
     */
     
     ret = (tracking_run *) malloc(sizeof(tracking_run));
     tr_init(ret, "parameters/sequence.par");
+    tpar = read_track_par("parameters/track.par");
     
     /* read configuration: this will be turned into parameters soon and moved
     out of this file.
@@ -74,8 +77,8 @@ tracking_run* trackcorr_c_init() {
     }
     fb_prev(ret->fb);
 
-    lmax=norm((tpar.dvxmin - tpar.dvxmax), (tpar.dvymin - tpar.dvymax),
-	    (tpar.dvzmin - tpar.dvzmax));
+    lmax=norm((tpar->dvxmin - tpar->dvxmax), (tpar->dvymin - tpar->dvymax),
+	    (tpar->dvzmin - tpar->dvzmax));
     volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
     // Denis - globals below are passed to trackcorr_c_loop
@@ -264,7 +267,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 	    } 
         
 	    /* calculate searchquader and reprojection in image space */
-	    searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu);
+	    searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu, tpar);
 
 	    /* search in pix for candidates in next time step */
 	    for (j = 0; j < fb->num_cams; j++) {
@@ -298,7 +301,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 	        } else {
                 search_volume_center_moving(X[1], X[3], X[5]);
             }
-            searchquader(X[5][0], X[5][1], X[5][2], &xr, &xl, &yd, &yu);
+            searchquader(X[5][0], X[5][1], X[5][2], &xr, &xl, &yd, &yu, tpar);
 
 	        for (j = 0; j < fb->num_cams; j++) {
                 img_coord (X[5][0], X[5][1], X[5][2], Ex[j],I[j], G[j], ap[j],
@@ -339,15 +342,15 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                 copy_pos3d(X[4], ref_path_inf->x);
 
 		        okay=0; rr=1000000; quali=0; dl=0;
-        		acc=2*tpar.dacc; angle=2*tpar.dangle;
-		        acc0=2*tpar.dacc; angle0=2*tpar.dangle;
-        		acc1=2*tpar.dacc; angle1=2*tpar.dangle;
+        		acc=2*tpar->dacc; angle=2*tpar->dangle;
+		        acc0=2*tpar->dacc; angle0=2*tpar->dangle;
+        		acc1=2*tpar->dacc; angle1=2*tpar->dangle;
 
 		        /* displacement check */
                 subst_pos3d(X[4], X[3], diff_pos);
-                if ( tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                 { 
                     okay=1;
 
@@ -371,8 +374,10 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		                quali=wn[kk].freq+w[mm].freq;
 		                rr=1000000;
 
-		                if ((acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10)) {
-			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                            (acc < tpar->dacc/10)) 
+                        {
+			                rr = (dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
                             register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 			            }
 		                okay=0;
@@ -429,15 +434,15 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
         		/* displacement check */
                 subst_pos3d(X[3], X[4], diff_pos);
                 if ( invol == 1 &&
-                    tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                    tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                 { 
                     okay=1;
                     
 		            if (okay == 1) {
 		                rr=1000000; dl=0;
-		                acc=2*tpar.dacc; angle=2*tpar.dangle;
+		                acc=2*tpar->dacc; angle=2*tpar->dangle;
                         
 		                dl=(diff_norm_pos3d(X[1], X[3]) + 
                             diff_norm_pos3d(X[4], X[3]) )/2;
@@ -446,12 +451,14 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                             X[4][0], X[4][1], X[4][2],
                             X[5][0], X[5][1], X[5][2], &angle, &acc);
 
-		                if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
-			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle) /
+                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                            (acc < tpar->dacc/10)) 
+                        {
+			                rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle) /
                                 (quali+w[mm].freq);
                             register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 
-			                if (tpar.add) {
+			                if (tpar->add) {
                                 ref_path_inf = &(fb->buf[3]->path_info[
                                     fb->buf[3]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[4]);
@@ -486,13 +493,13 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
             
 	        /* try to link if kk is not found/good enough and prev exist */
 	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
-		        acc = 2*tpar.dacc;
-                angle = 2*tpar.dangle;
+		        acc = 2*tpar->dacc;
+                angle = 2*tpar->dangle;
                 
                 subst_pos3d(X[3], X[1], diff_pos);
-                if ( tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                 {
                     okay=1;
                     
@@ -505,8 +512,10 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		                dl = (diff_norm_pos3d(X[1], X[3]) + 
                             diff_norm_pos3d(X[0], X[1]) )/2;
 
-			            if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
-			                rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+			            if ( (acc < tpar->dacc && angle < tpar->dangle) || \
+                            (acc < tpar->dacc/10) )
+                        {
+			                rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
                             register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 			            }
 		            }
@@ -518,7 +527,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
         } /* end of zaehler1-loop */
         
 	    /* begin of inlist still zero */
-	    if (tpar.add) {
+	    if (tpar->add) {
 	        if ( curr_path_inf->inlist == 0 && curr_path_inf->prev >= 0 ) {
                 for (j = 0; j < fb->num_cams; j++) {
                     img_coord (X[2][0], X[2][1], X[2][2], Ex[j],I[j], G[j],
@@ -565,23 +574,26 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		            /* displacement check */
                     subst_pos3d(X[2], X[3], diff_pos);
                     if ( invol == 1 &&
-                        tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                        tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                        tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                        tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                        tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                        tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                     { 
                         okay=1;
                     
 		                if (okay == 1) {
 			                rr=1000000; dl=0;
-			                acc=2*tpar.dacc;angle=2*tpar.dangle;
+                            acc = 2*tpar->dacc;
+                            angle = 2*tpar->dangle;
                             angle_acc(X[1][0], X[1][1], X[1][2],
                                 X[2][0], X[2][1], X[2][2],
                                 X[3][0], X[3][1], X[3][2], &angle, &acc);
                             dl = (diff_norm_pos3d(X[1], X[3]) + 
                                 diff_norm_pos3d(X[0], X[1]) )/2;
 
-			                if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
-			                    rr = (dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+                            if ( (acc < tpar->dacc && angle < tpar->dangle) || \
+                                (acc < tpar->dacc/10) ) 
+                            {
+			                    rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
                                 ref_path_inf = &(fb->buf[2]->path_info[
                                     fb->buf[2]->num_parts]);
                                 copy_pos3d(ref_path_inf->x, X[3]);
@@ -757,6 +769,7 @@ int trackcorr_c_finish(tracking_run *run_info, int step)
   fb_write_frame_from_start(run_info->fb, step);
   
   fb_free(run_info->fb);
+  free(tpar);
     
   /* reset of display flag */
   display = 1;
@@ -792,6 +805,7 @@ int trackback_c ()
     display = 1; 
     /* read data */
     seq_par = read_sequence_par("parameters/sequence.par");
+    tpar = read_track_par("parameters/track.par");
     readseqtrackcrit ();
 
     fb = (framebuf *) malloc(sizeof(framebuf));
@@ -805,8 +819,8 @@ int trackback_c ()
     }
     fb_prev(fb);
     
-    lmax = norm((tpar.dvxmin - tpar.dvxmax), (tpar.dvymin - tpar.dvymax),
-	    (tpar.dvzmin - tpar.dvzmax));
+    lmax = norm((tpar->dvxmin - tpar->dvxmax), (tpar->dvymin - tpar->dvymax),
+	    (tpar->dvzmin - tpar->dvzmax));
     volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
     /* sequence loop */
@@ -841,7 +855,7 @@ int trackback_c ()
             }
 
             /* calculate searchquader and reprojection in image space */
-            searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu);
+            searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu, tpar);
 
             for (j = 0; j < fb->num_cams; j++) {
                 zaehler1 = candsearch_in_pix (
@@ -879,15 +893,15 @@ int trackback_c ()
                 copy_pos3d(X[3], ref_path_inf->x);
 
                 okay = 0;
-                acc = 2*tpar.dacc;
-                angle = 2*tpar.dangle;
+                acc = 2*tpar->dacc;
+                angle = 2*tpar->dangle;
                 rr = 1000000; quali = 0; dl = 0;
                 
                 /* displacement check */
                 subst_pos3d(X[1], X[3], diff_pos);
-                if ( tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                    tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                    tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                 {
                     okay=1;
 
@@ -901,9 +915,10 @@ int trackback_c ()
                             X[3][0], X[3][1], X[3][2], &angle, &acc);
 
                         /* *********************check link *****************************/
-                        if ((acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10)) {
-                            rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/quali;
-
+                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                            (acc < tpar->dacc/10))
+                        {
+                            rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/quali;
                             register_link_candidate(curr_path_inf, rr, w[i].ftnr);
                         }
                     }
@@ -918,7 +933,7 @@ int trackback_c ()
             for (j=0;j<4;j++) { x2[j]=-1e10; y2[j]=-1e10;}
 
             /* if old wasn't found try to create new particle position from rest */
-            if (tpar.add) {
+            if (tpar->add) {
                 if ( curr_path_inf->inlist == 0) {
                     for (j = 0; j < fb->num_cams; j++) {
                         /* use fix distance to define xl, xr, yu, yd instead of searchquader */
@@ -953,14 +968,17 @@ int trackback_c ()
                             Ymin < X[3][1] && X[3][1] < Ymax &&
                             Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
 
-                        okay=0; acc=2*tpar.dacc;angle=2*tpar.dangle;rr=1000000; dl=0;
+                        okay=0;
+                        acc = 2*tpar->dacc;
+                        angle = 2*tpar->dangle;
+                        rr=1000000; dl=0;
 
                         /* displacement check */
                         subst_pos3d(X[1], X[3], diff_pos);
                         if ( invol==1 && 
-                            tpar.dvxmin < diff_pos[0] && diff_pos[0] < tpar.dvxmax &&
-                            tpar.dvymin < diff_pos[1] && diff_pos[1] < tpar.dvymax &&
-                            tpar.dvzmin < diff_pos[2] && diff_pos[2] < tpar.dvzmax ) 
+                            tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
+                            tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
+                            tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
                         { 
                             okay=1;
                             /* end displacement check */
@@ -973,8 +991,8 @@ int trackback_c ()
                                     X[2][0], X[2][1], X[2][2],
                                     X[3][0], X[3][1], X[3][2], &angle, &acc);
 
-                                if ( (acc<tpar.dacc && angle<tpar.dangle) || (acc<tpar.dacc/10) ) {
-                                    rr =(dl/lmax+acc/tpar.dacc + angle/tpar.dangle)/(quali);
+                                if ( (acc<tpar->dacc && angle<tpar->dangle) || (acc<tpar->dacc/10) ) {
+                                    rr =(dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
 
                                     ref_path_inf = &(fb->buf[2]->path_info[
                                         fb->buf[2]->num_parts]);
@@ -1047,12 +1065,13 @@ int trackback_c ()
                     for (j = 0; j < 3; j++) 
                         X[5][j] = 0.5*(5.0*X[3][j] - 4.0*X[1][j] + X[0][j]);
 
-                    acc=2*tpar.dacc;angle=2*tpar.dangle;
+                    acc = 2*tpar->dacc;
+                    angle = 2*tpar->dangle;
                     angle_acc(X[3][0], X[3][1], X[3][2],
                         X[4][0], X[4][1], X[4][2],
                         X[5][0], X[5][1], X[5][2], &angle, &acc);
                     
-                    if ( (acc<tpar.dacc && angle<tpar.dangle) ||  (acc<tpar.dacc/10) ) {
+                    if ( (acc<tpar->dacc && angle<tpar->dangle) ||  (acc<tpar->dacc/10) ) {
                         curr_path_inf->finaldecis = curr_path_inf->decis[0];
                         curr_path_inf->prev = curr_path_inf->linkdecis[0];
                         fb->buf[2]->path_info[curr_path_inf->prev].next = h;
@@ -1089,6 +1108,7 @@ int trackback_c ()
     
     fb_free(fb);
     free(fb);
+    free(tpar);
 
     /* reset of display flag */
     display = 1;

@@ -104,7 +104,6 @@ extern target   *n[4];
 extern corres   *corrp;
 extern corres  	*corrc;
 extern corres  	*corrn;
-extern trackparameters tpar;
 
 FILE *fopen_r ();
 double multimed_r ();

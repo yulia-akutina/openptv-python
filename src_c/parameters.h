@@ -17,5 +17,14 @@ typedef struct {
 
 sequence_par* read_sequence_par(char *filename);
 
+typedef struct
+{
+    double  dacc, dangle, dvxmax, dvxmin;
+    double dvymax, dvymin, dvzmax, dvzmin;
+    int dsumg, dn, dnx, dny, add;
+} track_par;
+
+track_par* read_track_par(char *filename);
+
 #endif
 

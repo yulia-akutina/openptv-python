@@ -27,14 +27,6 @@ coord_2d;
 
 typedef struct
 {
-  double  dacc, dangle, dvxmax, dvxmin;
-  double dvymax, dvymin, dvzmax, dvzmin;
-  int  dsumg, dn, dnx, dny, add;
-}
-trackparameters;
-
-typedef struct
-{
   double n1,n2,n3,d;
   int    lut;
 }
@@ -142,6 +134,5 @@ prevlist;
 #define MAX_FILENAME_LEN 1024
 #define FILENAME_IN "res/rt_is"
 #define FILENAME_OUT "res/ptv_is"
-#define PARAMETERFILE "res/track.par"
 #define COORDPARAFILE "res/coord.par"
 #define STATUSFILE "res/track.out"

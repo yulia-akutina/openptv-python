@@ -16,6 +16,7 @@ Routines contained:     pix_in_next, candsearch_in_pix, searchposition,
 
 ****************************************************************************/
 #include "ptv.h"
+#include "parameters.h"
 
 int pix_in_next (next, num, x, y, dl, dr, du, dd, found)
 target  next[];
@@ -204,25 +205,6 @@ double x1, y1, x2, y2, *x3, *y3;
 void readseqtrackcrit ()
 {
   int i_img;
-
-  fpp = fopen_r ("parameters/track.par");
-  fscanf (fpp, "%lf\n", &tpar.dvxmin);
-  fscanf (fpp, "%lf\n", &tpar.dvxmax);
-  fscanf (fpp, "%lf\n", &tpar.dvymin);
-  fscanf (fpp, "%lf\n", &tpar.dvymax);
-  fscanf (fpp, "%lf\n", &tpar.dvzmin);
-  fscanf (fpp, "%lf\n", &tpar.dvzmax);
-  fscanf (fpp, "%lf\n", &tpar.dangle);
-  fscanf (fpp, "%lf\n", &tpar.dacc);
-  fscanf (fpp,"%d\n", &tpar.add);
-  /*
-    fscanf (fpp,"%d\n", &tpar.dsumg);
-    fscanf (fpp,"%d\n", &tpar.dn);
-    fscanf (fpp,"%d\n", &tpar.dnx);
-    fscanf (fpp,"%d\n", &tpar.dny);
-  */
-  fclose (fpp);
-
   /* read illuminated layer data */
   fpp = fopen_r ("parameters/criteria.par");
   fscanf (fpp, "%lf\n", &X_lay[0]);
@@ -236,8 +218,9 @@ void readseqtrackcrit ()
 
 
 
-void searchquader(X, Y, Z, xr, xl, yd, yu)
+void searchquader(X, Y, Z, xr, xl, yd, yu, tpar)
 double X, Y, Z, xr[4], xl[4], yd[4], yu[4];
+track_par *tpar;
 {
   int k, i;
   double x, y, xz, yz;
@@ -251,14 +234,37 @@ double X, Y, Z, xr[4], xl[4], yd[4], yu[4];
   /* calculation of quader points */
   point.pnr=0; point.x=X; point.y=Y; point.z=Z;
 
-  quader[0].x=X+tpar.dvxmin; quader[0].y=Y+tpar.dvymin; quader[0].z=Z+tpar.dvzmin; /* --- */
-  quader[1].x=X+tpar.dvxmax; quader[1].y=Y+tpar.dvymin; quader[1].z=Z+tpar.dvzmin; /* +-- */
-  quader[2].x=X+tpar.dvxmin; quader[2].y=Y+tpar.dvymax; quader[2].z=Z+tpar.dvzmin; /* -+- */
-  quader[3].x=X+tpar.dvxmin; quader[3].y=Y+tpar.dvymin; quader[3].z=Z+tpar.dvzmax; /* --+ */ //changed by Beat and JuliAn Nov 2008
-  quader[4].x=X+tpar.dvxmax; quader[4].y=Y+tpar.dvymax; quader[4].z=Z+tpar.dvzmin; /* ++- */
-  quader[5].x=X+tpar.dvxmax; quader[5].y=Y+tpar.dvymin; quader[5].z=Z+tpar.dvzmax; /* +-+ */
-  quader[6].x=X+tpar.dvxmin; quader[6].y=Y+tpar.dvymax; quader[6].z=Z+tpar.dvzmax; /* -++ */
-  quader[7].x=X+tpar.dvxmax; quader[7].y=Y+tpar.dvymax; quader[7].z=Z+tpar.dvzmax; /* +++ */
+    quader[0].x = X + tpar->dvxmin;
+    quader[0].y = Y + tpar->dvymin;
+    quader[0].z = Z + tpar->dvzmin; /* --- */
+    
+    quader[1].x = X + tpar->dvxmax;
+    quader[1].y = Y + tpar->dvymin;
+    quader[1].z = Z + tpar->dvzmin; /* +-- */
+    
+    quader[2].x = X + tpar->dvxmin;
+    quader[2].y = Y + tpar->dvymax;
+    quader[2].z = Z + tpar->dvzmin; /* -+- */
+    
+    quader[3].x = X + tpar->dvxmin;
+    quader[3].y = Y + tpar->dvymin;
+    quader[3].z = Z + tpar->dvzmax; /* --+ */ //changed by Beat and JuliAn Nov 2008
+    
+    quader[4].x = X + tpar->dvxmax;
+    quader[4].y = Y + tpar->dvymax;
+    quader[4].z = Z + tpar->dvzmin; /* ++- */
+    
+    quader[5].x = X + tpar->dvxmax;
+    quader[5].y = Y + tpar->dvymin;
+    quader[5].z = Z + tpar->dvzmax; /* +-+ */
+    
+    quader[6].x = X + tpar->dvxmin;
+    quader[6].y = Y + tpar->dvymax;
+    quader[6].z = Z + tpar->dvzmax; /* -++ */
+    
+    quader[7].x = X + tpar->dvxmax;
+    quader[7].y = Y + tpar->dvymax;
+    quader[7].z = Z + tpar->dvzmax; /* +++ */
 
   /* calculation of search area */
   for (i=0; i<n_img; i++)

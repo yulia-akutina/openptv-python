@@ -109,8 +109,6 @@ coord_2d       	geo[4][nmax];  	/* corrected metric coordinates */
 coord_3d       	fix[20096];     	/* testfield points coordinates */ //Beat changed it on 090325
 n_tupel	       	con[nmax];     	/* list of correspondences */
 
-trackparameters tpar;           /* tracking parameters */
-
 mm_LUT	       	mmLUT[4];     	/* LUT for multimedia radial displacement */
 coord_3d        *p_c3d;
 
