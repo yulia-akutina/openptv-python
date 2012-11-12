@@ -16,6 +16,7 @@ Routines contained:     drawcross, drawvector, draw_pnr, mark_detections
 
 ****************************************************************************/
 #include "ptv.h"
+#include "parameters.h"
 
 int trajectories_c(int i) 
 /* draws crosses for detected points in a displayed image */
@@ -27,6 +28,7 @@ int trajectories_c(int i)
   vector *line1, *line2;
   double color;
   coord_2d p1[4], p2[4];
+  sequence_par *seq_par;
 
       if (i < 10)             sprintf (val, "res/ptv_is.%1d", i);
       else if (i < 100)       sprintf (val, "res/ptv_is.%2d",  i);
@@ -34,7 +36,8 @@ int trajectories_c(int i)
  
       fp1 = fopen (val, "r");
       
-      color = ((double)(i-seq_first))/((double)(seq_last-2-seq_first));
+  seq_par = read_sequence_par("parameters/sequence.par");
+  color = ((double)(i - seq_par->first)) / ((double)(seq_par->last - 2 - seq_par->first));
       fscanf (fp1,"%d\n", &anz1);
       
       line1 = (vector *) malloc (anz1 * sizeof (vector));
