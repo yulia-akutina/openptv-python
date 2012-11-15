@@ -25,6 +25,7 @@ typedef struct
 } track_par;
 
 track_par* read_track_par(char *filename);
+int compare_track_par(track_par *t1, track_par *t2);
 
 #endif
 

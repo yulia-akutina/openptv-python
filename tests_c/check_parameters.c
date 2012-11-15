@@ -2,6 +2,7 @@
 
 #include <check.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "../src_c/parameters.h"
 
 START_TEST(test_read_sequence_par)
