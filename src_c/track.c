@@ -16,6 +16,11 @@ Description:   	        Tracking of particles in image- and objectspace
 Routines contained:    	trackcorr_c
 
 *******************************************************************/
+
+/* References:
+[1] http://en.wikipedia.org/wiki/Gradian
+*/
+
 #include "ptv.h"
 #include "tracking_frame_buf.h"
 #include "tracking_run.h"
@@ -200,6 +205,37 @@ int pos3d_in_bounds(pos3d pos, track_par *bounds) {
         bounds->dvzmin < pos[2] && pos[2] < bounds->dvzmax ); 
 }
 
+/* angle_acc() calculates the angle between the (1st order) numerical velocity
+   vectors to the predicted next position and to the candidate actual position.
+   The angle is calculated in [gon], see [1].
+   The predicted position is the position if the particle continued at current
+   velocity.
+   
+   Arguments:
+   pos3d start, pred, cand - the particle start position, predicted position,
+      and possible actual position, respectively.
+   double *angle - output variable, the angle between the two velocity
+      vectors, [gon]
+   double *acc - output variable, the 1st-order numerical acceleration embodied
+      in the deviation from prediction.
+ */
+void angle_acc(pos3d start, pos3d pred, pos3d cand, double *angle, double *acc)
+{
+    pos3d v0, v1;
+    
+    subst_pos3d(pred, start, v0);
+    subst_pos3d(cand, start, v1);
+    
+    *acc = diff_norm_pos3d(v0, v1);
+    
+    if ((v0[0] == -v1[0]) && (v0[1] == -v1[1]) && (v0[2] == -v1[2])) {
+        *angle = 200;
+    } else {
+        *angle = (200./M_PI) * acos(dot_pos3d(v0, v1) / norm(v0[0], v0[1], v0[2]) \
+            / norm(v1[0], v1[1], v1[2]));
+    }
+}
+
 int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin,
     double Ymax, int display)
 {
@@ -361,14 +397,10 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
                 subst_pos3d(X[4], X[3], diff_pos);
                 if ( pos3d_in_bounds(diff_pos, tpar)) { 
-                    angle_acc(X[3][0], X[3][1], X[3][2],
-                        X[4][0], X[4][1], X[4][2],
-                        X[5][0], X[5][1], X[5][2], &angle1, &acc1);
+                    angle_acc(X[3], X[4], X[5], &angle1, &acc1);
 
                     if (curr_path_inf->prev >= 0) {
-                        angle_acc(X[1][0], X[1][1], X[1][2],
-                            X[2][0], X[2][1], X[2][2],
-                            X[3][0], X[3][1], X[3][2], &angle0, &acc0);
+                        angle_acc(X[1], X[2], X[3], &angle0, &acc0);
 		            } else {
                         acc0=acc1; angle0=angle1;
                     }
@@ -434,9 +466,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
                 subst_pos3d(X[3], X[4], diff_pos);
                 if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
-                    angle_acc(X[3][0], X[3][1], X[3][2],
-                        X[4][0], X[4][1], X[4][2],
-                        X[5][0], X[5][1], X[5][2], &angle, &acc);
+                    angle_acc(X[3], X[4], X[5], &angle, &acc);
 
                     if ((acc < tpar->dacc && angle < tpar->dangle) || \
                         (acc < tpar->dacc/10)) 
@@ -483,9 +513,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                 subst_pos3d(X[3], X[1], diff_pos);
                 
                 if (pos3d_in_bounds(diff_pos, tpar)) {
-                    angle_acc(X[1][0], X[1][1], X[1][2],
-                        X[2][0], X[2][1], X[2][2],
-                        X[3][0], X[3][1], X[3][2], &angle, &acc);
+                    angle_acc(X[1], X[2], X[3], &angle, &acc);
 
                     if ( (acc < tpar->dacc && angle < tpar->dangle) || \
                         (acc < tpar->dacc/10) )
@@ -549,9 +577,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
                     subst_pos3d(X[2], X[3], diff_pos);
                     if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
-                        angle_acc(X[1][0], X[1][1], X[1][2],
-                            X[2][0], X[2][1], X[2][2],
-                            X[3][0], X[3][1], X[3][2], &angle, &acc);
+                        angle_acc(X[1], X[2], X[3], &angle, &acc);
 
                         if ( (acc < tpar->dacc && angle < tpar->dangle) || \
                             (acc < tpar->dacc/10) ) 
@@ -857,9 +883,7 @@ int trackback_c ()
 
                 subst_pos3d(X[1], X[3], diff_pos);
                 if (pos3d_in_bounds(diff_pos, tpar)) {
-                    angle_acc(X[1][0], X[1][1], X[1][2],
-                        X[2][0], X[2][1], X[2][2],
-                        X[3][0], X[3][1], X[3][2], &angle, &acc);
+                    angle_acc(X[1], X[2], X[3], &angle, &acc);
 
                     /* *********************check link *****************************/
                     if ((acc < tpar->dacc && angle < tpar->dangle) || \
@@ -919,10 +943,7 @@ int trackback_c ()
 
                         subst_pos3d(X[1], X[3], diff_pos);
                         if (invol == 1 && pos3d_in_bounds(diff_pos, tpar)) { 
-
-                            angle_acc(X[1][0], X[1][1], X[1][2],
-                                X[2][0], X[2][1], X[2][2],
-                                X[3][0], X[3][1], X[3][2], &angle, &acc);
+                            angle_acc(X[1], X[2], X[3], &angle, &acc);
 
                             if ( (acc<tpar->dacc && angle<tpar->dangle) || \
                                 (acc<tpar->dacc/10) ) 
@@ -1000,9 +1021,7 @@ int trackback_c ()
                     for (j = 0; j < 3; j++) 
                         X[5][j] = 0.5*(5.0*X[3][j] - 4.0*X[1][j] + X[0][j]);
 
-                    angle_acc(X[3][0], X[3][1], X[3][2],
-                        X[4][0], X[4][1], X[4][2],
-                        X[5][0], X[5][1], X[5][2], &angle, &acc);
+                    angle_acc(X[3], X[4], X[5], &angle, &acc);
                     
                     if ( (acc<tpar->dacc && angle<tpar->dangle) ||  (acc<tpar->dacc/10) ) {
                         curr_path_inf->finaldecis = curr_path_inf->decis[0];

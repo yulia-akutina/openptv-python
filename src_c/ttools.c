@@ -355,26 +355,3 @@ void sortwhatfound (foundpix item[16], int *zaehler)
 
 }
 
-void angle_acc( X0, Y0, Z0,X1, Y1, Z1, X2, Y2, Z2, angle, acc )
-double X0, Y0, Z0,X1, Y1, Z1, X2, Y2, Z2, *angle, *acc;
-{
-  double ds, da;
-  coord_3d v0, v1, v2;
-
-  /* calculation of angle and acceleration */
-  v0.x=X1-X0; v0.y=Y1-Y0; v0.z=Z1-Z0;
-  v1.x=X2-X0; v1.y=Y2-Y0; v1.z=Z2-Z0;
-  v2.x=v1.x-v0.x; v2.y=v1.y-v0.y; v2.z=v1.z-v0.z;
-
-  ds= sqrt( v2.x*v2.x+v2.y*v2.y+v2.z*v2.z);
-  /* special case 200 gon */
-  if (v1.x ==-v0.x && v1.y ==-v0.y && v1.z ==-v0.z)
-    { *angle =200; } else {
-  da=acos ((v0.x*v1.x+v0.y*v1.y+v0.z*v1.z)/
-	   (sqrt( v1.x*v1.x+v1.y*v1.y+v1.z*v1.z)*
-	    sqrt( v0.x*v0.x+v0.y*v0.y+v0.z*v0.z)));
-  *angle=da*ro; }
-  *acc=ds;
-
-  return;
-}

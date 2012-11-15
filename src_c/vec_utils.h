@@ -15,6 +15,7 @@ void init_pos3d(pos3d init);
 void copy_pos3d(pos3d dest, pos3d src);
 void subst_pos3d(pos3d from, pos3d sub, pos3d output);
 double diff_norm_pos3d(pos3d vec1, pos3d vec2);
+double dot_pos3d(pos3d vec1, pos3d vec2);
 
 #endif
 

@@ -21,3 +21,11 @@ double diff_norm_pos3d(pos3d vec1, pos3d vec2) {
     return norm(vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]);
 }
 
+double dot_pos3d(pos3d vec1, pos3d vec2) {
+    int ix;
+    double sum = 0;
+    
+    for (ix = 0; ix < 3; ix ++) sum += vec1[ix]*vec2[ix];
+    return sum;
+}
+

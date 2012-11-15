@@ -238,7 +238,6 @@ int  corrtest();
 void predict();
 void readseqtrackcrit ();
 void searchquader();
-void angle_acc();
 void sortwhatfound();
 void bubble_foundpix1 ();
 void bubble_foundpix2 ();
