@@ -183,6 +183,23 @@ void search_volume_center_moving(pos3d prev_pos, pos3d curr_pos, pos3d output)
     }
 }
 
+/* pos3d_in_bounds() checks that all components of a pos3d are in their
+   respective bounds taken from a track_par object.
+   
+   Arguments:
+   pos3d pos - the 3-component array to check.
+   track_par *bounds - the struct containing the bounds specification.
+   
+   Returns:
+   True if all components in bounds, false otherwise.
+ */
+int pos3d_in_bounds(pos3d pos, track_par *bounds) {
+    return (
+        bounds->dvxmin < pos[0] && pos[0] < bounds->dvxmax &&
+        bounds->dvymin < pos[1] && pos[1] < bounds->dvymax &&
+        bounds->dvzmin < pos[2] && pos[2] < bounds->dvzmax ); 
+}
+
 int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin,
     double Ymax, int display)
 {
@@ -347,12 +364,8 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		        acc0=2*tpar->dacc; angle0=2*tpar->dangle;
         		acc1=2*tpar->dacc; angle1=2*tpar->dangle;
 
-		        /* displacement check */
                 subst_pos3d(X[4], X[3], diff_pos);
-                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                { 
+                if ( pos3d_in_bounds(diff_pos, tpar)) { 
                     okay=1;
 
 		            if ( okay ==1 ) {
@@ -432,13 +445,8 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		            Ymin < X[4][1] && X[4][1] < Ymax &&
 		            Zmin_lay[0] < X[4][2] && X[4][2] < Zmax_lay[1]) {invol=1;}
 
-        		/* displacement check */
                 subst_pos3d(X[3], X[4], diff_pos);
-                if ( invol == 1 &&
-                    tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                { 
+                if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
                     okay=1;
                     
 		            if (okay == 1) {
@@ -498,10 +506,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                 angle = 2*tpar->dangle;
                 
                 subst_pos3d(X[3], X[1], diff_pos);
-                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                {
+                if (pos3d_in_bounds(diff_pos, tpar)) {
                     okay=1;
                     
 		            if ( okay ==1 ) {
@@ -572,13 +577,8 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 		                Ymin < X[3][1] && X[3][1] < Ymax &&
 		                Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
 
-		            /* displacement check */
                     subst_pos3d(X[2], X[3], diff_pos);
-                    if ( invol == 1 &&
-                        tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                        tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                        tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                    { 
+                    if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
                         okay=1;
                     
 		                if (okay == 1) {
@@ -897,12 +897,8 @@ int trackback_c ()
                 angle = 2*tpar->dangle;
                 rr = 1000000; quali = 0; dl = 0;
                 
-                /* displacement check */
                 subst_pos3d(X[1], X[3], diff_pos);
-                if ( tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                    tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                    tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                {
+                if (pos3d_in_bounds(diff_pos, tpar)) {
                     okay=1;
 
                     if ( okay ==1 ) {
@@ -973,15 +969,9 @@ int trackback_c ()
                         angle = 2*tpar->dangle;
                         rr=1000000; dl=0;
 
-                        /* displacement check */
                         subst_pos3d(X[1], X[3], diff_pos);
-                        if ( invol==1 && 
-                            tpar->dvxmin < diff_pos[0] && diff_pos[0] < tpar->dvxmax &&
-                            tpar->dvymin < diff_pos[1] && diff_pos[1] < tpar->dvymax &&
-                            tpar->dvzmin < diff_pos[2] && diff_pos[2] < tpar->dvzmax ) 
-                        { 
+                        if (invol == 1 && pos3d_in_bounds(diff_pos, tpar)) { 
                             okay=1;
-                            /* end displacement check */
 
                             if ( okay ==1 ) {
 		                        dl = (diff_norm_pos3d(X[1], X[3]) + 
