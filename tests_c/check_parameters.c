@@ -23,6 +23,18 @@ START_TEST(test_read_sequence_par)
 }
 END_TEST
 
+START_TEST(test_read_track_par)
+{
+    track_par tpar_correct = {
+        120, 0.4, -2.0, 2.0, -2.0, 2.0, -2.0, 2.0, 0., 0., 0., 0., 1. 
+    };
+    
+    track_par *tpar;
+    tpar = read_track_par("testing_fodder/parameters/track.par");
+    
+    fail_unless(compare_track_par(tpar, &tpar_correct));
+}
+END_TEST
 
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Parameters handling");

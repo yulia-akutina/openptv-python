@@ -91,11 +91,31 @@ track_par* read_track_par(char *filename) {
     if(fscanf(fpp, "%lf\n", &(ret->dacc)) == 0) goto handle_error;
     if(fscanf(fpp, "%d\n", &(ret->add)) == 0) goto handle_error;
     fclose (fpp);
+    
+    ret->dsumg = ret->dn = ret->dnx = ret->dny = 0;
     return ret;
 
 handle_error:
     free(ret);
     fclose (fpp);
     return NULL;
+}
+
+/* compare_track_par() checks that all fields of two track_par objects are
+   equal.
+   
+   Arguments:
+   track_par *t1, track_par *t2 - addresses of the objects for comparison.
+   
+   Returns:
+   True if equal, false otherwise.
+*/
+int compare_track_par(track_par *t1, track_par *t2) {
+    return ((t1->dvxmin == t2->dvxmin) && (t1->dvxmax == t2->dvxmax) && \
+        (t1->dvymin == t2->dvymin) && (t1->dvymax == t2->dvymax) && \
+        (t1->dvzmin == t2->dvzmin) && (t1->dvzmax == t2->dvzmax) && \
+        (t1->dacc == t2->dacc) && (t1->dangle == t2->dangle) && \
+        (t1->dsumg == t2->dsumg) && (t1->dn == t2->dn) && \
+        (t1->dnx == t2->dnx) && (t1->dny == t2->dny) && (t1->add == t2->add));
 }
 
