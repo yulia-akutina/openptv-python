@@ -13,9 +13,10 @@
 typedef struct {
     framebuf *fb;
     sequence_par *seq_par;
+    track_par *tpar;
 } tracking_run;
 
-void tr_init(tracking_run *tr, char *seq_par_fname);
+void tr_init(tracking_run *tr, char *seq_par_fname, char *tpar_fname);
 void tr_free(tracking_run *tr);
 
 #endif

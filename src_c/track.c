@@ -31,8 +31,6 @@ double lmax_track, ymax_track, ymin_track;
 double pnr3_tr[4][10000];
 double npart, nlinks;
 
-track_par *tpar;
-
 /* The buffer space required for this algorithm: 
 
 Note that MAX_TARGETS is taken from the global M, but I want a separate
@@ -59,8 +57,7 @@ tracking_run* trackcorr_c_init() {
     */
     
     ret = (tracking_run *) malloc(sizeof(tracking_run));
-    tr_init(ret, "parameters/sequence.par");
-    tpar = read_track_par("parameters/track.par");
+    tr_init(ret, "parameters/sequence.par", "parameters/track.par");
     
     /* read configuration: this will be turned into parameters soon and moved
     out of this file.
@@ -77,8 +74,9 @@ tracking_run* trackcorr_c_init() {
     }
     fb_prev(ret->fb);
 
-    lmax=norm((tpar->dvxmin - tpar->dvxmax), (tpar->dvymin - tpar->dvymax),
-	    (tpar->dvzmin - tpar->dvzmax));
+    lmax = norm((ret->tpar->dvxmin - ret->tpar->dvxmax), \
+        (ret->tpar->dvymin - ret->tpar->dvymax), \
+	    (ret->tpar->dvzmin - ret->tpar->dvzmax));
     volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
 
     // Denis - globals below are passed to trackcorr_c_loop
@@ -210,7 +208,9 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
     int _ix; /* For use in any of the complex index expressions below */
     int _frame_parts; /* number of particles in a frame */
 
+    /* Shortcuts into the tracking_run struct */
     framebuf *fb;
+    track_par *tpar;
     
     /* Remaining globals:
     all those in trackcorr_c_init.
@@ -223,6 +223,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
     count1=0; zusatz=0;
     
     fb = run_info->fb;
+    tpar = run_info->tpar;
     curr_targets = fb->buf[1]->targets;
     
     /* try to track correspondences from previous 0 - corp, variable h */
@@ -769,7 +770,6 @@ int trackcorr_c_finish(tracking_run *run_info, int step)
   fb_write_frame_from_start(run_info->fb, step);
   
   fb_free(run_info->fb);
-  free(tpar);
     
   /* reset of display flag */
   display = 1;
@@ -792,8 +792,8 @@ int trackback_c ()
     foundpix *w, p16[4*MAX_CANDS];
 
     sequence_par *seq_par;
-    framebuf *fb;  /* No need to use the global as the process is fully
-                      enclosed here */
+    track_par *tpar;
+    framebuf *fb;
     
     /* Shortcuts to inside current frame */
     P *curr_path_inf, *ref_path_inf;
