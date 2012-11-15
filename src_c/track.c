@@ -205,7 +205,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 {
    /* sequence loop */
     char  val[256], buf[256];
-    int j, h, k, mm, kk,  okay=0, invol=0;
+    int j, h, k, mm, kk, invol=0;
     int zaehler1, zaehler2, philf[4][MAX_CANDS];
     int count1=0, count2=0, count3=0, zusatz=0;
     int intx0, intx1, inty0, inty1;
@@ -359,46 +359,40 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                 ref_path_inf = &(fb->buf[3]->path_info[wn[kk].ftnr]);
                 copy_pos3d(X[4], ref_path_inf->x);
 
-		        okay=0; rr=1000000; quali=0; dl=0;
+		        rr=1000000; quali=0; dl=0;
         		acc=2*tpar->dacc; angle=2*tpar->dangle;
 		        acc0=2*tpar->dacc; angle0=2*tpar->dangle;
         		acc1=2*tpar->dacc; angle1=2*tpar->dangle;
 
                 subst_pos3d(X[4], X[3], diff_pos);
                 if ( pos3d_in_bounds(diff_pos, tpar)) { 
-                    okay=1;
+                    dl = (diff_norm_pos3d(X[1], X[3]) + 
+                        diff_norm_pos3d(X[4], X[3]) )/2;
 
-		            if ( okay ==1 ) {
-                        dl = (diff_norm_pos3d(X[1], X[3]) + 
-                            diff_norm_pos3d(X[4], X[3]) )/2;
+                    angle_acc(X[3][0], X[3][1], X[3][2],
+                        X[4][0], X[4][1], X[4][2],
+                        X[5][0], X[5][1], X[5][2], &angle1, &acc1);
 
-                        angle_acc(X[3][0], X[3][1], X[3][2],
-                            X[4][0], X[4][1], X[4][2],
-                            X[5][0], X[5][1], X[5][2], &angle1, &acc1);
+                    if (curr_path_inf->prev >= 0) {
+                        angle_acc(X[1][0], X[1][1], X[1][2],
+                            X[2][0], X[2][1], X[2][2],
+                            X[3][0], X[3][1], X[3][2], &angle0, &acc0);
+		            } else {
+                        acc0=acc1; angle0=angle1;
+                    }
 
-		                if (curr_path_inf->prev >= 0) {
-                            angle_acc(X[1][0], X[1][1], X[1][2],
-                                X[2][0], X[2][1], X[2][2],
-                                X[3][0], X[3][1], X[3][2], &angle0, &acc0);
-		                } else {
-                            acc0=acc1; angle0=angle1;
-                        }
+                    acc=(acc0+acc1)/2; angle=(angle0+angle1)/2;
+                    quali=wn[kk].freq+w[mm].freq;
+                    rr=1000000;
 
-		                acc=(acc0+acc1)/2; angle=(angle0+angle1)/2;
-		                quali=wn[kk].freq+w[mm].freq;
-		                rr=1000000;
-
-                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
-                            (acc < tpar->dacc/10)) 
-                        {
-			                rr = (dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
-                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
-			            }
-		                okay=0;
-		            }
+                    if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                        (acc < tpar->dacc/10)) 
+                    {
+                        rr = (dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                        register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
+                    }
 		        }
 	        }   /* end of zaehler2-loop */
-	        okay=0;
 
 	        /* creating new particle position */
 	        /* *************************************************************** */
@@ -435,7 +429,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
 	        if ( quali >= 2) {
                 copy_pos3d(X[4], X[5]);
-		        invol=0; okay=0;
+		        invol=0; 
 
 		        det_lsq_3d (Ex, I, G, ap, mmp, x2[0], y2[0], x2[1], y2[1], 
                     x2[2], y2[2], x2[3], y2[3], &(X[4][0]), &(X[4][1]), &(X[4][2]));
@@ -447,51 +441,46 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
                 subst_pos3d(X[3], X[4], diff_pos);
                 if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
-                    okay=1;
+                    rr=1000000; dl=0;
+                    acc=2*tpar->dacc; angle=2*tpar->dangle;
                     
-		            if (okay == 1) {
-		                rr=1000000; dl=0;
-		                acc=2*tpar->dacc; angle=2*tpar->dangle;
-                        
-		                dl=(diff_norm_pos3d(X[1], X[3]) + 
-                            diff_norm_pos3d(X[4], X[3]) )/2;
+                    dl=(diff_norm_pos3d(X[1], X[3]) + 
+                        diff_norm_pos3d(X[4], X[3]) )/2;
 
-                        angle_acc(X[3][0], X[3][1], X[3][2],
-                            X[4][0], X[4][1], X[4][2],
-                            X[5][0], X[5][1], X[5][2], &angle, &acc);
+                    angle_acc(X[3][0], X[3][1], X[3][2],
+                        X[4][0], X[4][1], X[4][2],
+                        X[5][0], X[5][1], X[5][2], &angle, &acc);
 
-                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
-                            (acc < tpar->dacc/10)) 
-                        {
-			                rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle) /
-                                (quali+w[mm].freq);
-                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
+                    if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                        (acc < tpar->dacc/10)) 
+                    {
+                        rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle) /
+                            (quali+w[mm].freq);
+                        register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 
-			                if (tpar->add) {
-                                ref_path_inf = &(fb->buf[3]->path_info[
-                                    fb->buf[3]->num_parts]);
-                                copy_pos3d(ref_path_inf->x, X[4]);
-                                reset_links(ref_path_inf);
+                        if (tpar->add) {
+                            ref_path_inf = &(fb->buf[3]->path_info[
+                                fb->buf[3]->num_parts]);
+                            copy_pos3d(ref_path_inf->x, X[4]);
+                            reset_links(ref_path_inf);
 
-                                _frame_parts = fb->buf[3]->num_parts;
-                                ref_corres = &(fb->buf[3]->correspond[_frame_parts]);
-                                ref_targets = fb->buf[3]->targets;
-			                    for (j = 0; j < fb->num_cams; j++) {
-				                    ref_corres->p[j]=-1;
-                                    
-				                    if(philf[j][0]!=-999) {
-                                        _ix = philf[j][0];
-                    				    ref_targets[j][_ix].tnr = _frame_parts;
-				                        ref_corres->p[j] = _ix;
-				                        ref_corres->nr = _frame_parts;
-				                    }
-			                    }
-			                    fb->buf[3]->num_parts++;
-                                zusatz++; 
-                            }
-			            }
-		            }
-                    okay=0; 
+                            _frame_parts = fb->buf[3]->num_parts;
+                            ref_corres = &(fb->buf[3]->correspond[_frame_parts]);
+                            ref_targets = fb->buf[3]->targets;
+			                for (j = 0; j < fb->num_cams; j++) {
+				                ref_corres->p[j]=-1;
+                                
+				                if(philf[j][0]!=-999) {
+                                    _ix = philf[j][0];
+                                    ref_targets[j][_ix].tnr = _frame_parts;
+                                    ref_corres->p[j] = _ix;
+                                    ref_corres->nr = _frame_parts;
+				                }
+			                }
+			                fb->buf[3]->num_parts++;
+                            zusatz++; 
+                        }
+                    }
                 }
 		        invol=0;
 	        }
@@ -507,27 +496,23 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                 
                 subst_pos3d(X[3], X[1], diff_pos);
                 if (pos3d_in_bounds(diff_pos, tpar)) {
-                    okay=1;
+                    rr=1000000; quali=0;
+                    quali=w[mm].freq;
                     
-		            if ( okay ==1 ) {
-			            rr=1000000; quali=0;
-			            quali=w[mm].freq;
-                        angle_acc(X[1][0], X[1][1], X[1][2],
-                            X[2][0], X[2][1], X[2][2],
-                            X[3][0], X[3][1], X[3][2], &angle, &acc);
-		                dl = (diff_norm_pos3d(X[1], X[3]) + 
-                            diff_norm_pos3d(X[0], X[1]) )/2;
+                    angle_acc(X[1][0], X[1][1], X[1][2],
+                        X[2][0], X[2][1], X[2][2],
+                        X[3][0], X[3][1], X[3][2], &angle, &acc);
+                    dl = (diff_norm_pos3d(X[1], X[3]) + 
+                        diff_norm_pos3d(X[0], X[1]) )/2;
 
-			            if ( (acc < tpar->dacc && angle < tpar->dangle) || \
-                            (acc < tpar->dacc/10) )
-                        {
-			                rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
-                            register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
-			            }
-		            }
+                    if ( (acc < tpar->dacc && angle < tpar->dangle) || \
+                        (acc < tpar->dacc/10) )
+                    {
+                        rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                        register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
+			        }
 		        }
 	        }
-	        okay=0;
 
 	        free(wn);
         } /* end of zaehler1-loop */
@@ -566,7 +551,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
 		        if (quali>=2) {
                     copy_pos3d(X[3], X[2]);
-		            invol=0; okay=0;
+		            invol=0; 
     
 	    	        det_lsq_3d (Ex, I, G, ap, mmp,
                         x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3],
@@ -579,47 +564,42 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
 
                     subst_pos3d(X[2], X[3], diff_pos);
                     if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
-                        okay=1;
-                    
-		                if (okay == 1) {
-			                rr=1000000; dl=0;
-                            acc = 2*tpar->dacc;
-                            angle = 2*tpar->dangle;
-                            angle_acc(X[1][0], X[1][1], X[1][2],
-                                X[2][0], X[2][1], X[2][2],
-                                X[3][0], X[3][1], X[3][2], &angle, &acc);
-                            dl = (diff_norm_pos3d(X[1], X[3]) + 
-                                diff_norm_pos3d(X[0], X[1]) )/2;
+                        rr=1000000; dl=0;
+                        acc = 2*tpar->dacc;
+                        angle = 2*tpar->dangle;
+                        angle_acc(X[1][0], X[1][1], X[1][2],
+                            X[2][0], X[2][1], X[2][2],
+                            X[3][0], X[3][1], X[3][2], &angle, &acc);
+                        dl = (diff_norm_pos3d(X[1], X[3]) + 
+                            diff_norm_pos3d(X[0], X[1]) )/2;
 
-                            if ( (acc < tpar->dacc && angle < tpar->dangle) || \
-                                (acc < tpar->dacc/10) ) 
-                            {
-			                    rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
-                                ref_path_inf = &(fb->buf[2]->path_info[
-                                    fb->buf[2]->num_parts]);
-                                copy_pos3d(ref_path_inf->x, X[3]);
-                                reset_links(ref_path_inf);
+                        if ( (acc < tpar->dacc && angle < tpar->dangle) || \
+                            (acc < tpar->dacc/10) ) 
+                        {
+                            rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                            ref_path_inf = &(fb->buf[2]->path_info[
+                                fb->buf[2]->num_parts]);
+                            copy_pos3d(ref_path_inf->x, X[3]);
+                            reset_links(ref_path_inf);
 
-                                _frame_parts = fb->buf[2]->num_parts;
-                                register_link_candidate(curr_path_inf, rr, _frame_parts);
+                            _frame_parts = fb->buf[2]->num_parts;
+                            register_link_candidate(curr_path_inf, rr, _frame_parts);
+                            
+                            ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
+                            ref_targets = fb->buf[2]->targets;
+			                for (j = 0;j < fb->num_cams; j++) {
+                                ref_corres->p[j]=-1;
                                 
-                                ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
-                                ref_targets = fb->buf[2]->targets;
-			                    for (j = 0;j < fb->num_cams; j++) {
-				                    ref_corres->p[j]=-1;
-                                    
-				                    if(philf[j][0]!=-999) {
-                                        _ix = philf[j][0];
-                    				    ref_targets[j][_ix].tnr = _frame_parts;
-				                        ref_corres->p[j] = _ix;
-				                        ref_corres->nr = _frame_parts;
-				                    }
-			                    }
-			                    fb->buf[2]->num_parts++;
-                                zusatz++;
-			                }
-		                } 
-                        okay=0; 
+                                if(philf[j][0]!=-999) {
+                                    _ix = philf[j][0];
+                                    ref_targets[j][_ix].tnr = _frame_parts;
+                                    ref_corres->p[j] = _ix;
+                                    ref_corres->nr = _frame_parts;
+                                }
+                            }
+                            fb->buf[2]->num_parts++;
+                            zusatz++;
+                        }
                     }
 		            invol=0;
 		        } // if quali >= 2
@@ -779,7 +759,7 @@ int trackcorr_c_finish(tracking_run *run_info, int step)
 int trackback_c ()
 {
     char  buf[256];
-    int i, j, h, k, step, okay=0, invol=0;
+    int i, j, h, k, step, invol=0;
     int zaehler1, philf[4][MAX_CANDS];
     int count1=0, count2=0, zusatz=0;
     int quali=0;
@@ -892,33 +872,28 @@ int trackback_c ()
                 ref_path_inf = &(fb->buf[2]->path_info[w[i].ftnr]);
                 copy_pos3d(X[3], ref_path_inf->x);
 
-                okay = 0;
                 acc = 2*tpar->dacc;
                 angle = 2*tpar->dangle;
                 rr = 1000000; quali = 0; dl = 0;
                 
                 subst_pos3d(X[1], X[3], diff_pos);
                 if (pos3d_in_bounds(diff_pos, tpar)) {
-                    okay=1;
+                    dl = (diff_norm_pos3d(X[1], X[3]) + 
+                        diff_norm_pos3d(X[0], X[1]) )/2;
 
-                    if ( okay ==1 ) {
-		                dl = (diff_norm_pos3d(X[1], X[3]) + 
-                            diff_norm_pos3d(X[0], X[1]) )/2;
+                    quali=w[i].freq;
+                    angle_acc(X[1][0], X[1][1], X[1][2],
+                        X[2][0], X[2][1], X[2][2],
+                        X[3][0], X[3][1], X[3][2], &angle, &acc);
 
-                        quali=w[i].freq;
-                        angle_acc(X[1][0], X[1][1], X[1][2],
-                            X[2][0], X[2][1], X[2][2],
-                            X[3][0], X[3][1], X[3][2], &angle, &acc);
-
-                        /* *********************check link *****************************/
-                        if ((acc < tpar->dacc && angle < tpar->dangle) || \
-                            (acc < tpar->dacc/10))
-                        {
-                            rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/quali;
-                            register_link_candidate(curr_path_inf, rr, w[i].ftnr);
-                        }
+                    /* *********************check link *****************************/
+                    if ((acc < tpar->dacc && angle < tpar->dangle) || \
+                        (acc < tpar->dacc/10))
+                    {
+                        rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/quali;
+                        register_link_candidate(curr_path_inf, rr, w[i].ftnr);
                     }
-                } okay=0;
+                }
             }
 
             free(w);
@@ -953,7 +928,7 @@ int trackback_c ()
 
                     if (quali>=2) {
                         copy_pos3d(X[3], X[2]);
-                        invol=0; okay=0;
+                        invol=0;
 
                         det_lsq_3d (Ex, I, G, ap, mmp,
                             x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3],
@@ -964,52 +939,48 @@ int trackback_c ()
                             Ymin < X[3][1] && X[3][1] < Ymax &&
                             Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
 
-                        okay=0;
                         acc = 2*tpar->dacc;
                         angle = 2*tpar->dangle;
                         rr=1000000; dl=0;
 
                         subst_pos3d(X[1], X[3], diff_pos);
                         if (invol == 1 && pos3d_in_bounds(diff_pos, tpar)) { 
-                            okay=1;
+                            dl = (diff_norm_pos3d(X[1], X[3]) + 
+                                diff_norm_pos3d(X[0], X[1]) )/2;
 
-                            if ( okay ==1 ) {
-		                        dl = (diff_norm_pos3d(X[1], X[3]) + 
-                                    diff_norm_pos3d(X[0], X[1]) )/2;
+                            angle_acc(X[1][0], X[1][1], X[1][2],
+                                X[2][0], X[2][1], X[2][2],
+                                X[3][0], X[3][1], X[3][2], &angle, &acc);
 
-                                angle_acc(X[1][0], X[1][1], X[1][2],
-                                    X[2][0], X[2][1], X[2][2],
-                                    X[3][0], X[3][1], X[3][2], &angle, &acc);
+                            if ( (acc<tpar->dacc && angle<tpar->dangle) || \
+                                (acc<tpar->dacc/10) ) 
+                            {
+                                rr =(dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
 
-                                if ( (acc<tpar->dacc && angle<tpar->dangle) || (acc<tpar->dacc/10) ) {
-                                    rr =(dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                                ref_path_inf = &(fb->buf[2]->path_info[
+                                    fb->buf[2]->num_parts]);
+                                copy_pos3d(ref_path_inf->x, X[3]);
+                                reset_links(ref_path_inf);
 
-                                    ref_path_inf = &(fb->buf[2]->path_info[
-                                        fb->buf[2]->num_parts]);
-                                    copy_pos3d(ref_path_inf->x, X[3]);
-                                    reset_links(ref_path_inf);
-
-                                    _frame_parts = fb->buf[2]->num_parts;
-                                    register_link_candidate(curr_path_inf, rr,
-                                        _frame_parts);
+                                _frame_parts = fb->buf[2]->num_parts;
+                                register_link_candidate(curr_path_inf, rr,
+                                    _frame_parts);
                                 
-                                    ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
-                                    ref_targets = fb->buf[2]->targets;
+                                ref_corres = &(fb->buf[2]->correspond[_frame_parts]);
+                                ref_targets = fb->buf[2]->targets;
 
-                                    for (j = 0;j < fb->num_cams; j++) {
-                                        ref_corres->p[j]=-1;
+                                for (j = 0;j < fb->num_cams; j++) {
+                                    ref_corres->p[j]=-1;
                                     
-                                        if(philf[j][0]!=-999) {
-                                            _ix = philf[j][0];
-                        				    ref_targets[j][_ix].tnr = _frame_parts;
-                                            ref_corres->p[j] = _ix;
-                                            ref_corres->nr = _frame_parts;
-                                        }
+                                    if(philf[j][0]!=-999) {
+                                        _ix = philf[j][0];
+                                        ref_targets[j][_ix].tnr = _frame_parts;
+                                        ref_corres->p[j] = _ix;
+                                        ref_corres->nr = _frame_parts;
                                     }
-                                    fb->buf[2]->num_parts++;
                                 }
+                                fb->buf[2]->num_parts++;
                             }
-                            okay = 0;
                         }
                         invol=0;
                     }
