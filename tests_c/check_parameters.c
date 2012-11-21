@@ -27,7 +27,7 @@ END_TEST
 START_TEST(test_read_track_par)
 {
     track_par tpar_correct = {
-        120, 0.4, -2.0, 2.0, -2.0, 2.0, -2.0, 2.0, 0., 0., 0., 0., 1. 
+        0.4, 120, 2.0, -2.0, 2.0, -2.0, 2.0, -2.0, 0., 0., 0., 0., 1. 
     };
     
     track_par *tpar;
@@ -42,6 +42,10 @@ Suite* fb_suite(void) {
 
     TCase *tc = tcase_create ("Read sequence parameters");
     tcase_add_test(tc, test_read_sequence_par);
+    suite_add_tcase (s, tc);
+    
+    tc = tcase_create ("Read tracking parameters");
+    tcase_add_test(tc, test_read_track_par);
     suite_add_tcase (s, tc);
 
     return s;
