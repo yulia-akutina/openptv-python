@@ -37,6 +37,19 @@ START_TEST(test_read_track_par)
 }
 END_TEST
 
+START_TEST(test_read_volume_par)
+{
+    volume_par vpar_correct = {
+        {-250., 250.}, {-100., -100.}, {100., 100.}
+    };
+    
+    volume_par *vpar;
+    vpar = read_volume_par("testing_fodder/parameters/criteria.par");
+    
+    fail_unless(compare_volume_par(vpar, &vpar_correct));
+}
+END_TEST
+
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Parameters handling");
 
@@ -46,6 +59,10 @@ Suite* fb_suite(void) {
     
     tc = tcase_create ("Read tracking parameters");
     tcase_add_test(tc, test_read_track_par);
+    suite_add_tcase (s, tc);
+
+    tc = tcase_create ("Read illuminated volume parameters");
+    tcase_add_test(tc, test_read_volume_par);
     suite_add_tcase (s, tc);
 
     return s;

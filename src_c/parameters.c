@@ -119,3 +119,59 @@ int compare_track_par(track_par *t1, track_par *t2) {
         (t1->dnx == t2->dnx) && (t1->dny == t2->dny) && (t1->add == t2->add));
 }
 
+/* read_volume_par() reads parameters of illuminated volume from a config file
+   with the following format: each line is a value, in this order:
+   1. X_lay[0]
+   2. Zmin_lay[0]
+   3. Zmax_lay[0]
+   4. X_lay[1]
+   5. Zmin_lay[1]
+   6. Zmax_lay[1]
+   
+   Arguments:
+   char *filename - path to the text file containing the parameters.
+   
+   Returns:
+   Pointer to a newly-allocated volume_par structure. If reading failed for 
+   any reason, returns NULL.
+*/
+volume_par* read_volume_par(char *filename) {
+    FILE* fpp;
+    volume_par *ret = (volume_par *) malloc(sizeof(volume_par));
+    
+    fpp = fopen(filename, "r");
+    if(fscanf(fpp, "%lf\n", &(ret->X_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmin_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmax_lay[0])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->X_lay[1])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmin_lay[1])) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->Zmax_lay[1])) == 0) goto handle_error;
+    
+    fclose (fpp);
+    return ret;
+
+handle_error:
+    free(ret);
+    fclose(fpp);
+    return NULL;
+}
+
+/* compare_volume_par() checks that all fields of two volume_par objects are
+   equal.
+   
+   Arguments:
+   volume_par *v1, volume_par *v2 - addresses of the objects for comparison.
+   
+   Returns:
+   True if equal, false otherwise.
+*/
+int compare_volume_par(volume_par *v1, volume_par *v2) {
+    return ( 
+        (v1->X_lay[0] == v2->X_lay[0]) && \
+        (v1->Zmin_lay[0] == v2->Zmin_lay[0]) && \
+        (v1->Zmax_lay[0] == v2->Zmax_lay[0]) && \
+        (v1->X_lay[1] == v2->X_lay[1]) && \
+        (v1->Zmin_lay[1] == v2->Zmin_lay[1]) && \
+        (v1->Zmax_lay[1] == v2->Zmax_lay[1]) );
+}
+
