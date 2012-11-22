@@ -1,33 +1,24 @@
 #include "ptv.h"
+#include "parameters.h"
 
 /* Variables used here and defined extern in 'globals.h' */
 int rclick_intx1[4], rclick_inty1[4], rclick_intx2[4], rclick_inty2[4],\
     rclick_points_x1[4][10000], rclick_points_y1[4][10000], rclick_count[4],\
     rclick_points_intx1, rclick_points_inty1;
 
-int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
+int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar)
 
 {
-  int     i, j, n, zf,  deletedummy;
-  double  x, y, xa, ya;
+  int     i, j, n, zf;
+  double  x, y;
   double  xa12, xb12, ya12, yb12;
   int     k, pt1, intx1, inty1, count, intx2, inty2, pt2;
   candidate cand[maxcand];
-/*   Tk_PhotoHandle img_handle;
- *   Tk_PhotoImageBlock img_block;
- */
  
   if (zoom_f[0] == 1) {zf = 2;} else { zf = zoom_f[0];}
 
-/*   click_x = atoi(argv[1]);
- *   click_y = atoi(argv[2]);
- */
-
-  //n = atoi(argv[3]);
   n=num_image;
-  //kind = atoi(argv[4]);
   if (examine)	zf *= 2;
-// if (argc == 6 ) zf = atoi(argv[5]);
   
   switch (kind) 
     {
@@ -49,10 +40,6 @@ int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
       if (k == -999)
 	{	  
 	  printf  ("no point near click coord ! Click again!"); 
-/* 	  Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
- * 	  Tcl_Eval(interp, ".text delete 2");
- * 	  Tcl_Eval(interp, ".text insert 2 $tbuf");
- */
 	  return -1;
 	}
       pt1 = geo[n][k].pnr;
@@ -71,7 +58,7 @@ int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
 		 {
 		   /* calculate epipolar band in img[i] */
 		   epi_mm (geo[n][k].x,geo[n][k].y,
-			   Ex[n],I[n], G[n], Ex[i],I[i], G[i], mmp,
+			   Ex[n],I[n], G[n], Ex[i],I[i], G[i], mmp, vpar,
 			   &xa12, &ya12, &xb12, &yb12);
 		   
 		   /* search candidate in img[i] */
@@ -103,11 +90,6 @@ printf("intx1=%d\n",inty1);
 printf("intx2=%d\n",intx2);
 printf("inty2=%d\n",inty2);
 
-/*		   if ( n == 0 ) sprintf( val,"yellow");*/
-/*		   if ( n == 1 ) sprintf( val,"green");*/
-/*		   if ( n == 2 ) sprintf( val,"red");*/
-/*		   if ( n == 3 ) sprintf( val,"blue");*/
-
 		  // drawvector ( interp, intx1, inty1, intx2, inty2, 1, i, val);
             rclick_count[i]=count;
                    for (j=0; j<count; j++)
@@ -134,32 +116,12 @@ printf("inty2=%d\n",inty2);
 	{
 	  num[n] -= 1;
 	  printf ("point %d deleted", j);  
-	 //Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-	  //Tcl_Eval(interp, ".text delete 2 2");
-	  //Tcl_Eval(interp, ".text insert 2 $tbuf");
 	}
       else {
 	  printf ("no point near click coord !");  
-	  //Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-	  //Tcl_Eval(interp, ".text delete 2 2");
-	  //Tcl_Eval(interp, ".text insert 2 $tbuf");
       }
       break;
 
-
-	  
-/*------------------------ LEFT MOUSE BUTTON ------------------------------*/
-
-/*    case 5: /* measure coordinates and grey value */
-
-      /*x = (float) (click_x - imx/2)/zoom_f[n] + zoom_x[n];
-      y = (float) (click_y - imy/2)/zoom_f[n] + zoom_y[n];
-
-      sprintf (buf, "   %6.2f    %6.2f    %s", x, y, argv[5]); puts (buf);
-      Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-      Tcl_Eval(interp, ".text delete 2");
-      Tcl_Eval(interp, ".text insert 2 $tbuf");
-      break;	       */
     }
   return 0;
 }

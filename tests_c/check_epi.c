@@ -2,9 +2,9 @@
 
 #include <check.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "../src_c/calibration.h"
+#include "../src_c/parameters.h"
 #include "../src_c/typedefs.h"
 
 START_TEST(test_epi_mm)
@@ -12,22 +12,21 @@ START_TEST(test_epi_mm)
     double xin, yin;
     double xmin, ymin, xmax, ymax;
     mm_np media_par = {1, 1., {1.49, 0., 0.}, {5., 0., 0.}, 1.33, 1.};
+    volume_par *vpar;
     Calibration* cal[2];
     
-    fail_if(chdir("testing_fodder/") != 0);
-    init_proc_c();
-    
-    cal[0] = read_calibration("cal/cam1.tif.ori",
-        "cal/cam1.tif.addpar", NULL);
-    cal[1] = read_calibration("cal/cam2.tif.ori",
-        "cal/cam2.tif.addpar", NULL);
+    cal[0] = read_calibration("testing_fodder/cal/cam1.tif.ori",
+        "testing_fodder/cal/cam1.tif.addpar", NULL);
+    cal[1] = read_calibration("testing_fodder/cal/cam2.tif.ori",
+        "testing_fodder/cal/cam2.tif.addpar", NULL);
+    vpar = read_volume_par("testing_fodder/parameters/criteria.par");
     
     xin = 10.;
     yin = 10.;
     epi_mm(xin, yin,
         cal[0]->ext_par, cal[0]->int_par, cal[0]->glass_par,
         cal[1]->ext_par, cal[1]->int_par, cal[1]->glass_par,
-        media_par, &xmin, &ymin, &xmax, &ymax);
+        media_par, vpar, &xmin, &ymin, &xmax, &ymax);
     
     fail_unless((abs(xmin - (-9.209233)) < 1e-6) && (abs(ymin - 21.758034) < 1e-6) 
         && (abs(xmax - 10.067018) < 1e-6) && (abs(ymax - 20.877886) < 1e-6));

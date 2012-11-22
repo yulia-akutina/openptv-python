@@ -15,6 +15,7 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 ****************************************************************************/
 
 #include "ptv.h"
+#include "parameters.h"
 
 /* #define maxcand 100 */
 
@@ -22,8 +23,7 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 /*--------------- 4 camera model: consistent quadruplets -------------------*/
 /****************************************************************************/
 
-//void correspondences_4 (const char** argv)
-void correspondences_4 ()
+void correspondences_4 (volume_par *vpar)
 {
   int 	i,j,k,l,m,n,o,  i1,i2,i3;
   int   count, match0=0, match4=0, match3=0, match2=0, match1=0;
@@ -53,10 +53,6 @@ printf("in corres zmin0: %f, zmax0: %f\n", Zmin_lay[0],Zmax_lay[0] );
 
   /*  initialize ...  */
   sprintf (buf,"Establishing correspondences");
-  //Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-  //Tcl_Eval(interp, ".text delete 2");
-  //Tcl_Eval(interp, ".text insert 2 $tbuf");
-printf("\ncheckpoint1\n " );
   match=0; match0=0; match2=0;
 
   for (i1=0; i1<n_img-1; i1++)
@@ -66,13 +62,11 @@ printf("\ncheckpoint1\n " );
 	  list[i1][i2][i].p1 = 0;
 	  list[i1][i2][i].n = 0;
 	}
-printf("\ncheckpoint2\n " );
   for (i=0; i<nmax; i++)
     {
       for (j=0; j<4; j++) tim[j][i] = 0;
       for (j=0; j<4; j++) con0[i].p[j] = -1; con0[i].corr = 0;
     }
-printf("\ncheckpoint3\n " );
 
   /* -------------if only one cam and 2D--------- */ //by Beat Lüthi June 2007
   if(n_img==1){
@@ -83,7 +77,7 @@ printf("\ncheckpoint3\n " );
 		fprintf (fp1, "%4d\n", num[0]);
 	  for (i=0; i<num[0]; i++){
           o = epi_mm_2D (geo[0][i].x,geo[0][i].y,
-		      Ex[0], I[0],  G[0], mmp,
+		      Ex[0], I[0],  G[0], mmp, vpar,
 		      &X,&Y,&Z);
           pix[0][geo[0][i].pnr].tnr=i;
 		  fprintf (fp1, "%4d", i+1);
@@ -108,16 +102,8 @@ printf("\ncheckpoint3\n " );
 	//printf("\ncheckpoint5\n " );
       for (i=0; i<num[i1]; i++)	if (geo[i1][i].x != -999)
 	{
-	  /*o = epi_mm (geo[i1][i].x,geo[i1][i].y,
-		      Ex[i1], I[i1], G[i1], Ex[i2], I[i2], G[i2], mmp,
-		      &xa12, &ya12, &xb12, &yb12);
-
-	  o = epi_mm (xa12, ya12,
-		      Ex[i2], I[i2], G[i2], Ex[i1], I[i1], G[i1], mmp,
-		      &xa12, &ya12, &xb12, &yb12);*/
-
       o = epi_mm (geo[i1][i].x,geo[i1][i].y,
-		      Ex[i1], I[i1], G[i1], Ex[i2], I[i2], G[i2], mmp,
+		      Ex[i1], I[i1], G[i1], Ex[i2], I[i2], G[i2], mmp, vpar,
 		      &xa12, &ya12, &xb12, &yb12);
 	  
     /////ich glaube, da muss ich einsteigen, wenn alles erledigt ist.

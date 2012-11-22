@@ -8,6 +8,11 @@ cdef extern from "stdlib.h":
     void free(void *ptr)
     enum: NULL
 
+cdef extern from "parameters.h":
+    ctypedef struct volume_par:
+        pass
+    volume_par* read_volume_par(char* vpar_fname)
+
 # Apologies. This is needed until orientation overhaul begins.
 cdef enum:
     nmax = 20240
@@ -34,7 +39,7 @@ cdef extern int trajectories_c(int i)
 cdef extern void read_ascii_data(int filenumber)
 cdef extern int determination_proc_c (int dumbbell)
 
-cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
+cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar)
 
 cdef extern int imgsize
 cdef extern int imx
@@ -361,7 +366,11 @@ def py_ptv_set_dumbbell(dumbbell):
 def py_right_click(coord_x,coord_y,n_image):
     global rclick_intx1,rclick_inty1,rclick_intx2,rclick_inty2, rclick_points_x1,rclick_points_y1,rclick_count,rclick_points_intx1, rclick_points_inty1
     x2_points,y2_points,x1,y1,x2,y2=[],[],[],[],[],[]
-    r=mouse_proc_c (<int>coord_x, <int> coord_y, 3,<int>n_image)
+    
+    cdef volume_par *vpar = read_volume_par("parameters/criteria.par")
+    r = mouse_proc_c (<int>coord_x, <int> coord_y, 3,<int>n_image, vpar)
+    free(vpar)
+    
     if r==-1:
         return -1,-1,-1,-1,-1,-1,-1,-1
     for i in range(n_img):
@@ -381,7 +390,7 @@ def py_determination_proc_c(dumbbell):
     determination_proc_c (<int>dumbbell)
 
 def py_rclick_delete(coord_x,coord_y,n_image):
-    mouse_proc_c(<int>coord_x, <int> coord_y, 4,<int>n_image)
+    mouse_proc_c(<int>coord_x, <int> coord_y, 4,<int>n_image, NULL)
 
 def py_get_pix_N(x,y,n_image):
     global pix,n_img

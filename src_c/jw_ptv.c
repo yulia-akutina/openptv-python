@@ -17,11 +17,14 @@
  
  ****************************************************************************/
 #include "ptv.h"
+#include "parameters.h"
 
 #define nmax 20240
 
 /*  global declarations for ptv  */
 /*-------------------------------------------------------------------------*/
+
+volume_par *vpar;
 
 int	n_img;	       		      	/* no of images */
 int	hp_flag=0;           	      	/* flag for highpass */
@@ -588,8 +591,7 @@ int correspondences_proc_c ()
         mmp.lut = 1;
     }
     
-    //correspondences_4 ( argv);
-    correspondences_4 ();
+    correspondences_4 (vpar);
     
     /* --------------- */
     /* save pixel coords for tracking */
@@ -1359,7 +1361,9 @@ int sequence_proc_c  (int dumb_flag)
     /* scanning ptv ************** */
     printf("\nObject volume is scanned in %d slices!\n", nslices);
     slicepos=0;
+    
     /* read illuminated Volume */
+    vpar = read_volume_par("parameters/criteria.par");
     fpp = fopen_r ("parameters/criteria.par");
     fscanf (fpp, "%lf\n", &X_lay[0]);
     fscanf (fpp, "%lf\n", &Zmin_lay[0]);

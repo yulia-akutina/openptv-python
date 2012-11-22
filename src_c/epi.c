@@ -1,4 +1,6 @@
 #include "ptv.h"
+#include "parameters.h"
+
 int dumbbell_pyptv;
 
 double epi_line (xl, yl, Ex1, I1, G1, Ex2, I2, G2)
@@ -47,13 +49,14 @@ Glass     G1, G2;
 
 
 
-int epi_mm (x1, y1, Ex1, I1, G1, Ex2, I2, G2, mmp, xmin, ymin, xmax, ymax)
+int epi_mm (x1, y1, Ex1, I1, G1, Ex2, I2, G2, mmp, vpar, xmin, ymin, xmax, ymax)
 
 double     x1, y1;	  	/* input coord */
 Exterior   Ex1, Ex2;           	/* orientation data */
 Interior   I1, I2;	      	/* orientation data */
 Glass      G1, G2;	      	/* glass data */
 mm_np	   mmp;		        /* multimed param. (layers) */
+volume_par *vpar;
 double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
 
 {
@@ -71,11 +74,12 @@ double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
   ray_tracing_v2 (x1,y1, Ex1, I1, G1, mmp, &X1, &Y1, &Z1, &a, &b, &c);
 
   /* calculate min and max depth for position (valid only for one setup) */
-  Zmin = Zmin_lay[0]
-    + (X1-X_lay[0]) * (Zmin_lay[1]-Zmin_lay[0]) / (X_lay[1]-X_lay[0]);
-  Zmax = Zmax_lay[0]
-    + (X1-X_lay[0]) * (Zmax_lay[1]-Zmax_lay[0]) / (X_lay[1]-X_lay[0]);
-
+  Zmin = vpar->Zmin_lay[0]
+    + (X1 - vpar->X_lay[0]) * (vpar->Zmin_lay[1] - vpar->Zmin_lay[0]) / 
+    (vpar->X_lay[1] - vpar->X_lay[0]);
+  Zmax = vpar->Zmax_lay[0]
+    + (X1 - vpar->X_lay[0]) * (vpar->Zmax_lay[1] - vpar->Zmax_lay[0]) / 
+    (vpar->X_lay[1] - vpar->X_lay[0]);
 
   Z = Zmin;   X = X1 + (Z-Z1) * a/c;   Y = Y1 + (Z-Z1) * b/c;
   //img_xy_mm_geo_old (X,Y,Z, Ex2, I2,     mmp, &xa, &ya);
