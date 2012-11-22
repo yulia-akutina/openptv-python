@@ -17,11 +17,11 @@ class Tracking():
 		""" this function is callback for "tracking without display"
 		"""
 		print "inside denis_ext_tracker"
-		lmax_track, ymin_track, ymax_track, run_info = self.ptv.py_trackcorr_init()
-		print lmax_track,ymin_track,ymax_track, run_info.get_sequence_range()
+		run_info = self.ptv.py_trackcorr_init()
+		print run_info.get_sequence_range()
 		for step in range(*run_info.get_sequence_range()):
 			print step
-			self.ptv.py_trackcorr_loop(run_info, step, lmax_track, ymin_track, ymax_track,display=0)
+			self.ptv.py_trackcorr_loop(run_info, step, display=0)
    			#finalize tracking
 		self.ptv.py_trackcorr_finish(run_info, step+1)
 		

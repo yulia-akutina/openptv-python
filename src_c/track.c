@@ -32,7 +32,6 @@ int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
     inty1_tr[4][10000], intx2_tr[4][10000], inty2_tr[4][10000], \
     pnr1_tr[4][10000], pnr2_tr[4][10000], m1_tr;
 int seq_step_shake;
-double lmax_track, ymax_track, ymin_track;
 double pnr3_tr[4][10000];
 double npart, nlinks;
 
@@ -51,7 +50,6 @@ link.
 
 tracking_run* trackcorr_c_init() {
     int step;
-    double Ymin=0, Ymax=0,lmax;
     tracking_run *ret;
     
     /* Remaining globals:
@@ -62,12 +60,8 @@ tracking_run* trackcorr_c_init() {
     */
     
     ret = (tracking_run *) malloc(sizeof(tracking_run));
-    tr_init(ret, "parameters/sequence.par", "parameters/track.par");
-    
-    /* read configuration: this will be turned into parameters soon and moved
-    out of this file.
-    */
-    readseqtrackcrit ();
+    tr_init(ret, "parameters/sequence.par", "parameters/track.par",
+        "parameters/criteria.par");
     
     fb_init(ret->fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
         ret->seq_par->img_base_name);
@@ -78,17 +72,12 @@ tracking_run* trackcorr_c_init() {
         fb_next(ret->fb);
     }
     fb_prev(ret->fb);
-
-    lmax = norm((ret->tpar->dvxmin - ret->tpar->dvxmax), \
+    
+    ret->lmax = norm((ret->tpar->dvxmin - ret->tpar->dvxmax), \
         (ret->tpar->dvymin - ret->tpar->dvymax), \
-	    (ret->tpar->dvzmin - ret->tpar->dvzmax));
-    volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
-
-    // Denis - globals below are passed to trackcorr_c_loop
-    lmax_track=lmax;
-    ymin_track=Ymin;
-    ymax_track=Ymax;
-
+        (ret->tpar->dvzmin - ret->tpar->dvzmax));
+    volumedimension (&(ret->vpar->X_lay[1]), &(ret->vpar->X_lay[0]), &(ret->ymax), 
+        &(ret->ymin), &(ret->vpar->Zmax_lay[1]), &(ret->vpar->Zmin_lay[0]));
 
     // Denis - globals below are used in trackcorr_finish
     npart=0;
@@ -236,8 +225,7 @@ void angle_acc(pos3d start, pos3d pred, pos3d cand, double *angle, double *acc)
     }
 }
 
-int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin,
-    double Ymax, int display)
+int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 {
    /* sequence loop */
     char  val[256], buf[256];
@@ -264,6 +252,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
     /* Shortcuts into the tracking_run struct */
     framebuf *fb;
     track_par *tpar;
+    volume_par *vpar;
     
     /* Remaining globals:
     all those in trackcorr_c_init.
@@ -277,6 +266,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
     
     fb = run_info->fb;
     tpar = run_info->tpar;
+    vpar = run_info->vpar;
     curr_targets = fb->buf[1]->targets;
     
     /* try to track correspondences from previous 0 - corp, variable h */
@@ -413,7 +403,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                     {
                         dl = (diff_norm_pos3d(X[1], X[3]) + 
                             diff_norm_pos3d(X[4], X[3]) )/2;
-                        rr = (dl/lmax+acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                        rr = (dl/run_info->lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
                         register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
                     }
 		        }
@@ -460,9 +450,9 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                     x2[2], y2[2], x2[3], y2[3], &(X[4][0]), &(X[4][1]), &(X[4][2]));
 
 		        /* volume check */
-		        if ( X_lay[0] < X[4][0] && X[4][0] < X_lay[1] &&
-		            Ymin < X[4][1] && X[4][1] < Ymax &&
-		            Zmin_lay[0] < X[4][2] && X[4][2] < Zmax_lay[1]) {invol=1;}
+                if ( vpar->X_lay[0] < X[4][0] && X[4][0] < vpar->X_lay[1] &&
+		            run_info->ymin < X[4][1] && X[4][1] < run_info->ymax &&
+		            vpar->Zmin_lay[0] < X[4][2] && X[4][2] < vpar->Zmax_lay[1]) {invol=1;}
 
                 subst_pos3d(X[3], X[4], diff_pos);
                 if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
@@ -473,7 +463,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                     {
                         dl=(diff_norm_pos3d(X[1], X[3]) + 
                             diff_norm_pos3d(X[4], X[3]) )/2;
-                        rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle) /
+                        rr = (dl/run_info->lmax + acc/tpar->dacc + angle/tpar->dangle) /
                             (quali+w[mm].freq);
                         register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 
@@ -521,7 +511,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                         quali = w[mm].freq;
                         dl = (diff_norm_pos3d(X[1], X[3]) + 
                             diff_norm_pos3d(X[0], X[1]) )/2;
-                        rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                        rr = (dl/run_info->lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
                         register_link_candidate(curr_path_inf, rr, w[mm].ftnr);
 			        }
 		        }
@@ -571,9 +561,10 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                         &(X[3][0]), &(X[3][1]), &(X[3][2]));
 
 		            /* in volume check */
-		            if ( X_lay[0] < X[3][0] && X[3][0] < X_lay[1] &&
-		                Ymin < X[3][1] && X[3][1] < Ymax &&
-		                Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
+		            if ( vpar->X_lay[0] < X[3][0] && X[3][0] < vpar->X_lay[1] &&
+                        run_info->ymin < X[3][1] && X[3][1] < run_info->ymax &&
+                        vpar->Zmin_lay[0] < X[3][2] && 
+                        X[3][2] < vpar->Zmax_lay[1]) {invol = 1;}
 
                     subst_pos3d(X[2], X[3], diff_pos);
                     if ( invol == 1 && pos3d_in_bounds(diff_pos, tpar) ) { 
@@ -584,7 +575,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, double lmax, double Ymin
                         {
                             dl = (diff_norm_pos3d(X[1], X[3]) + 
                                 diff_norm_pos3d(X[0], X[1]) )/2;
-                            rr = (dl/lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
+                            rr = (dl/run_info->lmax + acc/tpar->dacc + angle/tpar->dangle)/(quali);
                             
                             ref_path_inf = &(fb->buf[2]->path_info[
                                 fb->buf[2]->num_parts]);
@@ -782,6 +773,7 @@ int trackback_c ()
 
     sequence_par *seq_par;
     track_par *tpar;
+    volume_par *vpar;
     framebuf *fb;
     
     /* Shortcuts to inside current frame */
@@ -795,7 +787,7 @@ int trackback_c ()
     /* read data */
     seq_par = read_sequence_par("parameters/sequence.par");
     tpar = read_track_par("parameters/track.par");
-    readseqtrackcrit ();
+    vpar = read_volume_par("parameters/criteria.par");
 
     fb = (framebuf *) malloc(sizeof(framebuf));
     fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
@@ -810,7 +802,8 @@ int trackback_c ()
     
     lmax = norm((tpar->dvxmin - tpar->dvxmax), (tpar->dvymin - tpar->dvymax),
 	    (tpar->dvzmin - tpar->dvzmax));
-    volumedimension (&X_lay[1], &X_lay[0], &Ymax, &Ymin, &Zmax_lay[1], &Zmin_lay[0]);
+    volumedimension (&(vpar->X_lay[1]), &(vpar->X_lay[0]), &Ymax,
+        &Ymin, &(vpar->Zmax_lay[1]), &(vpar->Zmin_lay[0]));
 
     /* sequence loop */
     for (step = seq_par->last - 1; step > seq_par->first; step--) {
@@ -937,9 +930,10 @@ int trackback_c ()
                             &(X[3][0]), &(X[3][1]), &(X[3][2]));
 
                         /* volume check */
-                        if ( X_lay[0] < X[3][0] && X[3][0] < X_lay[1] && 
+                        if ( vpar->X_lay[0] < X[3][0] && X[3][0] < vpar->X_lay[1] &&
                             Ymin < X[3][1] && X[3][1] < Ymax &&
-                            Zmin_lay[0] < X[3][2] && X[3][2] < Zmax_lay[1]) {invol=1;}
+                            vpar->Zmin_lay[0] < X[3][2] && X[3][2] < vpar->Zmax_lay[1]) 
+                                {invol = 1;}
 
                         subst_pos3d(X[1], X[3], diff_pos);
                         if (invol == 1 && pos3d_in_bounds(diff_pos, tpar)) { 

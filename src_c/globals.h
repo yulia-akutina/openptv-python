@@ -36,7 +36,6 @@ extern int dumbbell_pyptv;
 extern int seq_step_shake;
 
 //Denis - globals for tracking function
-extern double lmax_track,ymax_track,ymin_track;
 extern double npart,nlinks;
 extern int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
     inty1_tr[4][10000], intx2_tr[4][10000], inty2_tr[4][10000], \
@@ -236,7 +235,6 @@ int  candsearch_in_pix ();
 int  candsearch_in_pixrest ();
 int  corrtest();
 void predict();
-void readseqtrackcrit ();
 void searchquader();
 void sortwhatfound();
 void bubble_foundpix1 ();

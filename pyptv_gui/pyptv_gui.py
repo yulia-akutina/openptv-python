@@ -297,19 +297,21 @@ class TrackThread(Thread):
 	"""
 	def run(self):
 		print "tracking with display thread started"
-		lmax_track, ymin_track, ymax_track, run_info = ptv.py_trackcorr_init() #init the relevant C function
+		run_info = ptv.py_trackcorr_init() #init the relevant C function
 		for step in range(*run_info.get_sequence_range()): #Loop over each step in sequence
 			self.track_step=step
+            
             #Call C function to process current step and store results for plotting
 			self.intx0, self.intx1, self.intx2, self.inty0, self.inty1, \
                 self.inty2, self.pnr1, self.pnr2, self.pnr3, self.m_tr = \
-			    ptv.py_trackcorr_loop(run_info, step, lmax_track, ymin_track, 
-                    ymax_track, display = 1)
+			    ptv.py_trackcorr_loop(run_info, step, display=1)
+
 			self.can_continue=False
 			GUI.invoke_later(setattr, main_gui, 'update_thread_plot', True) #invoke plotting when system is ready to process it
 			while not self.can_continue: # wait while plotting of the current step is finished, then continue for the next step
 				pass
 			del self.intx0,self.intx1
+
 		ptv.py_trackcorr_finish(run_info, step + 1) # call finishing C function (after all the steps in the loop are processed)
 		for i in range(len(main_gui.camera_list)): # refresh cameras
 			main_gui.camera_list[i]._plot.request_redraw()
@@ -595,12 +597,11 @@ class TreeMenuHandler (Handler):
 			os.chdir(current_path) # change back to working path
 		if extern_tracker=='default':
 			print "Using default tracker"
-			lmax_track, ymin_track, ymax_track, run_info = ptv.py_trackcorr_init()
-			print lmax_track,ymin_track,ymax_track, run_info.get_sequence_range()
+			run_info = ptv.py_trackcorr_init()
+			print run_info.get_sequence_range()
 			for step in range(*run_info.get_sequence_range()):
 				print step
-				ptv.py_trackcorr_loop(run_info, step, lmax_track, ymin_track,
-                    ymax_track, display = 0)
+				ptv.py_trackcorr_loop(run_info, step, display=0)
             
    			#finalize tracking
 			ptv.py_trackcorr_finish(run_info, step + 1)

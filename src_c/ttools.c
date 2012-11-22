@@ -201,23 +201,6 @@ double x1, y1, x2, y2, *x3, *y3;
   return;
 }
 
-
-void readseqtrackcrit ()
-{
-  int i_img;
-  /* read illuminated layer data */
-  fpp = fopen_r ("parameters/criteria.par");
-  fscanf (fpp, "%lf\n", &X_lay[0]);
-  fscanf (fpp, "%lf\n", &Zmin_lay[0]);
-  fscanf (fpp, "%lf\n", &Zmax_lay[0]);
-  fscanf (fpp, "%lf\n", &X_lay[1]);
-  fscanf (fpp, "%lf\n", &Zmin_lay[1]);
-  fscanf (fpp, "%lf\n", &Zmax_lay[1]);
-  fclose (fpp);
-}
-
-
-
 void searchquader(X, Y, Z, xr, xl, yd, yu, tpar)
 double X, Y, Z, xr[4], xl[4], yd[4], yu[4];
 track_par *tpar;

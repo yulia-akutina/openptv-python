@@ -14,9 +14,14 @@ typedef struct {
     framebuf *fb;
     sequence_par *seq_par;
     track_par *tpar;
+    volume_par *vpar;
+    
+    /* Intermediate calculations done in run setup phase and used in the loop: */
+    double ymin, ymax, lmax;
 } tracking_run;
 
-void tr_init(tracking_run *tr, char *seq_par_fname, char *tpar_fname);
+void tr_init(tracking_run *tr, char *seq_par_fname, char *tpar_fname,
+    char *vpar_fname);
 void tr_free(tracking_run *tr);
 
 #endif

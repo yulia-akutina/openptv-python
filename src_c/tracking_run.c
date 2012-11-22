@@ -10,11 +10,15 @@
    TrackingRun *tr - points to the TrackingRun object to initialize.
    char *seq_par_fname - path to sequence parameters file.
    char *tpar_fname - path to tracking parameters file.
+   char *vpar_fname - path to volume parameters file.
 */
-void tr_init(tracking_run *tr, char *seq_par_fname, char *tpar_fname) {
+void tr_init(tracking_run *tr, char *seq_par_fname, char *tpar_fname,
+    char *vpar_fname) 
+{
     tr->fb = (framebuf *) malloc(sizeof(framebuf));
     tr->seq_par = read_sequence_par(seq_par_fname);
     tr->tpar = read_track_par(tpar_fname);
+    tr->vpar = read_volume_par(vpar_fname);
 }
 
 /* tr_free deallocates all data allocated inside a TrackingRun object (but NOT
@@ -27,5 +31,6 @@ void tr_free(tracking_run *tr) {
     free(tr->seq_par->img_base_name);
     free(tr->seq_par);
     free(tr->tpar);
+    free(tr->vpar);
 }
 

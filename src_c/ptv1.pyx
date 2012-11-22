@@ -27,15 +27,12 @@ cdef extern int sequence_proc_c(int dumb_flag)
 cdef extern int sequence_proc_loop_c(int dumbell, int i)
 
 cdef extern tracking_run* trackcorr_c_init ()
-cdef extern int trackcorr_c_loop (tracking_run *run_info, int step, double lmax,
-    double Ymin, double Ymax, int display)
+cdef extern int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 cdef extern int trackcorr_c_finish(tracking_run *run_info, int step)
 cdef extern int trackback_c ()
 cdef extern int trajectories_c(int i)
 cdef extern void read_ascii_data(int filenumber)
 cdef extern int determination_proc_c (int dumbbell)
-cdef extern double lmax_track,ymin_track,ymax_track
-cdef extern int seq_first, seq_last
 
 cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image)
 
@@ -288,17 +285,15 @@ def py_get_from_sequence_init():
     return seq_step_shake
     
 def py_trackcorr_init():
-    global lmax_track,ymin_track,ymax_track
     cdef tracking_run *tr = trackcorr_c_init()
     cdef TrackingRun ret = TrackingRun()
     ret.tr = tr
-    return lmax_track,ymin_track,ymax_track, ret
+    return ret
     
-def py_trackcorr_loop(TrackingRun run_info, int step, float lmax, float Ymin, 
-    float Ymax, int display):
+def py_trackcorr_loop(TrackingRun run_info, int step, int display):
 
     global intx0_tr,intx1_tr,intx2_tr,inty0_tr,inty1_tr,inty2_tr,pnr1_tr,pnr2_tr,pnr3_tr,m1_tr
-    trackcorr_c_loop(run_info.tr, step, lmax, Ymin, Ymax, display)
+    trackcorr_c_loop(run_info.tr, step, display)
     cdef int i,j
     if display:
         intx0,intx1,intx2,inty0,inty1,inty2,pnr1,pnr2,pnr3=[],[],[],[],[],[],[],[],[]
