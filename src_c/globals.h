@@ -203,7 +203,6 @@ void orient();
 void orient_v3();
 void orient_v4();
 void prepare_eval();
-void eval_ori();
 void eval_ori_v2();
 void volumedimension();
 
