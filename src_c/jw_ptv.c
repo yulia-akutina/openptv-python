@@ -163,6 +163,7 @@ int init_proc_c()
     fclose (fpp);
     
     /* read illuminated layer data */
+    vpar = read_volume_par("parameters/criteria.par");
     fpp = fopen_r ("parameters/criteria.par");
     fscanf (fpp, "%lf\n", &X_lay[0]);
     fscanf (fpp, "%lf\n", &Zmin_lay[0]);
