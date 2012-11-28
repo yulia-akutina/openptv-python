@@ -2,11 +2,11 @@
 
 #include <check.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include "../src_c/calibration.h"
 #include "../src_c/parameters.h"
 #include "../src_c/typedefs.h"
+#include "../src_c/epi.h"
 
 START_TEST(test_epi_mm)
 {

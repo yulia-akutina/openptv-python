@@ -203,12 +203,6 @@ void prepare_eval();
 void eval_ori_v2();
 void volumedimension();
 
-double epi_line ();
-int  epi_mm ();
-int  epi_mm_2D ();
-void find_candidate_plus_msg ();
-void find_candidate_plus ();
-
 int  drawcross();
 int  drawvector ();
 int  draw_pnr ();

@@ -1,5 +1,6 @@
 #include "ptv.h"
 #include "parameters.h"
+#include "epi.h"
 
 /* Variables used here and defined extern in 'globals.h' */
 int rclick_intx1[4], rclick_inty1[4], rclick_intx2[4], rclick_inty2[4],\

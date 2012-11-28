@@ -1,5 +1,9 @@
-#include "ptv.h"
-#include "parameters.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "epi.h"
+#include "globals.h"
 
 int dumbbell_pyptv;
 

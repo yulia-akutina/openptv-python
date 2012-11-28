@@ -16,6 +16,7 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 
 #include "ptv.h"
 #include "parameters.h"
+#include "epi.h"
 
 /* #define maxcand 100 */
 
@@ -115,12 +116,7 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 	  p1 = i;  list[i1][i2][p1].p1 = p1;	pt1 = geo[i1][p1].pnr;
 
 	  /* search for a conjugate point in geo[i2] */
-/*	  find_candidate_plus (geo[i2], pix[i2], num[i2],*/
-/*			       xa12, ya12, xb12, yb12, eps0,*/
-/*			       pix[i1][pt1].n,pix[i1][pt1].nx,pix[i1][pt1].ny,*/
-/*			       pix[i1][pt1].sumg, cand, &count, i2,argv);*/
-
-find_candidate_plus (geo[i2], pix[i2], num[i2],
+      find_candidate_plus (geo[i2], pix[i2], num[i2],
 			       xa12, ya12, xb12, yb12, eps0,
 			       pix[i1][pt1].n,pix[i1][pt1].nx,pix[i1][pt1].ny,
 			       pix[i1][pt1].sumg, cand, &count, i2);

@@ -1,3 +1,6 @@
+#ifndef TYPEDEFS_H
+#define TYPEDEFS_H
+
 #include "tracking_frame_buf.h"
 #include "calibration.h"
 
@@ -136,3 +139,5 @@ prevlist;
 #define FILENAME_OUT "res/ptv_is"
 #define COORDPARAFILE "res/coord.par"
 #define STATUSFILE "res/track.out"
+
+#endif
