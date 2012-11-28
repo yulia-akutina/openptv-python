@@ -51,8 +51,6 @@ START_TEST(test_epi_mm_2D)
     epi_mm_2D(xin, yin, cal->ext_par, cal->int_par, cal->glass_par,
         media_par, vpar, &xout, &yout, &zout);
     
-    printf("fail_unless((abs(xout - (%.6f)) < 1e-6) && (abs(yout - %.6f) < 1e-6)" 
-        "&& (abs(zout - %.6f) < 1e-6));\n", xout, yout, zout);
     fail_unless((abs(xout - (49.985492)) < 1e-6) && 
         (abs(yout - 54.186109) < 1e-6) && (abs(zout - 0.000000) < 1e-6));
 }
