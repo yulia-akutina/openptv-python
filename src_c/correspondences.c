@@ -49,7 +49,7 @@ void correspondences_4 (volume_par *vpar)
   /* ----------------------------------------------------------------------- */
 
 
-printf("in corres zmin0: %f, zmax0: %f\n", Zmin_lay[0],Zmax_lay[0] );
+printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] );
 
   /*  initialize ...  */
   sprintf (buf,"Establishing correspondences");

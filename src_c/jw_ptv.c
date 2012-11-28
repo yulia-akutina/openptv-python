@@ -61,7 +61,6 @@ double	pix_x, pix_y;			      	/* pixel size */
 double	ro;			      	        /* 200/pi */
 double	cn, cnx, cny, csumg, eps0, corrmin;	/* correspondences par */
 double 	rmsX, rmsY, rmsZ, mean_sigma0;		/* a priori rms */
-double  X_lay[2], Zmin_lay[2], Zmax_lay[2];	/* illu. layer data */
 double  db_scale;               /*dumbbell length, Beat Mai 2010*/  
 
 FILE	*fp1, *fp2, *fp3, *fp4, *fpp;
@@ -120,12 +119,9 @@ coord_3d        *p_c3d;
 int init_proc_c()
 {
     int  i;
-    //const char *valp;
+    double dummy;
     
     puts ("\n Multimedia Particle Positioning and Tracking Software \n");
-    
-    //valp = Tcl_GetVar(interp, "examine",  TCL_GLOBAL_ONLY);
-    //examine = atoi (valp);
     
     ro = 200/M_PI;
     
@@ -165,12 +161,8 @@ int init_proc_c()
     /* read illuminated layer data */
     vpar = read_volume_par("parameters/criteria.par");
     fpp = fopen_r ("parameters/criteria.par");
-    fscanf (fpp, "%lf\n", &X_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[0]);
-    fscanf (fpp, "%lf\n", &X_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[1]);
+    for (i = 0; i < 6; i++) 
+        fscanf (fpp, "%lf\n", &dummy);
     fscanf (fpp, "%lf", &cnx);
     fscanf (fpp, "%lf", &cny);
     fscanf (fpp, "%lf", &cn);
@@ -284,22 +276,6 @@ int start_proc_c()
     fscanf (fpp, "%lf\n", &mmp.n2[0]);
     fscanf (fpp, "%lf\n", &mmp.n3);
     fscanf (fpp, "%lf\n", &mmp.d[0]);
-    fclose (fpp);
-    
-    /* read illuminated layer data */
-    fpp = fopen_r ("parameters/criteria.par");
-    fscanf (fpp, "%lf\n", &X_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[0]);
-    fscanf (fpp, "%lf\n", &X_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[1]);
-    fscanf (fpp, "%lf", &cnx);
-    fscanf (fpp, "%lf", &cny);
-    fscanf (fpp, "%lf", &cn);
-    fscanf (fpp, "%lf", &csumg);
-    fscanf (fpp, "%lf", &corrmin);
-    fscanf (fpp, "%lf", &eps0);
     fclose (fpp);
     
     mmp.nlay = 1;
@@ -1335,13 +1311,8 @@ int calibration_proc_c (int sel)
 int sequence_proc_c  (int dumb_flag)
 {
     int     i, j, ok, k, nslices=19, slicepos=0, pft_version = 3;
-    //char    seq_ch[128], seq_name[4][128];
-    // Tk_PhotoHandle img_handle;
-    // Tk_PhotoImageBlock img_block;
-    
-    // z_cen_slice[19];
     int dumbbell=0;
-    //  double dummy;
+    double dummy;
     
     seq_step_shake=1;
     fpp = fopen_r ("parameters/sequence.par");
@@ -1366,12 +1337,8 @@ int sequence_proc_c  (int dumb_flag)
     /* read illuminated Volume */
     vpar = read_volume_par("parameters/criteria.par");
     fpp = fopen_r ("parameters/criteria.par");
-    fscanf (fpp, "%lf\n", &X_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[0]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[0]);
-    fscanf (fpp, "%lf\n", &X_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmin_lay[1]);
-    fscanf (fpp, "%lf\n", &Zmax_lay[1]);
+    for (i = 0; i < 6; i++)
+        fscanf (fpp, "%lf\n", &dummy);
     fscanf (fpp, "%lf", &cnx);
     fscanf (fpp, "%lf", &cny);
     fscanf (fpp, "%lf", &cn);
@@ -1416,20 +1383,13 @@ int sequence_proc_c  (int dumb_flag)
     
     mmp.nlay = 1;
     
-    seq_zdim=Zmax_lay[0]-Zmin_lay[0];
+    seq_zdim = vpar->Zmax_lay[0] - vpar->Zmin_lay[0];
     seq_slice_step= seq_zdim/nslices;
     seq_slicethickness=5.0;
     
-    printf("\nzdim: %f, max: %f, min: %f, st: %f\n", seq_zdim,Zmax_lay[0], Zmin_lay[0], seq_slice_step);
+    printf("\nzdim: %f, max: %f, min: %f, st: %f\n", seq_zdim,
+        vpar->Zmax_lay[0], vpar->Zmin_lay[0], seq_slice_step);
     
-    
-    //for (j=0; j<nslices; j++)
-    //	{
-    //	  z_cen_slice[j]=Zmax_lay[0]-j*slice_step;
-    
-    //	}
-    
-    /* ************** */
     return 0;
 }
 
@@ -1445,17 +1405,6 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     zdim=seq_zdim;
     dummy=seq_dummy;
     step_shake=seq_step_shake;
-    
-    //printf("\nstep: %d, zslice[j]: %f, slicepos: %d\n", i);
-    
-    //	  Zmax_lay[0]= z_cen_slice[slicepos] - slicethickness/2.0;
-    //	  Zmin_lay[0]= z_cen_slice[slicepos] + slicethickness/2.0;
-    //	  Zmax_lay[1]= z_cen_slice[slicepos] - slicethickness/2.0;
-    //	  Zmin_lay[1]= z_cen_slice[slicepos] + slicethickness/2.0;
-    //printf("in sequence zslice[j]: %f, zmin0: %f, zmax0: %f\n",
-    //z_cen_slice[slicepos], Zmax_lay[0],Zmin_lay[0] );
-    
-    //slicepos++; if (slicepos==nslices) {slicepos=0;}
     
     if (i < 10)             sprintf (seq_ch, "%1d", i);
     else if (i < 100)       sprintf (seq_ch, "%2d",  i);
@@ -1484,20 +1433,6 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     /* calling function for each sequence-n-tupel */
     
     /* read and display original images */
-    
-    for (k=0; k<n_img; k++)
-	{
-        /* reading */
-        //   read_image (interp, img_name[k], img[k]);
-        
-        /*	  if (display) {*/
-        /*	    img_handle = Tk_FindPhoto( interp, "temp");*/
-        /*	    Tk_PhotoGetImage (img_handle, &img_block);*/
-        /*	    tclimg2cimg (interp, img[k], &img_block);*/
-        /*	    sprintf(buf, "newimage %d", k+1);*/
-        /*	    Tcl_Eval(interp, buf);*/
-        /*	  }*/
-	}
     
     /*  read pft version  */
     /* added by Alex for external detection procedure, 19.4.10 */
@@ -1654,14 +1589,12 @@ int determination_proc_c (int dumbbell)
             &&  n < 3)	continue;
         
         /* hack due to problems with approx in det_lsq: */
-        X = 0.0; Y = 0.0; Z = (Zmin_lay[0]+Zmax_lay[0])/2.0;
+        X = 0.0; Y = 0.0;
+        Z = (vpar->Zmin_lay[0] + vpar->Zmax_lay[0])/2.0;
+        
         for (j=0; j<n_img; j++) { X += Ex[j].x0; Y += Ex[j].y0; }
         X /= n_img; Y /= n_img;
         /* ******************************** */
-        
-        //det_lsq_old (Ex, I, ap, mmp,
-        //     x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3], &X, &Y, &Z);
-        
         
         det_lsq_3d (Ex, I, G, ap, mmp,
                     x[0], y[0], x[1], y[1], x[2], y[2], x[3], y[3], &X, &Y, &Z);
@@ -1670,18 +1603,6 @@ int determination_proc_c (int dumbbell)
         /* write a sequential point number,
          sumg, if the point was used, and the 3D coordinates */
         fprintf (fp1, "%4d", i+1);
-        
-        
-        /*
-         if (p[0] > -1)	fprintf (fp1, "  %4d", pix[0][p[0]].sumg);
-         else			fprintf (fp1, "   %4d", -1);
-         if (p[1] > -1)	fprintf (fp1, "  %4d", pix[1][p[1]].sumg);
-         else			fprintf (fp1, "  %4d", -1);
-         if (p[2] > -1)	fprintf (fp1, "  %4d", pix[2][p[2]].sumg);
-         else			fprintf (fp1, "  %4d", -1);
-         if (p[3] > -1)	fprintf (fp1, "  %4d", pix[3][p[3]].sumg);
-         else			fprintf (fp1, "  %4d", -1);
-         */
         
         fprintf (fp1, " %9.3f %9.3f %9.3f", X, Y, Z);
         if (p[0] > -1)	fprintf (fp1, " %4d", pix[0][p[0]].pnr);
