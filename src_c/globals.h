@@ -163,7 +163,6 @@ void compose_name_plus_nr ();
 void compose_name_plus_nr_str ();
 int  nearest_neighbour_geo ();
 int  nearest_neighbour_pix ();
-void bubble_y ();
 void init_mmLUT ();
 
 
@@ -224,8 +223,6 @@ int  corrtest();
 void predict();
 void searchquader();
 void sortwhatfound();
-void bubble_foundpix1 ();
-void bubble_foundpix2 ();
 
 void Pix_crd ();
 void Back_trafo ();

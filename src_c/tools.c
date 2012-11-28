@@ -6,8 +6,6 @@ void qs_coord2d_x ();
 void qs_target_y ();
 void qs_coord2d_pnr ();
 void qs_con ();
-void bubble_foundpix1 ();
-void bubble_foundpix2 ();
 
 /* Write exterior and interior orientation, and - if available, parameters for
    distortion corrections.
@@ -287,25 +285,6 @@ double 	x, y, eps;
 /***********************************************************************/
 
 /* bubble sorts */
-
-void bubble_y (item, count)
-coord_2d	*item;
-int			count;
-{
-	int			i,j;
-	coord_2d	temp;
-
-	for (i=1; i<count; ++i)  for (j=count-1; j>=i; --j)
-	{
-		if (item[j-1].y > item[j].y)
-		{
-			temp = *(item+j-1);  *(item+j-1) = *(item+j);  *(item+j) = temp;
-		}
-	}
-}
-
-
-
 void bubble_conlist (item, count)
 correspond	*item;
 int    		count;
@@ -321,21 +300,6 @@ int    		count;
 		}
 	}
 }
-
-void bubble_foundpix1 ( foundpix *item)
-{
-  int i,j;
-  foundpix temp;
-
-  for (i=1; i<n_img; ++i)  for (j=n_img-1; j>=i; --j)
-    {
-      if (item[j-1].freq < item[j].freq)
-	{
-	  temp = *(item+j-1);  *(item+j-1) = *(item+j);  *(item+j) = temp;
-	}
-    }
-}
-
 
 /***********************************************************************/
 /***********************************************************************/
