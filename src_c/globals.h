@@ -188,8 +188,6 @@ void intersect_rt();
 void img_coord_old();
 void raw_orient();
 void raw_orient_v3();
-void raw_orient_v4();
-void raw_orient_v5();
 int mod();
 void getabcFromRot();
 void sortgrid_man();
@@ -247,22 +245,6 @@ int  trajectories_c();
 int  vrmldetections_c();
 int  vrmldettracks_c();
 
-
-int  tracking();
-void read_parameter();
-void level1();
-void level2();
-void level3();
-void read_ascii_data();
-void rotate_dataset();
-void write_ascii_data();
-void readcoord_parameter();
-void change_coordinates();
 void sort();
-void neighbours();
-int  seq_track_proc_c();
-
-void read_ascii_datanew();
-void write_ascii_datanew();
 
 //double multimed_r_nlay ()
