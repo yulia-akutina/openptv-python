@@ -96,13 +96,14 @@ double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
   return (0);
 }
 
-int epi_mm_2D (x1, y1, Ex1, I1, G1, mmp, xp,yp,zp)
+int epi_mm_2D (x1, y1, Ex1, I1, G1, mmp, vpar, xp,yp,zp)
 
 double     x1, y1;	  	/* input coord */
 Exterior   Ex1;           	/* orientation data */
 Interior   I1;	      	/* orientation data */
 Glass      G1;	      	/* glass data */
 mm_np	   mmp;		        /* multimed param. (layers) */
+volume_par *vpar;
 double *xp, *yp, *zp;
 //double	   *xmin, *ymin, *xmax, *ymax;    /* output search window */
 
@@ -121,11 +122,12 @@ double *xp, *yp, *zp;
   ray_tracing_v2 (x1,y1, Ex1, I1, G1, mmp, &X1, &Y1, &Z1, &a, &b, &c);
 
   /* calculate min and max depth for position (valid only for one setup) */
-  Zmin = Zmin_lay[0]
-    + (X1-X_lay[0]) * (Zmin_lay[1]-Zmin_lay[0]) / (X_lay[1]-X_lay[0]);
-  Zmax = Zmax_lay[0]
-    + (X1-X_lay[0]) * (Zmax_lay[1]-Zmax_lay[0]) / (X_lay[1]-X_lay[0]);
-
+  Zmin = vpar->Zmin_lay[0]
+    + (X1 - vpar->X_lay[0]) * (vpar->Zmin_lay[1] - vpar->Zmin_lay[0]) / 
+    (vpar->X_lay[1] - vpar->X_lay[0]);
+  Zmax = vpar->Zmax_lay[0]
+    + (X1 - vpar->X_lay[0]) * (vpar->Zmax_lay[1] - vpar->Zmax_lay[0]) /
+    (vpar->X_lay[1] - vpar->X_lay[0]);
 
   Z = 0.5*(Zmin+Zmax);   
   X = X1 + (Z-Z1) * a/c;   
