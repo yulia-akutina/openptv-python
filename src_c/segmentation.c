@@ -62,22 +62,6 @@ printf ("dim_lp = %d\n", dim_lp);
   unsharp_mask (dim_lp, img, img_lp);
   printf("after unsharpen_mask\n");
 
-/*for (i=0;i<300;i++)*/
-/*{ printf ("lp_img = %d", *(img_lp+i));*/
-/*}*/
-
- /* if (examine == 3)
-    {
-      fp = fopen (lp_name, "w");  /*  save lowpass image */
-/*      if (tiff_flag) { write_tiff (lp_name, img_lp, imx, imy); }
-      else { fwrite (img_lp, 1, imgsize, fp); }
-      printf("low pass: %s will be deleted when quitting ptv\n", lp_name);
-      fclose (fp);
-    }
-*/
-  /*  subtract lowpass from original  (=> highpass)  */
-
-
   for (ptr1=img, ptr2=img_lp, ptr3=img_hp, i=0; i<imgsize;
        ptr1++, ptr2++, ptr3++, i++)
     {
@@ -87,10 +71,6 @@ printf ("dim_lp = %d\n", dim_lp);
 	
       else  *ptr3 = 0;
     }
-/*for (i=0;i<100;i++)*/
-/*{ printf ("img_hp = %d", *(img_hp+i));*/
-/*}*/
-
   /* consider field mode */
   if (field == 1 || field == 2)  split (img_hp, field);
 
@@ -102,15 +82,6 @@ printf ("dim_lp = %d\n", dim_lp);
     case 1: lowpass_3 (img_hp, img_hp);	break;
     case 2: filter_3 (img_hp, img_hp);	break;
     }
-
-  /* save highpass image for later use */
-  /*if (examine == 3)
-    {  fp = fopen (hp_name, "w");
-  if (tiff_flag) { write_tiff (hp_name, img_hp, imx, imy); }
-  else { fwrite (img_hp, 1, imgsize, fp);}
-  fclose (fp);
-  }
-*/
   free (img_lp);
 }
 

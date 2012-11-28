@@ -343,13 +343,6 @@ int	       	nr;  		/* image number for residual display */
   /* show original images with residual vectors (requires globals) */
   sprintf (val, "%d: %5.2f micron, ", nr+1, sigma0*1000);
   strcat(buf,val);
-
-//if(multi==0){
-//  read_image (interp, img_name[nr], img[nr]);
-//  sprintf(val, "newimage %d", nr+1);
- // Tcl_Eval(interp, val);
-//}
-
   puts (buf);
 
 //if(multi==0){
@@ -1570,27 +1563,8 @@ int	       	nr;  		/* image number for residual display */
   
 
   /* show original images with residual vectors (requires globals) */
-//  sprintf (val,"%d: %5.2f micron, ", nr+1, sigma0*1000);
 printf ("%d: %5.2f micron, ", nr+1, sigma0*1000);
-//  strcat(buf,val);
-
-//if(multi==0){
- // read_image (interp, img_name[nr], img[nr]);
- // sprintf(val, "newimage %d", nr+1);
- // Tcl_Eval(interp, val);
-//}
-
-  //puts (buf);
 printf("\ntest 1 inside orientation\n");
-//if(multi==0){
- /* for (i=0;i<999;i++)
-  {
-      orient_x1[nr][i]=0;
-	  orient_y1[nr][i]=0;
-	  orient_x2[nr][i]=0;
-	  orient_y2[nr][i]=0;
-  }
-  */
   for (i=0; i<n_obs-10; i+=2)
     {
       n = pixnr[i/2];
@@ -1598,16 +1572,12 @@ printf("\ntest 1 inside orientation\n");
       inty1 = (int) pix[nr][n].y;
       intx2 = intx1 + resi[i]*5000;
       inty2 = inty1 + resi[i+1]*5000;
-// Denis : C<->Python data exchange
  	orient_x1[nr][n]=intx1;
 	orient_y1[nr][n]=inty1;
 	orient_x2[nr][n]=intx2;
 	orient_y2[nr][n]=inty2;
 	orient_n[nr]=n;
-      //drawcross (interp, intx1, inty1, 3, nr , "orange");
-      //drawvector (interp, intx1, inty1, intx2, inty2, 1, nr , "red");
     }
-//}
 
 
 

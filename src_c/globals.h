@@ -124,9 +124,6 @@ int read_ori();
 void write_ori ();
 void compose_name_plus_nr ();
 int  mouse_proc_c ();
-void read_image();
-int  read_tiff ();
-int  write_tiff ();
 void copy_images();
 void subtract_mask();
 
@@ -229,7 +226,6 @@ void searchquader();
 void sortwhatfound();
 void bubble_foundpix1 ();
 void bubble_foundpix2 ();
-void tclimg2cimg();
 
 void Pix_crd ();
 void Back_trafo ();

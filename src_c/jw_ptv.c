@@ -304,16 +304,6 @@ int start_proc_c()
     {
         /* reading */
         sprintf(val, "camcanvas %d", i+1);
-        //  Tcl_Eval(interp, val);
-        
-        
-        
-        // read_image (interp, img_name[i], img[i]);
-        // sprintf(val, "newimage %d", i+1);
-        
-        //  Tcl_Eval(interp, val);
-        //  sprintf(val, "keepori %d", i+1);
-        // Tcl_Eval(interp, val);
     }
     
     printf("image0:\n");
@@ -364,20 +354,11 @@ int pre_processing_c ()
     {//read mask image
         for (i_img=0; i_img<n_img; i_img++)
         {
-            //read_image (interp, img_mask_name[i_img], img_mask[i_img]);//read mask
-            //highpass (img_name[i_img], img[i_img], img[i_img], sup, 0, chfield, i_img);//highpass original image
             highpass (img[i_img], img[i_img], sup, 0, chfield);
             subtract_mask (img[i_img], img_mask[i_img], img_new[i_img]); //subtract mask from original image
             copy_images (img_new[i_img], img[i_img]);//copy subtracted imgage on the original image
             
-            //if (display) {
-            // img_handle = Tk_FindPhoto( interp, "temp");
-            // Tk_PhotoGetImage (img_handle, &img_block);
-            // tclimg2cimg (interp, img[i_img], &img_block);
-            
             sprintf(val, "newimage %d", i_img+1);
-            //  Tcl_GlobalEval(interp, val);
-            // }
         }
     }//end if
     
@@ -385,17 +366,7 @@ int pre_processing_c ()
     {
         for (i_img=0; i_img<n_img; i_img++)
         {
-            //highpass (img_name[i_img], img[i_img], img[i_img], sup, 0, chfield, i_img);//highpass original image
             highpass (img[i_img], img[i_img], sup, 0, chfield);//highpass original image
-            
-            /*      if (display) {*/
-            /*      img_handle = Tk_FindPhoto( interp, "temp");*/
-            /*      Tk_PhotoGetImage (img_handle, &img_block);*/
-            /*      tclimg2cimg (interp, img[i_img], &img_block);*/
-            
-            /*      sprintf(val, "newimage %d", i_img+1);*/
-            /*      Tcl_GlobalEval(interp, val);*/
-            /*      }*/
         }
     }//end if
     
@@ -403,11 +374,6 @@ int pre_processing_c ()
     
     
     sprintf(val, "...done");
-    /*  Tcl_SetVar(interp, "tbuf", val, TCL_GLOBAL_ONLY);*/
-    /*  Tcl_Eval(interp, ".text delete 3");*/
-    /*  Tcl_Eval(interp, ".text insert 3 $tbuf");*/
-    
-    // return TCL_OK;
     return 0;
     
 }
@@ -725,24 +691,6 @@ int calibration_proc_c (int sel)
             {
                 printf("img0=%d\n",img[0][i]);
             }
-            // we take care of this in python, Denis //07.11.2010
-            /*      for (i=0; i<n_img; i++)*/
-            /*	{*/
-            
-            /*	  zoom_x[i] = imx/2, zoom_y[i] = imy/2, zoom_f[i] = 1;*/
-            
-            /*	  read_image (interp, img_name[i], img[i]);*/
-            
-            /*	  sprintf(val, "camcanvas %d", i+1);*/
-            /*	  Tcl_Eval(interp, val);*/
-            
-            /*	  img_handle = Tk_FindPhoto( interp, "temp");*/
-            /*	  Tk_PhotoGetImage (img_handle, &img_block);*/
-            /*	  tclimg2cimg (interp, img[i], &img_block);*/
-            
-            /*	  sprintf(val, "newimage %d", i+1);*/
-            /*	  Tcl_Eval(interp, val);*/
-            /*	}*/
             
             break;
             
