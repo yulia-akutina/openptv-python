@@ -59,7 +59,6 @@ int mask;						/*checkmark for subtract mask*/
 double seq_slice_step,seq_slicethickness,seq_zdim,seq_dummy;
 double	pix_x, pix_y;			      	/* pixel size */
 double	ro;			      	        /* 200/pi */
-double	cn, cnx, cny, csumg, eps0, corrmin;	/* correspondences par */
 double 	rmsX, rmsY, rmsZ, mean_sigma0;		/* a priori rms */
 double  db_scale;               /*dumbbell length, Beat Mai 2010*/  
 
@@ -160,16 +159,6 @@ int init_proc_c()
     
     /* read illuminated layer data */
     vpar = read_volume_par("parameters/criteria.par");
-    fpp = fopen_r ("parameters/criteria.par");
-    for (i = 0; i < 6; i++) 
-        fscanf (fpp, "%lf\n", &dummy);
-    fscanf (fpp, "%lf", &cnx);
-    fscanf (fpp, "%lf", &cny);
-    fscanf (fpp, "%lf", &cn);
-    fscanf (fpp, "%lf", &csumg);
-    fscanf (fpp, "%lf", &corrmin);
-    fscanf (fpp, "%lf", &eps0);
-    fclose (fpp);
     
     mmp.nlay = 1;
     
@@ -1284,22 +1273,12 @@ int sequence_proc_c  (int dumb_flag)
     
     /* read illuminated Volume */
     vpar = read_volume_par("parameters/criteria.par");
-    fpp = fopen_r ("parameters/criteria.par");
-    for (i = 0; i < 6; i++)
-        fscanf (fpp, "%lf\n", &dummy);
-    fscanf (fpp, "%lf", &cnx);
-    fscanf (fpp, "%lf", &cny);
-    fscanf (fpp, "%lf", &cn);
-    fscanf (fpp, "%lf", &csumg);
-    fscanf (fpp, "%lf", &corrmin);
-    fscanf (fpp, "%lf", &eps0);
-    fclose (fpp);
     
     /* read illuminated layer data */
     if (dumbbell==1){
         fpp = fopen ("parameters/dumbbell.par", "r");
         if (fpp){
-            fscanf (fpp, "%lf", &eps0);
+            fscanf (fpp, "%lf", &(vpar->eps0));
             fscanf (fpp, "%lf", &seq_dummy);
             fscanf (fpp, "%lf", &seq_dummy);
             fscanf (fpp, "%lf", &seq_dummy);
@@ -1324,7 +1303,7 @@ int sequence_proc_c  (int dumb_flag)
             fprintf(fpp,"5: step size through sequence\n");
             fprintf(fpp,"6: num iterations per click\n");
             fclose(fpp);
-            eps0=10;
+            vpar->eps0 = 10;
         }
     }
     
@@ -1453,11 +1432,6 @@ int determination_proc_c (int dumbbell)
     puts ("Determinate");
     
     sprintf (buf, "Point positioning (mid_point in 3d)");
-    /*  Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);*/
-    /*  Tcl_Eval(interp, ".text delete 2");*/
-    /*  Tcl_Eval(interp, ".text insert 2 $tbuf");
-     */
-    
     
     /* Beat Mai 2007 to set the variable examine for mulit-plane calibration*/
     fp1 = fopen_r ("parameters/examine.par");
@@ -1582,17 +1556,12 @@ int determination_proc_c (int dumbbell)
     
     //Beat Mai 2010: now we should open the file db_is.* again, check
     //               if it has exactly two points, rescale them, write them again and close the file.
-    
-    /*  if (atoi(argv[1])==3){*/
-    /*      dumbbell=1;*/
-    /*	  display=0;*/
-    /*  }*/  //Denis
     if (dumbbell==1) {display=0;} //Denis
     
     if (dumbbell==1){
         fpp = fopen ("parameters/dumbbell.par", "r");
         if (fpp){
-            fscanf (fpp, "%lf", &eps0);
+            fscanf (fpp, "%lf", &(vpar->eps0));
             fscanf (fpp, "%lf", &db_scale);
             fclose (fpp);
         }

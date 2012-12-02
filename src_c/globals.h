@@ -60,7 +60,6 @@ extern int display;                        /* display flag */
 
 extern double pix_x, pix_y;		     	/* pixel size */
 extern double pi, ro;
-extern double cn, cnx, cny, csumg, eps0, corrmin;    /* correspond. par */
 extern double rmsX, rmsY, rmsZ, mean_sigma0;         /* a priori rms */
 extern double db_scale;           /*dumbbell length, Beat Mai 2010*/ 
 

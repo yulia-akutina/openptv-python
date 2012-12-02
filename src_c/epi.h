@@ -14,10 +14,12 @@ int  epi_mm(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
 int  epi_mm_2D(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
     mm_np mmp, volume_par *vpar, double *xout, double *yout, double *zout);
 void find_candidate_plus_msg(coord_2d crd[], target pix[], int num,
-    double xa, double ya, double xb, double yb, double eps,
-    int n, int nx, int ny, int sumg, candidate cand[], int *count, int nr);
+    double xa, double ya, double xb, double yb,
+    int n, int nx, int ny, int sumg, candidate cand[], int *count, int i12,
+    volume_par *vpar);
 void find_candidate_plus(coord_2d crd[], target pix[], int num,
-    double xa, double ya, double xb, double yb, double eps,
-    int n, int nx, int ny, int sumg, candidate cand[], int *count, int i12);
+    double xa, double ya, double xb, double yb,
+    int n, int nx, int ny, int sumg, candidate cand[], int *count, int nr,
+    volume_par *vpar);
 
 #endif

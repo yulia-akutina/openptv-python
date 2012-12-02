@@ -28,7 +28,11 @@ track_par* read_track_par(char *filename);
 int compare_track_par(track_par *t1, track_par *t2);
 
 typedef struct {
-    double  X_lay[2], Zmin_lay[2], Zmax_lay[2];
+    double X_lay[2], Zmin_lay[2], Zmax_lay[2];
+    
+    /* Criteria for correspondence are in the same file. For now they'll be
+    in the same structure, but TODO: separate them. */
+    double cn, cnx, cny, csumg, eps0, corrmin;
 } volume_par;
 
 volume_par* read_volume_par(char *filename);

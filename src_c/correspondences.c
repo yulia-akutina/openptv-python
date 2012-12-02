@@ -18,8 +18,6 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 #include "parameters.h"
 #include "epi.h"
 
-/* #define maxcand 100 */
-
 /****************************************************************************/
 /*--------------- 4 camera model: consistent quadruplets -------------------*/
 /****************************************************************************/
@@ -117,14 +115,12 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 
 	  /* search for a conjugate point in geo[i2] */
       find_candidate_plus (geo[i2], pix[i2], num[i2],
-			       xa12, ya12, xb12, yb12, eps0,
+			       xa12, ya12, xb12, yb12, 
 			       pix[i1][pt1].n,pix[i1][pt1].nx,pix[i1][pt1].ny,
-			       pix[i1][pt1].sumg, cand, &count, i2);
+			       pix[i1][pt1].sumg, cand, &count, i2, vpar);
 	  /* write all corresponding candidates to the preliminary list */
 	  /* of correspondences */
-//printf("count=%d\n",count);
 	  if (count > maxcand)	{ count = maxcand; }
-//printf("\ncheckpoint7\n " );
 	  for (j=0; j<count; j++)
 	    {
 	      list[i1][i2][p1].p2[j] = cand[j].pnr;
@@ -180,7 +176,7 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 				       + list[1][2][p2].dist[m]
 				       + list[1][3][p2].dist[n]
 				       + list[2][3][p3].dist[o]);
-				  if (corr > corrmin)
+				  if (corr > vpar->corrmin)
 				    {
 				      /* accept as preliminary match */
 				      con0[match0].p[0] = p1;
@@ -260,7 +256,7 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 				/ (list[i1][i2][i].dist[j]
 				   + list[i1][i3][i].dist[k]
 				   + list[i2][i3][p2].dist[m]);
- 			      if (corr > corrmin)
+ 			      if (corr > vpar->corrmin)
 				{ for (n=0; n<n_img; n++) con0[match0].p[n] = -2;
 				  con0[match0].p[i1] = p1;
 				  con0[match0].p[i2] = p2;
@@ -330,7 +326,7 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 
 	    corr = list[i1][i2][i].corr[0] / list[i1][i2][i].dist[0];
 
-	    if (corr > corrmin)
+	    if (corr > vpar->corrmin)
 	      {
 		con0[match0].p[i1] = p1;
 		con0[match0].p[i2] = p2;

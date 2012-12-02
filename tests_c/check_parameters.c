@@ -40,7 +40,7 @@ END_TEST
 START_TEST(test_read_volume_par)
 {
     volume_par vpar_correct = {
-        {-250., 250.}, {-100., -100.}, {100., 100.}
+        {-250., 250.}, {-100., -100.}, {100., 100.}, 0.01, 0.3, 0.3, 0.01, 1, 33
     };
     
     volume_par *vpar;

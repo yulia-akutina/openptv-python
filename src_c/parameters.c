@@ -147,6 +147,13 @@ volume_par* read_volume_par(char *filename) {
     if(fscanf(fpp, "%lf\n", &(ret->Zmin_lay[1])) == 0) goto handle_error;
     if(fscanf(fpp, "%lf\n", &(ret->Zmax_lay[1])) == 0) goto handle_error;
     
+    if(fscanf(fpp, "%lf\n", &(ret->cnx)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->cny)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->cn)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->csumg)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->corrmin)) == 0) goto handle_error;
+    if(fscanf(fpp, "%lf\n", &(ret->eps0)) == 0) goto handle_error;
+    
     fclose (fpp);
     return ret;
 
@@ -172,6 +179,9 @@ int compare_volume_par(volume_par *v1, volume_par *v2) {
         (v1->Zmax_lay[0] == v2->Zmax_lay[0]) && \
         (v1->X_lay[1] == v2->X_lay[1]) && \
         (v1->Zmin_lay[1] == v2->Zmin_lay[1]) && \
-        (v1->Zmax_lay[1] == v2->Zmax_lay[1]) );
+        (v1->Zmax_lay[1] == v2->Zmax_lay[1]) &&
+        (v1->cn == v2->cn) && (v1->cnx == v2->cnx) && \
+        (v1->cny == v2->cny) && (v1->csumg == v2->csumg) && \
+        (v1->corrmin == v2->corrmin) && (v1->eps0 == v2->eps0) );
 }
 
