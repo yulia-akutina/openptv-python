@@ -1,7 +1,7 @@
 
 cdef extern from "parameters.h":
     ctypedef struct sequence_par:
-        pass
+        int first, last
 
 cdef extern from "tracking_run.h":
     ctypedef struct tracking_run:

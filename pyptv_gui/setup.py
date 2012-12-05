@@ -28,8 +28,8 @@ ext_mods = [
         extra_compile_args=['-O3', '-fno-common']),
     Extension("tracking_framebuf", ["tracking_framebuf.pyx",
         "tracking_frame_buf.c"]),
-    Extension("tracking_run_py", ["tracking_run_py.pyx", "tracking_run.c",
-        "tracking_frame_buf.c", "parameters.c"]) ]
+    Extension("tracking_run_py", ["tracking_run_py.pyx", "tracking_run_py.pxd", 
+        "tracking_run.c", "tracking_frame_buf.c", "parameters.c"]) ]
 
 setup(
     name="ptv1",
