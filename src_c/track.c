@@ -54,8 +54,6 @@ tracking_run* trackcorr_c_init() {
     
     /* Remaining globals:
     n_img - set in jw_ptv.c in init_proc_c().
-    all parameters of volumedimension - set in 
-        readseqtrackcrit().
     see below for communication globals.
     */
     
