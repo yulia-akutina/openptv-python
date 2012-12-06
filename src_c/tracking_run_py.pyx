@@ -1,3 +1,7 @@
+# Provides a Python wrapper to the tracking_run struct. This should allow a
+# tracking algorithm to be managed from Python, with only the bottleneck parts
+# running in C. The tracking_run struct holds information needed or generated
+# by the different tracking components.
     
 from libc.stdlib cimport free
 

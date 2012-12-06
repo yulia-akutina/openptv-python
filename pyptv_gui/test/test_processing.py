@@ -80,6 +80,16 @@ class TestProcessing(unittest.TestCase):
             "scene83_event1/", "after_sequencing_targets/",
             mask=re.compile("_targets$")))
     
+    def test_tracking_run_object(self):
+        """The TrackingRun object has access to needed attributes"""
+        shutil.copytree("after_sequencing/", "res/")
+        
+        run_info = py_trackcorr_init()
+        first, last = run_info.get_sequence_range()
+        
+        self.failUnlessEqual(first, 497)
+        self.failUnlessEqual(last, 597)
+        
     def test_tracking(self):
         """Tracking reproduces sample results"""
         shutil.copytree("after_sequencing/", "res/")
