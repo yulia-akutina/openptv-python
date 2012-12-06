@@ -83,6 +83,8 @@ class TestProcessing(unittest.TestCase):
     def test_tracking_run_object(self):
         """The TrackingRun object has access to needed attributes"""
         shutil.copytree("after_sequencing/", "res/")
+        for fname in glob.iglob("after_sequencing_targets/*"):
+            shutil.copy(fname, "scene83_event1/")
         
         run_info = py_trackcorr_init()
         first, last = run_info.get_sequence_range()
