@@ -73,13 +73,6 @@ conjugate;
 
 typedef struct
 {
-  int  	pnr;
-  double  tol, corr;
-}
-candidate;
-
-typedef struct
-{
   int     p[4];
   double  corr;
 }

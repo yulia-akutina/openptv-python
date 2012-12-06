@@ -6,6 +6,11 @@
 #include "tracking_frame_buf.h"
 #include "parameters.h"
 
+typedef struct {
+  int  	pnr;
+  double  tol, corr;
+} candidate;
+
 double epi_line(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
     Exterior Ex2, Interior I2, Glass G2);
 int  epi_mm(double xl, double yl, Exterior Ex1, Interior I1, Glass G1,
