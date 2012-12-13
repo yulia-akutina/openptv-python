@@ -667,7 +667,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
                         xp[j] = curr_targets[j][curr_corres->p[j]].x;
                		    yp[j] = curr_targets[j][curr_corres->p[j]].y;
                		    xc[j] = fb->buf[2]->targets[j][ref_corres->p[j]].x;
-               		    yc[j] = fb->buf[2]->targets[j][ref_corres->p[j]].x;
+               		    yc[j] = fb->buf[2]->targets[j][ref_corres->p[j]].y;
                		    predict (xp[j], yp[j], xc[j], yc[j], &xn[j], &yn[j]);
                         
                		    if ( ( fabs(xp[j]-zoom_x[j]) < imx/(2*zoom_f[j]))
