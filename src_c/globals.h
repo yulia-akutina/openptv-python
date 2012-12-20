@@ -1,6 +1,7 @@
 /*  global declarations for ptv  */
 
 #include "tracking_frame_buf.h"
+#include <stdio.h>
 
 #define nmax 20240
 
