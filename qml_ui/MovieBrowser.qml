@@ -5,7 +5,10 @@ Item {
     width: cams.width
     height: cams.height + controls.height
     
-    property string scene_template: "../pyptv_gui/test/testing_fodder/clean_scene/cam%1_Scene83_%2"
+    property string scene_template
+    property alias first_frame: controls.first_frame
+    property alias last_frame: controls.last_frame
+    property alias frame_rate: controls.frame_rate
 
     function pad(n, width, z) {
         z = z || '0';
@@ -28,10 +31,6 @@ Item {
         anchors.left: cams.left
         anchors.right: cams.right
         anchors.top: cams.bottom
-        
-        first_frame: 497
-        last_frame: 597
-        frame_rate: 100
     }
     Component.onCompleted: {
         controls.frameChanged.connect(load_frame)

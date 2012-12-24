@@ -19,6 +19,10 @@ Rectangle {
         duration: (last_frame - from) / frame_rate * 1000 // [ms]
     }
 
+    onFirst_frameChanged: {
+        frame = first_frame
+    }
+    
     Row {
         MiniButton {
             id: back_full
