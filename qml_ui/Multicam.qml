@@ -8,10 +8,10 @@ Item {
     property alias images: init_images
     ListModel {
         id: init_images
-        ListElement { file: "../pyptv_gui/test/testing_fodder/cal/cam1.tif" }
-        ListElement { file: "../pyptv_gui/test/testing_fodder/cal/cam2.tif" }
-        ListElement { file: "../pyptv_gui/test/testing_fodder/cal/cam3.tif" }
-        ListElement { file: "../pyptv_gui/test/testing_fodder/cal/cam4.tif" }
+        ListElement { file: "" }
+        ListElement { file: "" }
+        ListElement { file: "" }
+        ListElement { file: "" }
     }
     
     Component {
