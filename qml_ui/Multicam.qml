@@ -5,6 +5,7 @@ Item {
     id: cams_view
     width: 600; height: 600
     
+    property alias images: init_images
     ListModel {
         id: init_images
         ListElement { file: "../pyptv_gui/test/testing_fodder/cal/cam1.tif" }
@@ -16,7 +17,9 @@ Item {
     Component {
         id: cam_image
         Column {
-            Text { text: "Camera " + (index + 1) + " " + file }
+            Text { 
+                width: cam_grid.width / 2
+                text: "Camera " + (index + 1) + " " + file }
             Image { 
                 source: file
                 width: cam_grid.width / 2; 
