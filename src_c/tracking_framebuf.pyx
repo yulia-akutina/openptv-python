@@ -2,7 +2,7 @@
 
 from libc.stdlib cimport malloc, free
 
-cdef extern from "tracking_frame_buf.h":
+cdef extern from "optv/tracking_frame_buf.h":
     int c_read_targets "read_targets" (target buffer[], \
         char* file_base, int frame_num)
 

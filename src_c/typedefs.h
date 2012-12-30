@@ -1,7 +1,7 @@
 #ifndef TYPEDEFS_H
 #define TYPEDEFS_H
 
-#include "tracking_frame_buf.h"
+#include <optv/tracking_frame_buf.h>
 #include "calibration.h"
 
 #define sqr(x) x*x
