@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "ptv.h"
+#include "tools.h"
 
 /* declaration */
 void qs_coord2d_x ();
@@ -175,8 +176,6 @@ int		nr;
 /* find nearest neighbours */
 
 int kill_in_list ( nr, num, ms_x, ms_y)
-//Tcl_Interp* interp;
-//int interp; //denis
 int    	nr, num;
 int    	ms_x, ms_y;
 {
@@ -186,9 +185,6 @@ int    	ms_x, ms_y;
   if (zoom_f[nr] > 1)
     {
       printf ("cannot delete point from zoomed image");
-     // Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-     // Tcl_Eval(interp, ".text delete 3");
-     // Tcl_Eval(interp, ".text insert 3 $tbuf");
       return (0);
     }
 
@@ -205,8 +201,6 @@ int    	ms_x, ms_y;
   if (dmin > 10)	return (-1);	       	/*  limit: 10 pixel  */
   intx = (int) pix[nr][imin].x;
   inty = (int) pix[nr][imin].y;
-
- // drawcross (interp, intx, inty, cr_sz+1, nr, "magenta");
 
   for (i=imin; i<num; i++)  pix[nr][i] = pix[nr][i+1];
 

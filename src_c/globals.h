@@ -103,78 +103,26 @@ extern corres   *corrp;
 extern corres  	*corrc;
 extern corres  	*corrn;
 
-FILE *fopen_r ();
-double multimed_r ();
-
 // General functions:
-int  jw_Init();
-int  init_proc_c();
-int  start_proc_c();
-int  pre_processing_c ();
-int  detection_proc_c();
-int  correspondences_proc_c ();
-int  determination_proc_c ();
-int  sequence_proc_c();
-void checkpoint_proc ();
-int  quit_proc_c ();
-int  parameter_panel_init();
-int  done_proc_c();
-
-int read_ori();
-void write_ori ();
-void compose_name_plus_nr ();
-int  mouse_proc_c ();
-void copy_images();
-void subtract_mask();
-
-int  peak_fit_new();
-void highpass();
-
-void zoom ();
-void lowpass_n ();
-void lowpass_3 ();
-void filter_3 ();
-void unsharp_mask ();
-void split ();
 void multimed_nlay ();
 void multimed_nlay_v2 ();
 void trans_Cam_Point ();
 void back_trans_Point ();
-void getG();
 
-void quicksort_con ();
-int  flow_demo_c();
-void simple_connectivity();
-void targ_rec();
-void quicksort_target_y();
-void transp();
-void quicksort_coord2d_x();
 void rotation_matrix();
-void img_xy ();
-void img_xy_mm ();
 void img_xy_mm_geo ();
  void pixel_to_metric();
 void metric_to_pixel ();
  void correct_brown_affin();
 void distort_brown_affin ();
-int  pix_in_next();
-int  kill_in_list ();
-void compose_name_plus_nr ();
-void compose_name_plus_nr_str ();
-int  nearest_neighbour_geo ();
-int  nearest_neighbour_pix ();
 void init_mmLUT ();
 
-
 void correspondences_4();
- void det_lsq();
 void pos_from_ray();
 void dist_to_ray();
  void ray_tracing();
 void point_line_line();
- void norm_cross();
  void dot();
- void modu();
  void ray_tracing_v2();
 void mid_point();
 void cross();
@@ -182,56 +130,11 @@ void dotP();
 void intersect_rt_3m();
 void intersect_rt();
 void img_coord_old();
-void raw_orient();
-void raw_orient_v3();
 int mod();
 void getabcFromRot();
 void sortgrid_man();
 void just_plot();
 void det_lsq_3d ();
- void det_lsq_2 ();
- void det_lsq_3 ();
- void det_lsq_4 ();
 void orient();
-void orient_v3();
-void orient_v4();
-void prepare_eval();
-void eval_ori_v2();
 void volumedimension();
 
-int  drawcross();
-int  drawvector ();
-int  draw_pnr ();
-int  draw_value ();
-void mark_detections ();
-void mark_correspondences ();
-void mark_corr ();
-
- void ata ();
- void ata_v2 ();
- void matinv ();
- void atl ();
- void matmul ();
- void mat_transpose ();
-
-void tracking_proc ();
-int  find_track ();
-
-int  candsearch_in_pix ();
-int  candsearch_in_pixrest ();
-int  corrtest();
-void predict();
-void searchquader();
-void sortwhatfound();
-
-void Pix_crd ();
-void Back_trafo ();
-void crd_pix();
-int  vrmltracks_c();
-int  trajectories_c();
-int  vrmldetections_c();
-int  vrmldettracks_c();
-
-void sort();
-
-//double multimed_r_nlay ()

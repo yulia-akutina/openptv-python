@@ -24,6 +24,7 @@ Related routines:
 ******************************************************************/
 #include "tracking_frame_buf.h"
 #include "parameters.h"
+#include "lsqadj.h"
 #include "ptv.h"
 
 #define MAX_TARGETS 20000
@@ -255,16 +256,12 @@ int	       	nr;  		/* image number for residual display */
 
       /* Gauss Markoff Model */
 
-      ata (Xh, XPX, n_obs, 16);
-
-      matinv (XPX, 16);
-
-      atl (XPy, Xh, yh, n_obs, 16);
-
-      matmul (beta, XPX, XPy, 16,16,1);
+      ata ((double *) Xh, (double *) XPX, n_obs, 16);
+      matinv ((double *) XPX, 16);
+      atl ((double *) XPy, (double *) Xh, yh, n_obs, 16);
+      matmul ((double *) beta, (double *) XPX, (double *) XPy, 16,16,1);
 
       stopflag = 1;
-      //puts ("\n==> beta :\n");
       for (i=0; i<16; i++)
 	{
 	  //printf ("%10.6f  ",beta[i]);
@@ -284,7 +281,7 @@ int	       	nr;  		/* image number for residual display */
 
   /* compute residuals etc. */
 
-  matmul ( Xbeta, X, beta, n_obs, 16, 1);
+  matmul ( (double *) Xbeta, (double *) X, (double *) beta, n_obs, 16, 1);
 
   omega = 0;
   for (i=0; i<n_obs; i++)
@@ -1158,15 +1155,10 @@ int	       	n_img,nfix;		/* # of object points */
 
       
  }
-
-
-
-  
 }
 
+
 void orient_v3 (Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
-//void orient_v3 (interp, Ex0, I0, G0, ap0, mm, nfix, fix, crd, Ex, I, G, ap, nr)
-//Tcl_Interp*     interp;
 Exterior	Ex0, *Ex;	/* exterior orientation, approx and result */
 Interior	I0, *I;		/* interior orientation, approx and result */
 Glass   	G0, *G;		/* glass orientation, approx and result */
@@ -1454,10 +1446,10 @@ int	       	nr;  		/* image number for residual display */
          numbers=18;
 	  }
 	  
-	  ata_v2 (Xh, XPX, n_obs, numbers, 19 );
-      matinv_v2 (XPX, numbers, 19);
-      atl_v2 (XPy, Xh, yh, n_obs, numbers, 19);
-      matmul_v2 (beta, XPX, XPy, numbers,numbers,1,19,19);
+	  ata_v2 ((double *) Xh, (double *) XPX, n_obs, numbers, 19 );
+      matinv_v2 ((double *) XPX, numbers, 19);
+      atl_v2 ((double *) XPy, (double *) Xh, yh, n_obs, numbers, 19);
+      matmul_v2 ((double *) beta, (double *) XPX, (double *) XPy, numbers,numbers,1,19,19);
 	  
       stopflag = 1;
 	  convergeflag = 1;
@@ -1501,7 +1493,7 @@ int	       	nr;  		/* image number for residual display */
 
   /* compute residuals etc. */
 
-  matmul_v2 ( Xbeta, X, beta, n_obs, numbers, 1, n_obs, 19);
+  matmul_v2 ( (double *) Xbeta, (double *) X, (double *) beta, n_obs, numbers, 1, n_obs, 19);
   omega = 0;
   for (i=0; i<n_obs; i++)
     {
@@ -1694,10 +1686,10 @@ coord_2d  crd[];
 
       /* Gauss Markoff Model */
 
-      ata (X, XPX, n_obs, 6);
-      matinv (XPX, 6);
-      atl (XPy, X, y, n_obs, 6);
-      matmul (beta, XPX, XPy, 6,6,1);
+      ata ((double *) X, (double *) XPX, n_obs, 6);
+      matinv ((double *) XPX, 6);
+      atl ((double *) XPy, (double *) X, y, n_obs, 6);
+      matmul ((double *) beta, (double *) XPX, (double *) XPy, 6,6,1);
 
       stopflag = 1;
       for (i=0; i<6; i++)  if (fabs (beta[i]) > 0.1)  stopflag = 0;
@@ -1818,10 +1810,10 @@ coord_2d  crd[];
 
       /* Gauss Markoff Model */
 
-      ata_v2 (X, XPX, n_obs, 6, 6);
-      matinv (XPX, 6);
-      atl (XPy, X, y, n_obs, 6);
-      matmul (beta, XPX, XPy, 6,6,1);
+      ata_v2 ((double *) X, (double *) XPX, n_obs, 6, 6);
+      matinv ((double *) XPX, 6);
+      atl ((double *) XPy, (double *) X, y, n_obs, 6);
+      matmul ((double *) beta, (double *) XPX, (double *) XPy, 6,6,1);
 
       stopflag = 1;
 	  for (i=0; i<6; i++){
