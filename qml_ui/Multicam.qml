@@ -14,20 +14,6 @@ Item {
         ListElement { file: "" }
     }
     
-    Component {
-        id: cam_image
-        Column {
-            Text { 
-                width: cam_grid.width / 2
-                text: "Camera " + (index + 1) + " " + file }
-            Image { 
-                source: file
-                width: cam_grid.width / 2; 
-                height: cam_grid.height / 2
-            }
-        }
-    }
-    
     Grid {
         id: cam_grid
         rows: 2; columns: 2
@@ -36,7 +22,11 @@ Item {
         
         Repeater {
             model: init_images
-            delegate: cam_image
+            delegate: CamImage {
+                source: file
+                width: cam_grid.width / 2
+                height: cam_grid.height / 2
+            }
         }
     }
 }
