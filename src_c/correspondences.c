@@ -17,6 +17,7 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 #include "ptv.h"
 #include "parameters.h"
 #include "epi.h"
+#include "tools.h"
 
 /****************************************************************************/
 /*--------------- 4 camera model: consistent quadruplets -------------------*/
@@ -29,26 +30,19 @@ void correspondences_4 (volume_par *vpar)
   int 	p1,p2,p3,p4, p31, p41, p42;
   int  	pt1;
   int 	tim[4][nmax];
-  int  	intx, inty;
   double       	xa12,ya12,xb12,yb12,X,Y,Z;
   double       	corr;
   candidate   	cand[maxcand];
   n_tupel     	*con0;
   correspond  	*list[4][4];
-/* ----------------------------------------------------------------------- */
 
+  for (j=0; j<4; j++) for (i=0; i<nmax; i++) tim[j][i] = 0;
 
   /* allocate memory for lists of correspondences */
   for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++)
     list[i1][i2] = (correspond *) malloc (num[i1] * sizeof (correspond));
 
-
   con0 = (n_tupel *) malloc (4*nmax * sizeof (n_tupel));
-
-  /* ----------------------------------------------------------------------- */
-
-
-printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] );
 
   /*  initialize ...  */
   sprintf (buf,"Establishing correspondences");
@@ -61,11 +55,13 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 	  list[i1][i2][i].p1 = 0;
 	  list[i1][i2][i].n = 0;
 	}
-  for (i=0; i<nmax; i++)
-    {
-      for (j=0; j<4; j++) tim[j][i] = 0;
-      for (j=0; j<4; j++) con0[i].p[j] = -1; con0[i].corr = 0;
+  for (i = 0; i < nmax; i++) {
+    for (j = 0; j < 4; j++) {
+        tim[j][i] = 0;
+        con0[i].p[j] = -1;
     }
+    con0[i].corr = 0;
+  }
 
   /* -------------if only one cam and 2D--------- */ //by Beat Lüthi June 2007
   if(n_img==1){
@@ -92,15 +88,11 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
   /* -------------end of only one cam and 2D ------------ */
 
   /* matching  1 -> 2,3,4  +  2 -> 3,4  +  3 -> 4 */
-  for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++)
-    {
+  for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++) {
      printf ("Establishing correspondences  %d - %d\n", i1, i2);
-    //  puts (buf);
+     /* establish correspondences from num[i1] points of img[i1] to img[i2] */
 
-      /* establish correspondences from num[i1] points of img[i1] to img[i2] */
-	//printf("\ncheckpoint5\n " );
-      for (i=0; i<num[i1]; i++)	if (geo[i1][i].x != -999)
-	{
+      for (i=0; i<num[i1]; i++)	if (geo[i1][i].x != -999) {
       o = epi_mm (geo[i1][i].x,geo[i1][i].y,
 		      Ex[i1], I[i1], G[i1], Ex[i2], I[i2], G[i2], mmp, vpar,
 		      &xa12, &ya12, &xb12, &yb12);
@@ -109,7 +101,6 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 	  ///////mit bild_1 x,y Epipole machen und dann selber was schreiben um die Distanz zu messen.
 	  ///////zu Punkt in bild_2.
 
-//printf("\ncheckpoint6\n " );
 	  /* origin point in the list */
 	  p1 = i;  list[i1][i2][p1].p1 = p1;	pt1 = geo[i1][p1].pnr;
 
@@ -129,15 +120,9 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 	    }
 	  list[i1][i2][p1].n = count;
 	}
-    }
-
-  /* repair memory fault (!?) */
-  for (j=0; j<4; j++) for (i=0; i<nmax; i++) tim[j][i] = 0;
-
+  }
 
   /* ------------------------------------------------------------------ */
-  /* ------------------------------------------------------------------ */
-
   /* search consistent quadruplets in the list */
   if (n_img == 4)
     {
@@ -256,13 +241,18 @@ printf("in corres zmin0: %f, zmax0: %f\n", vpar->Zmin_lay[0], vpar->Zmax_lay[0] 
 				/ (list[i1][i2][i].dist[j]
 				   + list[i1][i3][i].dist[k]
 				   + list[i2][i3][p2].dist[m]);
- 			      if (corr > vpar->corrmin)
-				{ for (n=0; n<n_img; n++) con0[match0].p[n] = -2;
-				  con0[match0].p[i1] = p1;
-				  con0[match0].p[i2] = p2;
-				  con0[match0].p[i3] = p3;
-				  con0[match0++].corr = corr;
-				}
+                if (corr > vpar->corrmin) {
+                    for (n=0; n<n_img; n++) con0[match0].p[n] = -2;
+                        con0[match0].p[i1] = p1;
+                        con0[match0].p[i2] = p2;
+                        con0[match0].p[i3] = p3;
+                        con0[match0++].corr = corr;
+                    }
+				    if (match0 == 4*nmax) {   /* security */
+                        printf ("Overflow in correspondences:");
+                        printf (" > %d matches\n", match0);
+                        i = num[i1]; /* Break out of the outer loop over i */
+					}
 			    }
 			}
 		    }
@@ -302,9 +292,7 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 
   /* search consistent pairs :  12, 13, 14, 23, 24, 34 */
   /* only if an object model is available or if only 2 images are used */
-  //if(1>2 && n_img>1 && allCam_flag==0){
       if(n_img>1 && allCam_flag==0){
-	 // puts ("Search pairs");
 	printf("Search pairs");
 
 
@@ -360,21 +348,12 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 
   match2 = match-match4-match3;
   if(n_img==1){
-   //  sprintf (buf, "determined %d points from 2D", match1);
  printf ( "determined %d points from 2D", match1);
-   //  puts (buf);
   }
   else{
-/*     sprintf (buf, "%d consistent quadruplets(red), %d triplets(green) and %d unambigous pairs",*/
-/*	      match4, match3, match2);*/
-/*     puts (buf);*/
  printf ("%d consistent quadruplets(red), %d triplets(green) and %d unambigous pairs\n",
 	      match4, match3, match2);
   }
- // Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
-  //Tcl_Eval(interp, ".text delete 3");
-  //Tcl_Eval(interp, ".text insert 3 $tbuf");
-
   /* ----------------------------------------------------------------------- */
 
   /* give each used pix the correspondence number */
@@ -392,65 +371,7 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 
   /* draw crosses on canvas */
   if (display) {
-/*    for (i=0; i<match4; i++)	       	/* red crosses for quadruplets */
-/*      {*/
-/*	for (j=0; j<n_img; j++)*/
-/*	  {*/
-/*	    p1 = geo[j][con[i].p[j]].pnr;*/
-/*	    if (p1 > -1)*/
-/*	      {*/
-/*		if (   (fabs(pix[j][p1].x-zoom_x[j]) < imx/(2*zoom_f[j]))*/
-/*		       && (fabs(pix[j][p1].y-zoom_y[j]) < imy/(2*zoom_f[j])))*/
-/*		  {*/
-/*		    intx = (int) ( imx/2 + zoom_f[j] * (pix[j][p1].x-zoom_x[j]));*/
-/*		    inty = (int) ( imy/2 + zoom_f[j] * (pix[j][p1].y-zoom_y[j]));*/
-/*		   // drawcross (interp, intx, inty, cr_sz, j, "red");*/
-/*		  //  if (zoom_f[j]>=2) draw_pnr (interp, intx+5 , inty+0, i, j, "white");*/
-/*		  }*/
-/*	      }*/
-/*	  }*/
-/*      }*/
-
-/*    for (i=match4; i<match4+match3; i++)	/* green crosses for triplets */
-/*      {*/
-/*	for (j=0; j<n_img; j++)*/
-/*	  {*/
-/*	    p1 = geo[j][con[i].p[j]].pnr;*/
-/*	    if (p1 > -1 && con[i].p[j] > -1)*/
-/*	      {*/
-/*		if (   (fabs(pix[j][p1].x-zoom_x[j]) < imx/(2*zoom_f[j]))*/
-/*		       && (fabs(pix[j][p1].y-zoom_y[j]) < imy/(2*zoom_f[j])))*/
-/*		  {*/
-/*		    intx = (int) ( imx/2 + zoom_f[j] * (pix[j][p1].x-zoom_x[j]));*/
-/*		    inty = (int) ( imy/2 + zoom_f[j] * (pix[j][p1].y-zoom_y[j]));*/
-/*		 //   drawcross ( interp, intx, inty, cr_sz, j, "green" );*/
-/*		  //  if (zoom_f[j]>=2) draw_pnr (interp, intx+5 , inty+0, i, j, "white");/* number of triplet */
-/*		  }*/
-/*		*/
-/*	      }*/
-/*	  }*/
-/*      }*/
-/*    for (i=match4+match3; i<match4+match3+match2; i++)*/
-/*      {			      	/* yellow crosses for pairs */
-/*	for (j=0; j<n_img; j++)*/
-/*	  {*/
-/*	    p1 = geo[j][con[i].p[j]].pnr;*/
-/*	    if (p1 > -1 && con[i].p[j] > -1)*/
-/*	      {*/
-/*		if (   (fabs(pix[j][p1].x-zoom_x[j]) < imx/(2*zoom_f[j]))*/
-/*		       && (fabs(pix[j][p1].y-zoom_y[j]) < imy/(2*zoom_f[j])))*/
-/*		  {*/
-/*		    intx = (int) ( imx/2 + zoom_f[j] * (pix[j][p1].x-zoom_x[j]));*/
-/*		    inty = (int) ( imy/2 + zoom_f[j] * (pix[j][p1].y-zoom_y[j]));*/
-/*		  //  drawcross (interp, intx, inty, cr_sz, j, "yellow");*/
-/*		   // if (zoom_f[j]>=2) draw_pnr (interp, intx+5 , inty+0, i, j, "white"); /* number of triplet */
-/*		  }*/
-/*	      }*/
-/*	  }*/
-/*      }*/
     int count1=0;
-/*    for (j=0; j<n_img; j++)*/
-/*      {*/
 	j=0;
 	for (i=0; i<num[j]; i++)
 	  {			      	
@@ -458,17 +379,8 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 	    if (p1 == -1 )
 	      {
 		count1++;
-/*		if (   (fabs(pix[j][i].x-zoom_x[j]) < imx/(2*zoom_f[j]))*/
-/*		       && (fabs(pix[j][i].y-zoom_y[j]) < imy/(2*zoom_f[j])))*/
-/*		  {*/
-/*		    intx = (int) ( imx/2 + zoom_f[j] * (pix[j][i].x-zoom_x[j]));*/
-/*		    inty = (int) ( imy/2 + zoom_f[j] * (pix[j][i].y-zoom_y[j]));*/
-/*		   // drawcross (interp, intx, inty, cr_sz, j, "blue");*/
-		    
-		  //}
 	      }
 	  }
-/*      }*/
 printf("unused inside = %d\n",count1);
   }
 
@@ -478,7 +390,6 @@ match4_g=match4;
 match3_g=match3;
 match2_g=match2;
 match1_g=match1;
-//
 
   /* ----------------------------------------------------------------------- */
   /* free memory for lists of correspondences */
@@ -490,8 +401,5 @@ match1_g=match1;
   free (con0);
 
   printf ("Correspondences done");
-//  Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);
- // Tcl_Eval(interp, ".text delete 2");
- // Tcl_Eval(interp, ".text insert 2 $tbuf");
 }
 

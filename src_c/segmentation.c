@@ -19,17 +19,14 @@ Routines contained:		unsharp_mask () ...
 ****************************************************************************/
 
 #include "ptv.h"
+#include "image_processing.h"
 
-//void highpass (pic_name, img, img_hp, dim_lp, filter_hp, field, nr)
 void highpass ( img, img_hp, dim_lp, filter_hp, field)
-//char	        pic_name[256];  /* image name */
 unsigned char  *img;
 unsigned char  *img_hp;       	/* highpass filtered image */
 int             dim_lp;	       	/* dimension of subtracted lowpass image */
 int	        filter_hp;     	/* flag for additional filtering of _hp */
 int    		field;	       	/* field to be used */
-//int	      	nr;	       	/* image number for display */
-//int len1;
 
 {
 
@@ -39,18 +36,10 @@ int    		field;	       	/* field to be used */
   char	       	lp_name[256], hp_name[256];
 
   register unsigned char *ptr1, *ptr2, *ptr3;
-  void 	unsharp_mask ();
 
-
-  //sprintf (lp_name, "%s_lp", pic_name);
-  //sprintf (hp_name, "%s_hp", pic_name);
 printf("image_size_orig = %d\n",imgsize);
-//imgsize=len1;
-  /* allocate memory */
   printf("inside highpass2\n");
 printf ("dim_lp = %d\n", dim_lp);
- // printf("length = %d\n", len1);
- // printf("length_imgsize= %d\n", imgsize);
 
   img_lp = (unsigned char *) calloc (imgsize, 1);
   if ( ! img_lp)
@@ -87,8 +76,6 @@ printf ("dim_lp = %d\n", dim_lp);
 
 void targ_rec (img0, img, par_file, xmin,xmax,ymin,ymax, pix, nr, num)
 
-//Tcl_Interp* interp;
-//int interp; //denis
 unsigned char	*img, *img0;   	/* image data, image to be set to zero */
 char	       	par_file[];    	/* name of parameter file */
 int    		xmin,xmax,ymin,ymax;	/* search area */
@@ -235,9 +222,7 @@ int	       	*num;	       		/* number of detections */
 
 
 
-void simple_connectivity (interp, img0, img, par_file, xmin,xmax,ymin,ymax, pix, nr, num)
-int interp; //denis
-//Tcl_Interp* interp;
+void simple_connectivity (img0, img, par_file, xmin,xmax,ymin,ymax, pix, nr, num)
 unsigned char	*img, *img0;   	/* image data, image to be set to zero */
 char	       	par_file[];    	/* name of parameter file */
 int	       	xmin,xmax,ymin,ymax;	/* search area */

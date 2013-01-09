@@ -19,6 +19,7 @@ Description:	       	reads objects, detected by detection etc.,
 ****************************************************************************/
 
 #include "ptv.h"
+#include "tools.h"
 
 //void just_plot (interp, Ex, I, G, ap, mm, imx,imy, pix_x,pix_y,
 //				   nfix,fix, field, n_img)

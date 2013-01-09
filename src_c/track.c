@@ -26,6 +26,8 @@ Routines contained:    	trackcorr_c
 #include "tracking_run.h"
 #include "vec_utils.h"
 #include "parameters.h"
+#include "tools.h"
+#include "ttools.h"
 
 /* Global variables marked extern in 'globals.h' and not defined elsewhere: */
 int intx0_tr[4][10000], inty0_tr[4][10000], intx1_tr[4][10000],\
@@ -309,7 +311,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	    } 
         
 	    /* calculate searchquader and reprojection in image space */
-	    searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu, tpar);
+	    searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar);
 
 	    /* search in pix for candidates in next time step */
 	    for (j = 0; j < fb->num_cams; j++) {
@@ -319,7 +321,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	    }
         
 	    /* fill and sort candidate struct */
-	    sortwhatfound(&p16, &zaehler1);
+	    sortwhatfound(p16, &zaehler1);
 	    w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
         
 	    if (zaehler1 > 0) count2++;
@@ -343,7 +345,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        } else {
                 search_volume_center_moving(X[1], X[3], X[5]);
             }
-            searchquader(X[5][0], X[5][1], X[5][2], &xr, &xl, &yd, &yu, tpar);
+            searchquader(X[5][0], X[5][1], X[5][2], xr, xl, yd, yu, tpar);
 
 	        for (j = 0; j < fb->num_cams; j++) {
                 img_coord (X[5][0], X[5][1], X[5][2], Ex[j],I[j], G[j], ap[j],
@@ -355,7 +357,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        for (j=0; j < fb->num_cams; j++) {
 	            zaehler2 = candsearch_in_pix (fb->buf[3]->targets[j], 
                     fb->buf[3]->num_targets[j], x1[j], y1[j],
-					xl[j], xr[j], yu[j], yd[j], &philf[j]);
+					xl[j], xr[j], yu[j], yd[j], philf[j]);
 
 		        for(k = 0; k < 4; k++) {
 				    if (philf[j][k] == -999) {
@@ -372,7 +374,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        /* end of search in pix */
 
 	        /* fill and sort candidate struct */
-	        sortwhatfound(&p16, &zaehler2);
+	        sortwhatfound(p16, &zaehler2);
 	        wn = (foundpix *) calloc (zaehler2, sizeof (foundpix));
 	        if (zaehler2 > 0) count3++;
             copy_foundpix_array(wn, p16, zaehler2, fb->num_cams);
@@ -425,7 +427,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 
 	            zaehler2 = candsearch_in_pixrest (fb->buf[3]->targets[j], 
                     fb->buf[3]->num_targets[j], xn[j], yn[j],
-					xl[j], xr[j], yu[j], yd[j], &philf[j]);
+					xl[j], xr[j], yu[j], yd[j], philf[j]);
 		        if(zaehler2>0 ) {
                     _ix = philf[j][0];
 		            x2[j] = fb->buf[3]->targets[j][_ix].x;
@@ -535,7 +537,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 		            xl[j]= xr[j]= yu[j]= yd[j] = 3.0;
 	                zaehler2 = candsearch_in_pixrest (fb->buf[2]->targets[j], 
                         fb->buf[2]->num_targets[j], xn[j], yn[j],
-					    xl[j], xr[j], yu[j], yd[j], &philf[j]);
+					    xl[j], xr[j], yu[j], yd[j], philf[j]);
 		            if(zaehler2 > 0) {
                         _ix = philf[j][0];
 	    	            x2[j] = fb->buf[2]->targets[j][_ix].x;
@@ -614,7 +616,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
         curr_path_inf = &(fb->buf[1]->path_info[h]);
         
 	    if(curr_path_inf->inlist > 0 ) {
-	        sort(curr_path_inf->inlist, &(curr_path_inf->decis),
+	        sort(curr_path_inf->inlist, (float *) curr_path_inf->decis,
                 curr_path_inf->linkdecis);
       	    curr_path_inf->finaldecis = curr_path_inf->decis[0];
 	        curr_path_inf->next = curr_path_inf->linkdecis[0];
@@ -835,12 +837,12 @@ int trackback_c ()
             }
 
             /* calculate searchquader and reprojection in image space */
-            searchquader(X[2][0], X[2][1], X[2][2], &xr, &xl, &yd, &yu, tpar);
+            searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar);
 
             for (j = 0; j < fb->num_cams; j++) {
                 zaehler1 = candsearch_in_pix (
                     fb->buf[2]->targets[j], fb->buf[2]->num_targets[j], xn[j], yn[j],
-                    xl[j], xr[j], yu[j], yd[j], &philf[j]);
+                    xl[j], xr[j], yu[j], yd[j], philf[j]);
 
                 for(k=0; k<4; k++) {
                     if( zaehler1>0) {
@@ -861,7 +863,7 @@ int trackback_c ()
             //}
 
             /* fill and sort candidate struct */
-            sortwhatfound(&p16, &zaehler1);
+            sortwhatfound(p16, &zaehler1);
             w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
 
             /*end of candidate struct */
@@ -905,7 +907,7 @@ int trackback_c ()
 
                         zaehler1 = candsearch_in_pixrest (fb->buf[2]->targets[j], 
                             fb->buf[2]->num_targets[j], xn[j], yn[j],
-                            xl[j], xr[j], yu[j], yd[j], &philf[j]);
+                            xl[j], xr[j], yu[j], yd[j], philf[j]);
                         if(zaehler1 > 0) {
                             _ix = philf[j][0];
                             x2[j] = fb->buf[2]->targets[j][_ix].x;
@@ -979,7 +981,7 @@ int trackback_c ()
             curr_path_inf = &(fb->buf[1]->path_info[h]);
         
             if(curr_path_inf->inlist > 0 ) {
-                sort(curr_path_inf->inlist, &(curr_path_inf->decis),
+                sort(curr_path_inf->inlist, (float *)curr_path_inf->decis,
                     curr_path_inf->linkdecis);
             }
         }

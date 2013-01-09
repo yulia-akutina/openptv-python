@@ -17,6 +17,7 @@ Routines contained:
 
 ****************************************************************************/
 #include "ptv.h"
+#include "lsqadj.h"
 
 void det_lsq_old (Ex, I, ap, mm, x1, y1, x2, y2, x3, y3, x4, y4, Xp, Yp, Zp)
 Exterior	Ex[4];
@@ -120,10 +121,10 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
       
       /* Gaussian algorithm */
       
-      ata (X, XtX, 8, 3);
-      matinv (XtX, 3);
-      atl (Xty, X, y, 8, 3);
-      matmul (beta, XtX, Xty, 3,3,1);
+      ata ((double *) X, (double *) XtX, 8, 3);
+      matinv ((double *) XtX, 3);
+      atl ((double *) Xty, (double *) X, y, 8, 3);
+      matmul (beta, (double *) XtX, (double *) Xty, 3,3,1);
       
       stopflag = 1;
       for (i=0; i<3; i++)  
@@ -140,7 +141,7 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
   for (i=0, n_obs=0; i<n_img; i++)
     if (xp[i] > -1e10  &&  yp[i] > -1e10)  n_obs += 2;
 
-  matmul (Xbeta, X, beta, 8, 3, 1);
+  matmul ((double *) Xbeta, (double *) X, beta, 8, 3, 1);
   for (i=0; i<n_obs; i++)
     {
       edach[i] = Xbeta[i] - y[i];
@@ -164,9 +165,9 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
       
       for (i=0; i<3; i++)  for (j=0; j<3; j++)	SQxx[i][j] += XtX[i][j];
       
-      mat_transpose (X, Xt, 8, 3);
-      matmul (buf, XtX, Xt, 3,3,8);
-      matmul (Qvv, X, buf, 8,3,8);
+      mat_transpose ((double *) X, (double *) Xt, 8, 3);
+      matmul ((double *) buf, (double *) XtX, (double *) Xt, 3,3,8);
+      matmul ((double *) Qvv, (double *) X, (double *) buf, 8,3,8);
       for (i=0; i<8; i++)  for (j=0; j<8; j++)	Qvv[i][j] *= -1;
       for (i=0; i<8; i++)  Qvv[i][i] = 1 + Qvv[i][i];
       
@@ -454,10 +455,10 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
       
       /* Gaussian algorithm */
       
-      ata (X, XtX, 8, 3);
-      matinv (XtX, 3);
-      atl (Xty, X, y, 8, 3);
-      matmul (beta, XtX, Xty, 3,3,1);
+      ata ((double *) X, (double *) XtX, 8, 3);
+      matinv ((double *) XtX, 3);
+      atl ((double *) Xty, (double *) X, y, 8, 3);
+      matmul (beta, (double *) XtX, (double *) Xty, 3,3,1);
       
       stopflag = 1;
       for (i=0; i<3; i++)  
@@ -474,7 +475,7 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
   for (i=0, n_obs=0; i<n_img; i++)
     if (xp[i] > -1e10  &&  yp[i] > -1e10)  n_obs += 2;
 
-  matmul (Xbeta, X, beta, 8, 3, 1);
+  matmul ((double *) Xbeta, (double *) X, beta, 8, 3, 1);
   for (i=0; i<n_obs; i++)
     {
       edach[i] = Xbeta[i] - y[i];
@@ -498,9 +499,9 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
       
       for (i=0; i<3; i++)  for (j=0; j<3; j++)	SQxx[i][j] += XtX[i][j];
       
-      mat_transpose (X, Xt, 8, 3);
-      matmul (buf, XtX, Xt, 3,3,8);
-      matmul (Qvv, X, buf, 8,3,8);
+      mat_transpose ((double *) X, (double *) Xt, 8, 3);
+      matmul ((double *) buf, (double *) XtX, (double *) Xt, 3,3,8);
+      matmul ((double *) Qvv, (double *) X, (double *) buf, 8,3,8);
       for (i=0; i<8; i++)  for (j=0; j<8; j++)	Qvv[i][j] *= -1;
       for (i=0; i<8; i++)  Qvv[i][i] = 1 + Qvv[i][i];
       
@@ -660,10 +661,10 @@ double		x1, y1, x2, y2, x3, y3, *Xp,*Yp,*Zp;
       /********************************************************************/
       /* Gaussian algorithm */
       
-      ata (X, XtX, 6, 3);
-      matinv (XtX, 3);
-      atl (Xty, X, y, 6, 3);
-      matmul (beta, XtX, Xty, 3,3,1);
+      ata ((double *) X, (double *) XtX, 6, 3);
+      matinv ((double *) XtX, 3);
+      atl ((double *) Xty, (double *) X, y, 6, 3);
+      matmul (beta, (double *) XtX, (double *) Xty, 3,3,1);
       
       stopflag = 1;
       for (i=0; i<3; i++)  
@@ -678,7 +679,7 @@ double		x1, y1, x2, y2, x3, y3, *Xp,*Yp,*Zp;
   
   /* residuals */
   
-  matmul (Xbeta, X, beta, 6, 3, 1);
+  matmul ((double *) Xbeta, (double *) X, beta, 6, 3, 1);
   for (i=0; i<6; i++)
     {
       edach[i] = Xbeta[i] - y[i];
@@ -856,10 +857,10 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
       /********************************************************************/
       /* Gaussian algorithm */
       
-      ata (X, XtX, 8, 3);
-      matinv (XtX, 3);
-      atl (Xty, X, y, 8, 3);
-      matmul (beta, XtX, Xty, 3,3,1);
+      ata ((double *) X, (double *) XtX, 8, 3);
+      matinv ((double *) XtX, 3);
+      atl ((double *) Xty, (double *) X, y, 8, 3);
+      matmul (beta, (double *) XtX, (double *) Xty, 3,3,1);
       
       stopflag = 1;
       for (i=0; i<3; i++)  
@@ -874,7 +875,7 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
   
   /* residuals */
   
-  matmul (Xbeta, X, beta, 8, 3, 1);
+  matmul ((double *) Xbeta, (double *) X, beta, 8, 3, 1);
   for (i=0; i<8; i++)
     {
       edach[i] = Xbeta[i] - y[i];
@@ -999,10 +1000,10 @@ double		x1, y1, x2, y2, *Xp,*Yp,*Zp;
       /********************************************************************/
       /* Gaussian algorithm */
       
-      ata (X, XtX, 4, 3);
-      matinv (XtX, 3);
-      atl (Xty, X, y, 4, 3);
-      matmul (beta, XtX, Xty, 3,3,1);
+      ata ((double *) X, (double *) XtX, 4, 3);
+      matinv ((double *) XtX, 3);
+      atl ((double *) Xty, (double *) X, y, 4, 3);
+      matmul (beta, (double *) XtX, (double *) Xty, 3,3,1);
       
       stopflag = 1;
       for (i=0; i<3; i++)  
@@ -1015,7 +1016,7 @@ double		x1, y1, x2, y2, *Xp,*Yp,*Zp;
   /************************************************************************/  
   /* residuals */
   
-  matmul (Xbeta, X, beta, 4, 3, 1);
+  matmul ((double *) Xbeta, (double *) X, beta, 4, 3, 1);
   for (i=0; i<4; i++)
     {
       edach[i] = Xbeta[i] - y[i];

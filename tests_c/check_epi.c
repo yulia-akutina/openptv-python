@@ -7,6 +7,7 @@
 #include "../src_c/parameters.h"
 #include "../src_c/typedefs.h"
 #include "../src_c/epi.h"
+#include "../src_c/globals.h"
 
 START_TEST(test_epi_mm)
 {
@@ -56,6 +57,50 @@ START_TEST(test_epi_mm_2D)
 }
 END_TEST
 
+START_TEST(test_find_candidate_plus)
+{
+    int cix, count;
+    int n = 25, nx = 5, ny = 5, sumg = 10;
+    double minval = 10., maxval = 20.;
+    coord_2d crd[10];
+    target pix[10];
+    candidate cand[2];
+    
+    volume_par vpar = {
+        .cn = 1,
+        .cnx = 1, 
+        .cny = 1,
+        .csumg = 0.1, 
+        .eps0 = 0.04
+    };
+    
+    /* We'll have a 45 deg epipolar line and a slightly flatter candidates 
+       line crossing it. */
+    for (cix = 0; cix < 10; cix++) {
+        crd[cix].x = minval - 1 + cix*(maxval - minval + 2)/9.;
+        crd[cix].y = minval + cix*(maxval - minval)/9;
+        crd[cix].pnr = cix;
+        
+        pix[cix].pnr = cix;
+        pix[cix].x = crd[cix].x;
+        pix[cix].y = crd[cix].x;
+        pix[cix].n = n;
+        pix[cix].nx = nx;
+        pix[cix].ny = ny;
+        pix[cix].sumg = sumg;
+    }
+    
+    read_ori(Ex, I, G, "testing_fodder/cal/cam1.tif.ori", ap, "", "");
+    I[0].xh = 0; I[0].yh = 0;
+    imx = 30; imy = 30;
+    pix_x = 1; pix_y = 1.;
+    
+    find_candidate_plus(crd, pix, 10, minval, minval, maxval, maxval,
+        n, nx, ny, sumg, cand, &count, 0, &vpar);
+    fail_unless(count == 2);
+}
+END_TEST
+
 Suite* epi_suite(void) {
     Suite *s = suite_create ("Epipolar lines");
 
@@ -67,6 +112,10 @@ Suite* epi_suite(void) {
     tcase_add_test(tc, test_epi_mm_2D);
     suite_add_tcase (s, tc);
 
+    tc = tcase_create ("Candidate finding");
+    tcase_add_test(tc, test_find_candidate_plus);
+    suite_add_tcase (s, tc);
+    
     return s;
 }
 

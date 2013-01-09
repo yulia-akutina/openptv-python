@@ -18,11 +18,16 @@
  ****************************************************************************/
 #include "ptv.h"
 #include "parameters.h"
+#include "tools.h"
+#include "image_processing.h"
+#include "orientation.h"
 
 #define nmax 20240
 
 /*  global declarations for ptv  */
 /*-------------------------------------------------------------------------*/
+
+int determination_proc_c();
 
 volume_par *vpar;
 
@@ -755,10 +760,6 @@ int calibration_proc_c (int sel)
             {
                 fscanf (fp1, "%lf %lf\n",
                         &pix0[i_img][i].x, &pix0[i_img][i].y);
-                /*	  drawcross (interp,  (int) pix0[i_img][i].x,*
-                 /*		     (int) pix0[i_img][i].y, cr_sz+2, i_img, "red");*/
-                /*	  draw_pnr (interp, (int) pix0[i_img][i].x, (int) pix0[i_img][i].y,*/
-                /*		    nr[i_img][i], i_img, "red");*/
                 
             }
             fclose (fp1);
@@ -860,29 +861,8 @@ int calibration_proc_c (int sel)
                 ncal_points[i]=nfix;
                 for (j=0; j<nfix; j++)
                 {
-                    //if (pix[i][j].pnr < 0)	continue;
-// Alex, 18.05.11                    
-//                     if (pix[i][j].pnr < 0)
-//                     {
-//                         z_calib[i][j]=pix[i][j].pnr; 
-//                         printf("z_calib[%d][%d]<0: %d\n",i,j,z_calib[i][j]);   
-//                     }
-//                     else
-//                     {
-//                         z_calib[i][j]=fix[j].pnr; 
-//                         printf("z_calib[%d][%d]>0: %d\n",i,j,z_calib[i][j]);
-//                     }
-                    
-                    
-                    
                     intx1 = (int) pix[i][j].x ;
                     inty1 = (int) pix[i][j].y ;
-                    
-                    //   x_calib[i][j]=intx1;
-                    //   y_calib[i][j]=inty1;
-                    
-                    /*	      drawcross (interp, intx1, inty1, cr_sz, i, "white");*/
-                    /*	      draw_pnr (interp, intx1, inty1, fix[j].pnr, i, "white");*/
                 }
             }
             
@@ -979,12 +959,6 @@ int calibration_proc_c (int sel)
 				    else  z_calib[i][j]=fix[j].pnr;
                     intx1 = (int) pix[i][j].x ;
                     inty1 = (int) pix[i][j].y ;
-                    /*					if (pix[i][j].pnr < 0)	continue;*/
-                    /*					intx1 = (int) pix[i][j].x ;*/
-                    /*					inty1 = (int) pix[i][j].y ;*/
-                    
-                    /*					drawcross (interp, intx1, inty1, cr_sz, i, "yellow");*/
-                    /*					draw_pnr (interp, intx1, inty1, fix[j].pnr, i, "yellow");*/
 				}
             }
             
@@ -1233,7 +1207,7 @@ int calibration_proc_c (int sel)
             orient_v5 (n_img, nfix,&Ex, &I, &G, &ap);
 			
             for(i_img=0;i_img<n_img;i_img++){
-                write_ori (Ex[i_img], I[i_img], G[i_img], ap,
+                write_ori (Ex[i_img], I[i_img], G[i_img], ap[i_img],
                     img_ori[i_img], img_addpar[i_img]);
             }
 			
