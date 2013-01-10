@@ -8,10 +8,10 @@ Item {
     property alias images: init_images
     ListModel {
         id: init_images
-        ListElement { file: "" }
-        ListElement { file: "" }
-        ListElement { file: "" }
-        ListElement { file: "" }
+        ListElement { file: ""; target_list: "" }
+        ListElement { file: ""; target_list: "" }
+        ListElement { file: ""; target_list: "" }
+        ListElement { file: ""; target_list: "" }
     }
     
     Grid {
@@ -24,6 +24,7 @@ Item {
             model: init_images
             delegate: CamImage {
                 source: file
+                targets: target_list
                 width: cam_grid.width / 2
                 height: cam_grid.height / 2
             }
