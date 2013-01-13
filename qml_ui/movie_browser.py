@@ -2,14 +2,16 @@
 # Mostly loads the appropriate QML component and sets its properties from
 # command-line arguments.
 
-import sys
+import sys, re
 from PySide import QtCore
 from PySide.QtGui import QApplication
 from PySide.QtDeclarative import QDeclarativeView
 
+from tracking_framebuf import read_targets
+
 class TargetListModel(QtCore.QAbstractListModel):
-    def __init__(self, targets):
-        QtCore.QAbstractListModel.__init__(self)
+    def __init__(self, parent, targets):
+        QtCore.QAbstractListModel.__init__(self, parent)
         self._targets = targets
         self.setRoleNames({0: 'posx', 1: 'posy'})
  
@@ -24,16 +26,22 @@ class TargetListModel(QtCore.QAbstractListModel):
         if role == 0:
             return target['x']
         elif role == 1:
-            return target['y']   
+            return target['y']
 
 class ImageExplorer(QtCore.QObject):
-    @QtCore.Slot(int, int, result=TargetListModel)
+    def __init__(self, name_template):
+        QtCore.QObject.__init__(self)
+        self._tmpl = name_template
+    
+    @QtCore.Slot(int, int, result=QtCore.QObject)
     def image_targets(self, frame, cam):
-        return TargetListModel([
-            {'x': 100, 'y': 100}, 
-            {'x': 200, 'y': 200}, 
-        ])
-
+        tmpl = re.sub('%1', '%d', self._tmpl)
+        tmpl = re.sub('%2', '', tmpl)
+        targets = read_targets(tmpl % (cam + 1), frame)
+        
+        return TargetListModel(self, 
+            [dict(zip(['x', 'y'], targets[t].pos())) \
+                for t in xrange(len(targets))] )
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -50,7 +58,7 @@ app = QApplication(sys.argv)
 view = QDeclarativeView()
 view.setSource(QtCore.QUrl('MovieBrowser.qml'))
 
-view.rootContext().setContextProperty("image_explorer", ImageExplorer())
+view.rootContext().setContextProperty("image_explorer", ImageExplorer(args.template))
 view.rootObject().setProperty("scene_template", args.template)
 view.rootObject().setProperty("first_frame", args.first)
 view.rootObject().setProperty("last_frame", args.last)

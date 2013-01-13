@@ -20,7 +20,6 @@ Item {
         for (var cam = 0; cam < 4; cam++) {
             cams.images.setProperty(cam, "file",
                 scene_template.arg(cam + 1).arg(pad(controls.frame, 4, '0')));
-            console.log(image_explorer.image_targets(controls.frame, cam))
             cams.images.setProperty(cam, "target_list",
                 image_explorer.image_targets(controls.frame, cam));
         }
