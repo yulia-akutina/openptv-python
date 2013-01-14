@@ -1,7 +1,7 @@
 openptv-python
 ==============
 
-PyPTV is the Python version of OpenPTV: Python GUI and core algorithms in C
+PyPTV is the Python version of OpenPTV: Python GUI and core algorithms in C (see <https://github.com/yosefm/openptv/tree/fb_submission>) 
 
 
 
