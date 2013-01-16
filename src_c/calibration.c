@@ -107,6 +107,7 @@ Calibration *read_calibration(char *ori_file, char *add_file,
     if (read_ori(&(ret->ext_par), &(ret->int_par), &(ret->glass_par), ori_file,
         &(ret->added_par), add_file, fallback_file))
     {
+        rotation_matrix(ret->ext_par, ret->ext_par.dm);
         return ret;
     } else {
         free(ret);
