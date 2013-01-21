@@ -194,7 +194,6 @@ volume_par *vpar;
   correct_brown_affin (xmin,ymin, ap[nr], &xmin,&ymin);
   correct_brown_affin (xmax,ymax, ap[nr], &xmax,&ymax);
 
-
   for (j=0; j<4; j++)
     {
       cand[j].pnr = -999;  cand[j].tol = -999;  cand[j].corr = -999;
@@ -266,7 +265,7 @@ volume_par *vpar;
                  qny >= vpar->cny && qsumg > vpar->csumg) {
 
 				 if ( *count < maxcand) {
-			        cand[*count].pnr = j;
+			        cand[*count].pnr = p2;
 			        cand[*count].tol = d;
 			        cand[*count].corr = corr;
 			        (*count)++;
