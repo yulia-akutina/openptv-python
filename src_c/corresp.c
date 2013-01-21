@@ -32,7 +32,7 @@ int advance_nd_iterator(int nd, int *current, int *count) {
     
     for (d = 0; d < nd; d++) {
         current[d] += carry;
-        if (current[d] == count[d]) {
+        if (current[d] >= count[d]) {
             current[d] = 0;
             carry = 1;
         } else {
