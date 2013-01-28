@@ -265,7 +265,7 @@ volume_par *vpar;
                  qny >= vpar->cny && qsumg > vpar->csumg) {
 
 				 if ( *count < maxcand) {
-			        cand[*count].pnr = p2;
+			        cand[*count].pnr = j;
 			        cand[*count].tol = d;
 			        cand[*count].corr = corr;
 			        (*count)++;

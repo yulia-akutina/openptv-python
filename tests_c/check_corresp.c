@@ -39,6 +39,7 @@ START_TEST(test_correspondences)
     int subset_size, num_corres;
     n_tupel *corres;
     
+    ck_abort_msg("Known failure: j/p2 in find_candidate_plus breaks this.");
     chdir("testing_fodder/");
     init_proc_c();
     mmp = media_par;
