@@ -272,6 +272,9 @@ int start_proc_c()
     fscanf (fpp, "%lf\n", &mmp.d[0]);
     fclose (fpp);
     
+    /* read illuminated layer data */
+    vpar = read_volume_par("parameters/criteria.par");
+    
     mmp.nlay = 1;
     
     /*  create file names  */
