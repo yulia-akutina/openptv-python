@@ -272,6 +272,9 @@ int start_proc_c()
     fscanf (fpp, "%lf\n", &mmp.d[0]);
     fclose (fpp);
     
+    /* read illuminated layer data */
+    vpar = read_volume_par("parameters/criteria.par");
+    
     mmp.nlay = 1;
     
     /*  create file names  */
@@ -290,7 +293,7 @@ int start_proc_c()
     {
         read_ori (&Ex[i], &I[i], &G[i], img_ori[i], &(ap[i]), img_addpar[i],
             NULL);
-        rotation_matrix (Ex[i], Ex[i].dm); // Why, if it's read from a file?
+        rotation_matrix (Ex[i], Ex[i].dm);
     }
     
     /* read and display original images */
