@@ -20,8 +20,13 @@ Item {
         for (var cam = 0; cam < 4; cam++) {
             cams.images.setProperty(cam, "file",
                 scene_template.arg(cam + 1).arg(pad(controls.frame, 4, '0')));
-            cams.images.setProperty(cam, "target_list",
-                image_explorer.image_targets(controls.frame, cam));
+            
+            if (targets_disp.checked) {
+                cams.images.setProperty(cam, "target_list",
+                    image_explorer.image_targets(controls.frame, cam));
+            } else {
+                cams.images.setProperty(cam, "target_list", null);
+            }
         }
     }
     
@@ -42,6 +47,16 @@ Item {
         
         anchors.left: cams.left
         anchors.top: controls.bottom
+    }
+    
+    OptionBox {
+        id: targets_disp
+        text: "Show targets"
+        
+        anchors.left: cont_replay_disp.right
+        anchors.top: controls.bottom
+        
+        onCheckedChanged: load_frame()
     }
     
     Component.onCompleted: {
