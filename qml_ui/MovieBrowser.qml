@@ -3,13 +3,13 @@ import QtQuick 1.0
 
 Item {
     width: cams.width
-    height: cams.height + controls.height
+    height: cams.height + controls.height + cont_replay_disp.height
     
     property string scene_template
     property alias first_frame: controls.first_frame
     property alias last_frame: controls.last_frame
     property alias frame_rate: controls.frame_rate
-
+    
     function pad(n, width, z) {
         z = z || '0';
         n = n + '';
@@ -33,7 +33,17 @@ Item {
         anchors.left: cams.left
         anchors.right: cams.right
         anchors.top: cams.bottom
+        replay: cont_replay_disp.checked
     }
+    
+    OptionBox {
+        id: cont_replay_disp
+        text: "Continuous replay"
+        
+        anchors.left: cams.left
+        anchors.top: controls.bottom
+    }
+    
     Component.onCompleted: {
         controls.frameChanged.connect(load_frame)
     }

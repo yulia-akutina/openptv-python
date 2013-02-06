@@ -7,16 +7,25 @@ Rectangle {
     property int first_frame: 0
     property int last_frame: 10
     property real frame_rate: 5 
+    property bool replay: false
     
     height: play_pause.height
     
     onFrameChanged: frame_indicator.text = "at frame " + frame
+    
     PropertyAnimation {
         id: play_frames
         target: mc
         property: "frame"
         to: last_frame
         duration: (last_frame - from) / frame_rate * 1000 // [ms]
+        
+        onRunningChanged: {
+            if (!running && (frame == last_frame) && replay) {
+                play_frames.from = first_frame;
+                play_frames.start();
+            }
+        }
     }
 
     onFirst_frameChanged: {
