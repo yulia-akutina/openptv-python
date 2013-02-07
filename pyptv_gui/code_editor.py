@@ -2,14 +2,14 @@
 Editor for editing the cameras ori files
 """
 # Imports:
-from enthought.traits.api \
+from traits.api \
 	import HasTraits, Code, Int, List, Str, Button, Float, Instance, Directory, File
    
-from enthought.traits.ui.api \
+from traitsui.api \
 	import Item, Group, View, Handler, Tabbed, ListEditor
 
 
-from enthought.traits.ui.menu import MenuBar, ToolBar, Menu, Action, OKCancelButtons
+from traitsui.menu import MenuBar, ToolBar, Menu, Action, OKCancelButtons
 import os
 import parameters as par
 

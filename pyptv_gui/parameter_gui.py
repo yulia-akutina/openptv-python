@@ -1,15 +1,17 @@
 import os, sys
 
-from enthought.traits.api \
+from traits.api \
 	import HasTraits, Str, Float, Int, List, Bool, Enum, Instance, Button,Float
-from enthought.traits.ui.api \
+from traitsui.api \
 	import TreeEditor, TreeNode, View, Item, VSplit, \
 		   HGroup, VGroup, Handler, Group, Tabbed,spring
-from enthought.traits.ui.menu \
+from traitsui.menu \
 	import Menu, Action, Separator
-from enthought.traits.ui.wx.tree_editor \
+from traitsui.wx.tree_editor \
 	import NewAction, CopyAction, CutAction, \
 		   PasteAction, DeleteAction, RenameAction
+
+		 		 
 
 import parameters as par
 import numpy as n

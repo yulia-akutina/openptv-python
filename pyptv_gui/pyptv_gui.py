@@ -1,19 +1,18 @@
 """ PyPTV_GUI is the GUI for the 3D-PTV (http://ptv.origo.ethz.ch) written in 
 Python/Enthought Traits GUI/Numpy/Chaco
 """
-from enthought.traits.api \
-	import HasTraits, Str, Float, Int, List, Bool, Enum, Instance, Button, File, Any
-from enthought.traits.ui.api \
-	import TreeEditor, TreeNode, View, Item, VSplit, \
-		   HGroup, Handler, Group, Tabbed
-from enthought.enable.component_editor import ComponentEditor
-from enthought.chaco.api import Plot, ArrayPlotData, gray, \
-						GridPlotContainer, ImageData
-from enthought.traits.ui.menu import MenuBar, ToolBar, Menu, Action
-from enthought.chaco.tools.api import  ZoomTool,PanTool
+from traits.api \
+	import HasTraits, Str, Int, List, Bool, Enum, Instance, Any
+from traitsui.api \
+	import TreeEditor, TreeNode, View, Item, \
+		    Handler, Group		    
+from enable.component_editor import ComponentEditor
+from chaco.api import Plot, ArrayPlotData, gray
+from traitsui.menu import MenuBar, Menu, Action
+from chaco.tools.api import  ZoomTool,PanTool
 from scipy.misc import imread
 from threading import Thread
-from enthought.pyface.api import GUI
+from pyface.api import GUI
 
 import os
 import sys
@@ -106,7 +105,7 @@ class Clicker(ImageInspectorTool):
 			ndx = plot.map_index((event.x, event.y))
 
 			x_index, y_index = ndx
-			image_data=plot.value
+			# image_data=plot.value
 			self.x=(x_index)
 			self.y=(y_index)
 			
@@ -140,6 +139,7 @@ class CameraWindow (HasTraits):
 
 	name=Str
 	view = View( Item(name='_plot',editor=ComponentEditor(), show_label=False) )
+	# view = View( Item(name='_plot',show_label=False) )
    
 	def __init__(self, color):
 		""" Initialization of plot system 
@@ -408,7 +408,7 @@ class TreeMenuHandler (Handler):
 	def delete_set_params(self, editor, object):
 		""" delete_set_params deletes the node and the folder of parameters 
 		"""
-		experiment = editor.get_parent(object)
+		# experiment = editor.get_parent(object)
 		paramset = object
 		# delete node
 		editor._menu_delete_node()

@@ -1,13 +1,13 @@
-from enthought.traits.api import HasTraits, Str, Float, Int,  Instance, Button,  Any, List, Bool
-from enthought.traits.ui.api import  Item, View
-from enthought.enable.component_editor import ComponentEditor
-from enthought.chaco.api import Plot, ArrayPlotData, gray, GridPlotContainer, ImageData, ImagePlot
+from traits.api import HasTraits, Str, Float, Int,  Instance, Button,  Any, List, Bool
+from traitsui.api import  Item, View
+from enable.component_editor import ComponentEditor
+from chaco.api import Plot, ArrayPlotData, gray, GridPlotContainer, ImageData, ImagePlot
 
-from enthought.chaco.tools.api import  ZoomTool,PanTool
+from chaco.tools.api import  ZoomTool,PanTool
 from scipy.misc import imread, imresize
 
 from threading import Thread
-from enthought.pyface.api import GUI
+from pyface.api import GUI
 
 
 

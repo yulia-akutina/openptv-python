@@ -2,9 +2,9 @@
 #TODO: change set() functions to either have no default values, or have None value signify 'no change to parameter'.
 
 import os, sys, traceback, shutil
-# from enthought.traits.api import *
-import enthought.pyface.api as pyfaceapi
-from enthought.traits.api \
+# from traits.api import *
+import pyface.api as pyfaceapi
+from traits.api \
 	import HasTraits, Str, Float, Int, List, Bool, Enum, Instance, Button, File, Any
 
 import general

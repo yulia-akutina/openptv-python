@@ -1,15 +1,15 @@
-from enthought.traits.api \
+from traits.api \
 	import HasTraits, Str, Float, Int, List, Bool, Enum, Instance, Button, File
-from enthought.traits.ui.api \
+from traitsui.api \
 	import View, Item, VSplit, \
 		   HGroup, Handler, Group, VGroup, HGroup, Tabbed, ListEditor
-from enthought.enable.component_editor import ComponentEditor
-from enthought.chaco.api import Plot, ArrayPlotData, gray,	ImageData, \
+from enable.component_editor import ComponentEditor
+from chaco.api import Plot, ArrayPlotData, gray,	ImageData, \
 								ImagePlot,CMapImagePlot,ArrayDataSource, MultiArrayDataSource,\
 								LinearMapper
-from enthought.traits.ui.menu import MenuBar, ToolBar, Menu, Action
-from enthought.chaco.tools.image_inspector_tool import ImageInspectorTool
-from enthought.chaco.tools.simple_zoom import  SimpleZoom
+from traitsui.menu import MenuBar, ToolBar, Menu, Action
+from chaco.tools.image_inspector_tool import ImageInspectorTool
+from chaco.tools.simple_zoom import  SimpleZoom
 from text_box_overlay import TextBoxOverlay
 from scipy.misc import imread
 import os, sys, shutil
