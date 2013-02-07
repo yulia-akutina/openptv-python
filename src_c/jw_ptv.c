@@ -130,9 +130,7 @@ int init_proc_c()
     ro = 200/M_PI;
     
     fpp = fopen ("parameters/pft_version.par", "r");
-    if (fpp){
-    }
-    else{
+    if (!fpp){
         fpp = fopen ("parameters/pft_version.par", "w");
         fprintf(fpp,"%d\n", 0);
         fclose(fpp);
