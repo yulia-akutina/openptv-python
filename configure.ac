@@ -12,7 +12,8 @@ AC_CONFIG_AUX_DIR([build-aux])
 
 # fairly severe build strictness
 # change foreign to gnu or gnits to comply with gnu standards
-AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.9.6])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.11 silent-rules])
+AM_SILENT_RULES
 
 # Checks for programs.
 AC_PROG_CC
