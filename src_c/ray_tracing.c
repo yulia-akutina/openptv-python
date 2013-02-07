@@ -22,6 +22,9 @@ Routines contained:		-
 #include "ptv.h"
 #include "lsqadj.h"
 
+void modu(double a[3], double *m);
+void norm_cross(double a[3], double b[3], double *n1, double *n2, double *n3);
+
 void ray_tracing (x,y,Ex,I,mm,Xb2,Yb2,Zb2,a3,b3,c3)
 
 double		x, y;
@@ -203,7 +206,7 @@ double		*Xb2, *Yb2, *Zb2, *a3, *b3, *c3;
 	/* direction cosines in image coordinate system */
 	vect1[0] = x/s2;  vect1[1] = y/s2;	vect1[2] = -I.cc/s2;
 
-	matmul (vect2, Ex.dm, vect1, 3,3,1);
+	matmul (vect2, (double *) Ex.dm, vect1, 3,3,1);
  	
 	/* direction cosines in space coordinate system , medium n1 */
 	a1 = vect2[0];  b1 = vect2[1];  c1 = vect2[2];  
