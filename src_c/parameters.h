@@ -38,5 +38,17 @@ typedef struct {
 volume_par* read_volume_par(char *filename);
 int compare_volume_par(volume_par *v1, volume_par *v2);
 
+/* Parameters that control general aspects in the setup and behaviour of 
+   various parts of the program, like image basenames etc. */
+typedef struct {
+    int num_cams;
+    char **img_base_name; /* Note the duplication with sequence_par. */
+    char **cal_img_base_name;
+} control_par;
+
+control_par* read_control_par(char *filename);
+void free_control_par(control_par *cp);
+int compare_control_par(control_par *c1, control_par *c2);
+
 #endif
 

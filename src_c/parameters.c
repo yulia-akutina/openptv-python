@@ -185,3 +185,90 @@ int compare_volume_par(volume_par *v1, volume_par *v2) {
         (v1->corrmin == v2->corrmin) && (v1->eps0 == v2->eps0) );
 }
 
+/*  read_control_par() reads general control parameters that are not present in
+    other config files but are needed generally. The arguments are read in
+    this order:
+    
+    1. num_cams - number of cameras in a frame.
+    2n (n = 1..num_cams). img_base_name
+    2n + 1. cal_img_base_name
+    
+    Arguments:
+    char *filename - path to the text file containing the parameters.
+    
+    Returns:
+    Pointer to a newly-allocated control_par structure. If reading failed for 
+    any reason, returns NULL.
+*/
+control_par* read_control_par(char *filename) {
+    char line[SEQ_FNAME_MAX_LEN];
+    FILE* par_file;
+    int cam;
+    control_par *ret = (control_par *) malloc(sizeof(control_par));
+    
+    par_file = fopen(filename, "r");
+    if(fscanf(par_file, "%d\n", &(ret->num_cams)) == 0) goto handle_error;
+    
+    ret->img_base_name = (char **) calloc(ret->num_cams, sizeof(char*));
+    for (cam = 0; cam < ret->num_cams; cam++) {
+        if (fscanf(par_file, "%s\n", line) == 0) goto handle_error;
+        ret->img_base_name[cam] = (char *) malloc(SEQ_FNAME_MAX_LEN);
+        strncpy(ret->img_base_name[cam], line, SEQ_FNAME_MAX_LEN);
+        
+        if (fscanf(par_file, "%s\n", line) == 0) goto handle_error;
+        ret->cal_img_base_name[cam] = (char *) malloc(SEQ_FNAME_MAX_LEN);
+        strncpy(ret->cal_img_base_name[cam], line, SEQ_FNAME_MAX_LEN);
+    }
+    
+    return ret;
+    close(par_file);
+
+handle_error:
+    close(par_file);
+    free_control_par(ret);    
+    return NULL;
+}
+
+/*  free_control_par() frees a control_par pointer and the memory allocated
+    under it fro image namew etc.
+    
+    Arguments:
+    control_par *cp - pointer to the control_par object to destroy.
+*/
+void free_control_par(control_par *cp) {
+    int cam;
+    
+    for (cam = 0; cam < cp->num_cams; cam++) {
+        if (cp->img_base_name[cam] == NULL) break;
+        free(cp->img_base_name[cam]);
+        
+        if (cp->cal_img_base_name[cam] == NULL) break;
+        free(cp->cal_img_base_name[cam]);
+    }
+    free(cp);
+}
+
+/* compare_control_par() checks that two control_par objects are deeply-equal,
+   i.e. the memorry allocations contain equal values, and other fields are
+   directly equal.
+   
+   Arguments:
+   control_par *v1, *v2 - addresses of the objects for comparison.
+   
+   Returns:
+   True if equal, false otherwise.
+*/
+int compare_control_par(control_par *c1, control_par *c2) {
+    int cam;
+    
+    if (c1->num_cams != c2->num_cams) return 0;
+    
+    for (cam = 0; cam < c1->num_cams; cam++) {
+        if (strncmp(c1->img_base_name[cam], c2->img_base_name[cam],
+            SEQ_FNAME_MAX_LEN - 1) != 0) return 0;
+        if (strncmp(c1->cal_img_base_name[cam], c2->cal_img_base_name[cam],
+            SEQ_FNAME_MAX_LEN - 1) != 0) return 0;
+    }
+    return 1;
+}
+

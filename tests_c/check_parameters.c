@@ -50,6 +50,31 @@ START_TEST(test_read_volume_par)
 }
 END_TEST
 
+START_TEST(test_read_control_par)
+{
+    int cam;
+    char img_format[] = "dumbbell/cam%d_Scene77_4085";
+    char cal_format[] = "cal/cam%d.tif";
+    control_par cpar_correct, *cpar;
+
+    cpar_correct.num_cams = 4;
+    cpar_correct.img_base_name = (char **) malloc(4*sizeof(char *));
+    
+    for (cam = 0; cam < 4; cam++) {
+        cpar_correct.img_base_name[cam] = 
+            (char *) malloc((strlen(img_format) + 1) * sizeof(char));
+        sprintf(cpar_correct.img_base_name[cam], img_format, cam);
+        
+        cpar_correct.cal_img_base_name[cam] = 
+            (char *) malloc((strlen(cal_format) + 1) * sizeof(char));
+        sprintf(cpar_correct.cal_img_base_name[cam], cal_format, cam);
+    }
+    
+    cpar = read_control_par("testing_fodder/parameters/ptv.par");
+    fail_unless(compare_control_par(cpar, &cpar_correct));
+}
+END_TEST
+
 Suite* fb_suite(void) {
     Suite *s = suite_create ("Parameters handling");
 
@@ -63,6 +88,10 @@ Suite* fb_suite(void) {
 
     tc = tcase_create ("Read illuminated volume parameters");
     tcase_add_test(tc, test_read_volume_par);
+    suite_add_tcase (s, tc);
+
+    tc = tcase_create ("Read control parameters");
+    tcase_add_test(tc, test_read_control_par);
     suite_add_tcase (s, tc);
 
     return s;
