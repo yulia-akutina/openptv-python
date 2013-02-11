@@ -210,6 +210,8 @@ control_par* read_control_par(char *filename) {
     if(fscanf(par_file, "%d\n", &(ret->num_cams)) == 0) goto handle_error;
     
     ret->img_base_name = (char **) calloc(ret->num_cams, sizeof(char*));
+    ret->cal_img_base_name = (char **) calloc(ret->num_cams, sizeof(char*));
+    
     for (cam = 0; cam < ret->num_cams; cam++) {
         if (fscanf(par_file, "%s\n", line) == 0) goto handle_error;
         ret->img_base_name[cam] = (char *) malloc(SEQ_FNAME_MAX_LEN);
