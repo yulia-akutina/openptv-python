@@ -13,7 +13,7 @@ int candsearch_in_pix(target  next[], int num, double x, double y,
 int candsearch_in_pixrest(target  next[], int num, double x, double y,
     double dl, double dr, double du, double dd, int p[4]);
 
-void sortwhatfound (foundpix item[16], int *zaehler);
+void sortwhatfound (foundpix item[16], int *zaehler, int num_cams);
 void searchquader(double X, double Y, double Z,
     double xr[4], double xl[4], double yd[4], double yu[4],
     track_par *tpar);

@@ -321,7 +321,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	    }
         
 	    /* fill and sort candidate struct */
-	    sortwhatfound(p16, &zaehler1);
+	    sortwhatfound(p16, &zaehler1, fb->num_cams);
 	    w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
         
 	    if (zaehler1 > 0) count2++;
@@ -374,7 +374,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        /* end of search in pix */
 
 	        /* fill and sort candidate struct */
-	        sortwhatfound(p16, &zaehler2);
+	        sortwhatfound(p16, &zaehler2, fb->num_cams);
 	        wn = (foundpix *) calloc (zaehler2, sizeof (foundpix));
 	        if (zaehler2 > 0) count3++;
             copy_foundpix_array(wn, p16, zaehler2, fb->num_cams);
@@ -863,7 +863,7 @@ int trackback_c ()
             //}
 
             /* fill and sort candidate struct */
-            sortwhatfound(p16, &zaehler1);
+            sortwhatfound(p16, &zaehler1, fb->num_cams);
             w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
 
             /*end of candidate struct */

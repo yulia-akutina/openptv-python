@@ -285,7 +285,7 @@ track_par *tpar;
 
 
 
-void sortwhatfound (foundpix item[16], int *zaehler)
+void sortwhatfound (foundpix item[16], int *zaehler, int num_cams)
 {
   int i,j,m, different;
   foundpix temp;
@@ -303,7 +303,7 @@ void sortwhatfound (foundpix item[16], int *zaehler)
 
   /* how often was ftnr found */
   for (i=0; i<16; i++)
-    for (j=0; j<n_img; j++)
+    for (j=0; j<num_cams; j++)
       if (item[i].whichcam[j] == 1 && item[i].ftnr !=-1) item[i].freq++;
 
   /* sort freq */
