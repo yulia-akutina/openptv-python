@@ -168,47 +168,35 @@ int init_proc_c()
     
     mmp.nlay = 1;
     
-    /* initialize zoom parameters and image positions */
-    for (i=0; i<n_img; i++)
+    imgsize = imx*imy;
+    for (i = 0; i < cpar->num_cams; i++)
     {
+        /* initialize zoom parameters and image positions */
         num[i] = 0;
         zoom_x[i] = imx/2; zoom_y[i] = imy/2; zoom_f[i] = 1;
-    }
-    imgsize = imx*imy;
-    
-    /* allocate memory for images */
-    for (i=0; i<n_img; i++)
-    {
+        
+        /* allocate memory for images */
         img[i] = (unsigned char *) calloc (imgsize, 1);
         if ( ! img[i])
         {
             printf ("calloc for img%d --> error\n", i);
             exit (1);
         }
-    }
-    
-    for (i=0; i<n_img; i++)
-    {
+        
         img_mask[i] = (unsigned char *) calloc (imgsize, 1);
         if ( ! img_mask[i])
         {
             printf ("calloc for img_mask%d --> error\n", i);
             exit (1);
         }
-    }
-    
-    for (i=0; i<n_img; i++)
-    {
+        
         img0[i] = (unsigned char *) calloc (imgsize, 1);
         if ( ! img0[i])
         {
             printf ("calloc for img0%d --> error\n", i);
             exit (1);
         }
-    }
-    
-    for (i=0; i<n_img; i++)
-    {
+        
         img_new[i] = (unsigned char *) calloc (imgsize, 1);
         if ( ! img_new[i])
         {
@@ -280,38 +268,27 @@ int start_proc_c()
     
     mmp.nlay = 1;
     
-    /*  create file names  */
-    for (i=0; i<n_img; i++)
+    for (i = 0; i < cpar->num_cams; i++)
     {
+        /*  create file names  */
         strcpy (img_lp_name[i], img_name[i]); strcat (img_lp_name[i], "_lp");
         strcpy (img_hp_name[i], img_name[i]); strcat (img_hp_name[i], "_hp");
         strcpy (img_ori[i], img_cal[i]);  strcat (img_ori[i], ".ori");
         strcpy (img_addpar[i], img_cal[i]); strcat (img_addpar[i],".addpar");
-    }
-    
-    
-    
-    /*  read orientation and additional parameters  */
-    for (i=0; i<n_img; i++)
-    {
+        
+        /*  read orientation and additional parameters  */
         read_ori (&Ex[i], &I[i], &G[i], img_ori[i], &(ap[i]), img_addpar[i],
             NULL);
         rotation_matrix (Ex[i], Ex[i].dm);
-    }
     
-    /* read and display original images */
-	for (i=0; i<n_img; i++)
-    {
-        /* reading */
+        /* read and display original images */
         sprintf(val, "camcanvas %d", i+1);
     }
     
-    printf("image0:\n");
     for (i=0;i<50;i++) {
         printf("val1 =%d",im0[i]);
     }
     
-    //return TCL_OK; denis 26-10-2010
 	return 0;
 }
 
@@ -410,19 +387,15 @@ int detection_proc_c()
     
     
     /* reset zoom values */
-    for (i_img=0; i_img<n_img; i_img++)
+    for (i_img = 0; i_img < cpar->num_cams; i_img++)
     {
         zoom_x[i_img] = imx/2; zoom_y[i_img] = imy/2;  zoom_f[i_img] = 1;
-    }
-    
-    /*copy images because the target recognition will set greyvalues to 0*/
-    for (i_img=0; i_img<n_img; i_img++)
-    {
+        /*copy images because the target recognition will set greyvalues to 0*/
         copy_images (img[i_img], img0[i_img]);
     }
     
     /* target recognition */
-    for (i_img=0; i_img<n_img; i_img++)
+    for (i_img = 0; i_img < cpar->num_cams; i_img++)
     {
         switch (pft_version)
         {
@@ -495,15 +468,13 @@ int correspondences_proc_c ()
     
     puts ("\nTransformation to metric coordinates\n");
     
-    /* rearrange point numbers after manual deletion of points */
-    for (i_img=0; i_img<n_img; i_img++)
-        for (i=0; i<num[i_img]; i++)  pix[i_img][i].pnr = i;
-    /* transformations pixel coordinates -> metric coordinates */
-    /* transformations metric coordinates -> corrected metric coordinates */
-    for (i_img=0; i_img<n_img; i_img++)
-    {
-        for (i=0; i<num[i_img]; i++)
-        {
+    for (i_img = 0; i_img < cpar->num_cams; i_img++) {
+        for (i=0; i<num[i_img]; i++) {
+            /* rearrange point numbers after manual deletion of points */
+            pix[i_img][i].pnr = i;
+            
+            /* transformations pixel coordinates -> metric coordinates */
+            /* transformations metric coordinates -> corrected metric coordinates */
             pixel_to_metric (pix[i_img][i].x, pix[i_img][i].y,
                              imx,imy, pix_x, pix_y,
                              &crd[i_img][i].x, &crd[i_img][i].y, chfield);
@@ -515,14 +486,10 @@ int correspondences_proc_c ()
             
             geo[i_img][i].pnr = crd[i_img][i].pnr;
         }
-    }
-    
-    /* sort coordinates for binary search in correspondences_proc */
-    for (i_img=0; i_img<n_img; i_img++)
-    {
+        
+        /* sort coordinates for binary search in correspondences_proc */
         quicksort_coord2d_x (geo[i_img], num[i_img]);
     }
-    
     
     /* init multimedia radial displacement LUTs */
     /* ======================================== */
@@ -530,7 +497,7 @@ int correspondences_proc_c ()
     if ( !mmp.lut && (mmp.n1 != 1 || mmp.n2[0] != 1 || mmp.n3 != 1))
     {
         puts ("Init multimedia displacement LUTs");
-        for (i_img=0; i_img<n_img; i_img++) init_mmLUT(i_img);
+        for (i_img = 0; i_img < cpar->num_cams; i_img++) init_mmLUT(i_img);
         mmp.lut = 1;
     }
     
@@ -538,8 +505,7 @@ int correspondences_proc_c ()
     
     /* --------------- */
     /* save pixel coords for tracking */
-    for (i_img=0; i_img<n_img; i_img++)
-    {
+    for (i_img = 0; i_img < cpar->num_cams; i_img++) {
         /* This is a workaround for the globals-laden handling of file names.
         it should be removed when we get to removing the globals here. */
         for (i = strlen(img_name[i_img]) - 1; i >= 0; i--) {
@@ -643,8 +609,6 @@ int calibration_proc_c (int sel)
         case 1: /*  read calibration parameter file  */
             fp1 = fopen_r ("parameters/cal_ori.par");
             fscanf (fp1,"%s\n", fixp_name);
-            printf(" Checkpoint1 ");
-            printf(" n_img= %d\n",n_img);
             
             for (i=0; i<4; i++)
             {
@@ -657,8 +621,6 @@ int calibration_proc_c (int sel)
             fclose (fp1);
             
             /*  create file names  */
-            printf("Checkpoint2 \n");
-            printf("\n n_img=%d\n",n_img);
             for (i=0; i<n_img; i++)
             {
                 strcpy (img_ori[i], img_name[i]);
@@ -1317,7 +1279,7 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     else if (i < 100)       sprintf (seq_ch, "%2d",  i);
     else       sprintf (seq_ch, "%3d",  i);
     
-    for (j=0; j<n_img; j++)
+    for (j = 0; j < cpar->num_cams; j++)
 	{
         sprintf (img_name[j], "%s%s", seq_name[j], seq_ch);
         sprintf (img_lp_name[j], "%s%s_lp", seq_name[j], seq_ch);
@@ -1334,7 +1296,7 @@ int sequence_proc_loop_c  (int dumbbell,int i)
         else            sprintf (res_name, "res/db_is.%s_%1d", seq_ch, chfield);
     }
     sprintf (buf, "\nImages:");
-    for (j=0; j<n_img; j++) sprintf (buf, "%s  %s", buf, img_name[j]);
+    for (j = 0; j < cpar->num_cams; j++) sprintf (buf, "%s  %s", buf, img_name[j]);
     puts (buf);
     
     /* calling function for each sequence-n-tupel */
@@ -1360,7 +1322,7 @@ int sequence_proc_loop_c  (int dumbbell,int i)
     /* pft_version = 4 means external detection, Alex, 19.4.10 */
     
     if ( pft_version == 4) { 
-		for (k=0; k<n_img; k++) {
+		for (k = 0; k < cpar->num_cams; k++) {
             num[k] = read_targets(pix[k], seq_name[k], i);
             
             /* proper sort of targets in y-direction for later binary search */
@@ -1375,16 +1337,14 @@ int sequence_proc_loop_c  (int dumbbell,int i)
 		detection_proc_c (); // added i to the detection_proc_c to get 'filenumber' for external API, Alex, 19.04.10
     }
     
-    /*	  if (display) {Tcl_Eval(interp, "update idletasks");}*/
     correspondences_proc_c ();
-    /*      if (display) {Tcl_Eval(interp, "update idletasks");}*/
-    if(n_img>1){
-		determination_proc_c (dumbbell);}
     
+    if (cpar->num_cams > 1) {
+		determination_proc_c (dumbbell);
+    }
     
     /* delete unneeded files */
-    
-    for (j=0; j<n_img; j++)
+    for (j=0; j < cpar->num_cams; j++)
 	{
         ok = remove (img_lp_name[j]);
         ok = remove (img_hp_name[j]);
@@ -1480,22 +1440,22 @@ int determination_proc_c (int dumbbell)
         /* or triplets/quadruplets which result from object model */
         /* e.g.: quad -> n=4; model triplet -> n=3; model pair -> n=2;
          unrestricted triplet -> n<0; unrestricted pair -> n<0 */
-        /*     if (n_img > 2  &&  n < 3)	continue; */
+        /*     if (cpar->num_cams > 2  &&  n < 3)	continue; */
         
         /* ################################# */
         /* take only points which are matched in all images */
         /* or triplets/quadruplets which result from object model */
         /* e.g.: quad -> n=4; model triplet -> n=3; model pair -> n=2;
          unrestricted triplet -> n<0; unrestricted pair -> n<0 */
-        if ((n_img > 2 && num[0]>64 && num[1]>64 && num[2]>64 && num[3]>64)
+        if ((cpar->num_cams > 2 && num[0]>64 && num[1]>64 && num[2]>64 && num[3]>64)
             &&  n < 3)	continue;
         
         /* hack due to problems with approx in det_lsq: */
         X = 0.0; Y = 0.0;
         Z = (vpar->Zmin_lay[0] + vpar->Zmax_lay[0])/2.0;
         
-        for (j=0; j<n_img; j++) { X += Ex[j].x0; Y += Ex[j].y0; }
-        X /= n_img; Y /= n_img;
+        for (j = 0; j < cpar->num_cams; j++) { X += Ex[j].x0; Y += Ex[j].y0; }
+        X /= cpar->num_cams; Y /= cpar->num_cams;
         /* ******************************** */
         
         det_lsq_3d (Ex, I, G, ap, mmp,
@@ -1520,7 +1480,7 @@ int determination_proc_c (int dumbbell)
         if (examine == 4)
         {
             fprintf (fp2, "%d %10.3f %10.3f %10.3f   %d    ", i, X, Y, Z, 3);
-            for (j=0; j<n_img; j++)
+            for (j = 0; j < cpar->num_cams; j++)
                 if (x[j] != -1e10)
                     fprintf (fp2, "%4d %8.5f %8.5f    ", i, x[j], y[j]);
                 else
@@ -1615,12 +1575,9 @@ int determination_proc_c (int dumbbell)
     
     sprintf (buf, "Match: %d, => rms = %4.2f micron, rms_x,y,z = %5.3f/%5.3f/%5.3f mm", match, mean_sigma0*1000, rmsX, rmsY, rmsZ);
     puts (buf);
-    /*  Tcl_SetVar(interp, "tbuf", buf, TCL_GLOBAL_ONLY);*/
-    /*  Tcl_Eval(interp, ".text delete 3");*/
-    /*  Tcl_Eval(interp, ".text insert 3 $tbuf");*/
     
     /* sort coordinates for binary search in epi line segment drawing */
-    for (i=0; i<n_img; i++)  quicksort_coord2d_x (geo[0], num[0]);
+    for (i = 0; i < cpar->num_cams; i++) quicksort_coord2d_x (geo[0], num[0]);
     
     puts ("Determinate done\n");
     
