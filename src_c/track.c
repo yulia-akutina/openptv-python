@@ -55,16 +55,15 @@ tracking_run* trackcorr_c_init() {
     tracking_run *ret;
     
     /* Remaining globals:
-    n_img - set in jw_ptv.c in init_proc_c().
     see below for communication globals.
     */
     
     ret = (tracking_run *) malloc(sizeof(tracking_run));
     tr_init(ret, "parameters/sequence.par", "parameters/track.par",
-        "parameters/criteria.par");
+        "parameters/criteria.par", "parameters/ptv.par");
     
-    fb_init(ret->fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
-        ret->seq_par->img_base_name);
+    fb_init(ret->fb, 4, ret->cpar->num_cams, MAX_TARGETS, 
+        "res/rt_is", "res/ptv_is", "res/added", ret->seq_par->img_base_name);
 
     /* Prime the buffer with first frames */
     for (step = ret->seq_par->first; step < ret->seq_par->first + 3; step++) {
@@ -417,7 +416,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 		        metric_to_pixel (xn[j], yn[j], imx,imy, pix_x,pix_y, &xn[j], &yn[j], chfield);
 	        }
 
-	        /* reset img coord because of n_img smaller 4 */
+	        /* reset img coord because of num_cams < 4 */
 	        for (j=0;j < fb->num_cams; j++) { x2[j]=-1e10; y2[j]=-1e10; }
 
 	        /* search for unused candidates in next time step */
@@ -774,6 +773,7 @@ int trackback_c ()
     sequence_par *seq_par;
     track_par *tpar;
     volume_par *vpar;
+    control_par *cpar;
     framebuf *fb;
     
     /* Shortcuts to inside current frame */
@@ -788,10 +788,11 @@ int trackback_c ()
     seq_par = read_sequence_par("parameters/sequence.par");
     tpar = read_track_par("parameters/track.par");
     vpar = read_volume_par("parameters/criteria.par");
+    cpar = read_control_par("parameters/ptv.par");
 
     fb = (framebuf *) malloc(sizeof(framebuf));
-    fb_init(fb, 4, n_img, MAX_TARGETS, "res/rt_is", "res/ptv_is", "res/added",
-        seq_par->img_base_name);
+    fb_init(fb, 4, cpar->num_cams, MAX_TARGETS, 
+        "res/rt_is", "res/ptv_is", "res/added", seq_par->img_base_name);
 
     /* Prime the buffer with first frames */
     for (step = seq_par->last; step > seq_par->last - 4; step--) {
@@ -895,7 +896,7 @@ int trackback_c ()
             /******************/
             quali=0;
 
-            /* reset img coord because of n_img smaller 4 */
+            /* reset img coord because num_cams < 4 */
             for (j=0;j<4;j++) { x2[j]=-1e10; y2[j]=-1e10;}
 
             /* if old wasn't found try to create new particle position from rest */
