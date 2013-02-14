@@ -201,9 +201,10 @@ double x1, y1, x2, y2, *x3, *y3;
   return;
 }
 
-void searchquader(X, Y, Z, xr, xl, yd, yu, tpar)
+void searchquader(X, Y, Z, xr, xl, yd, yu, tpar, cpar)
 double X, Y, Z, xr[4], xl[4], yd[4], yu[4];
 track_par *tpar;
+control_par *cpar;
 {
   int k, i;
   double x, y, xz, yz;
@@ -250,7 +251,7 @@ track_par *tpar;
     quader[7].z = Z + tpar->dvzmax; /* +++ */
 
   /* calculation of search area */
-  for (i=0; i<n_img; i++)
+  for (i = 0; i < cpar->num_cams; i++)
     {
       xr[i]=0;
       xl[i]=imx;
@@ -285,7 +286,7 @@ track_par *tpar;
 
 
 
-void sortwhatfound (foundpix item[16], int *zaehler)
+void sortwhatfound (foundpix item[16], int *zaehler, int num_cams)
 {
   int i,j,m, different;
   foundpix temp;
@@ -303,7 +304,7 @@ void sortwhatfound (foundpix item[16], int *zaehler)
 
   /* how often was ftnr found */
   for (i=0; i<16; i++)
-    for (j=0; j<n_img; j++)
+    for (j=0; j < num_cams; j++)
       if (item[i].whichcam[j] == 1 && item[i].ftnr !=-1) item[i].freq++;
 
   /* sort freq */

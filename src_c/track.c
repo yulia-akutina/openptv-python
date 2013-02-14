@@ -252,6 +252,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
     framebuf *fb;
     track_par *tpar;
     volume_par *vpar;
+    control_par *cpar;
     
     /* Remaining globals:
     all those in trackcorr_c_init.
@@ -266,6 +267,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
     fb = run_info->fb;
     tpar = run_info->tpar;
     vpar = run_info->vpar;
+    cpar = run_info->cpar;
     curr_targets = fb->buf[1]->targets;
     
     /* try to track correspondences from previous 0 - corp, variable h */
@@ -310,7 +312,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	    } 
         
 	    /* calculate searchquader and reprojection in image space */
-	    searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar);
+	    searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar, cpar);
 
 	    /* search in pix for candidates in next time step */
 	    for (j = 0; j < fb->num_cams; j++) {
@@ -320,7 +322,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	    }
         
 	    /* fill and sort candidate struct */
-	    sortwhatfound(p16, &zaehler1);
+	    sortwhatfound(p16, &zaehler1, fb->num_cams);
 	    w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
         
 	    if (zaehler1 > 0) count2++;
@@ -344,7 +346,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        } else {
                 search_volume_center_moving(X[1], X[3], X[5]);
             }
-            searchquader(X[5][0], X[5][1], X[5][2], xr, xl, yd, yu, tpar);
+            searchquader(X[5][0], X[5][1], X[5][2], xr, xl, yd, yu, tpar, cpar);
 
 	        for (j = 0; j < fb->num_cams; j++) {
                 img_coord (X[5][0], X[5][1], X[5][2], Ex[j],I[j], G[j], ap[j],
@@ -373,7 +375,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 	        /* end of search in pix */
 
 	        /* fill and sort candidate struct */
-	        sortwhatfound(p16, &zaehler2);
+	        sortwhatfound(p16, &zaehler2, fb->num_cams);
 	        wn = (foundpix *) calloc (zaehler2, sizeof (foundpix));
 	        if (zaehler2 > 0) count3++;
             copy_foundpix_array(wn, p16, zaehler2, fb->num_cams);
@@ -838,7 +840,7 @@ int trackback_c ()
             }
 
             /* calculate searchquader and reprojection in image space */
-            searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar);
+            searchquader(X[2][0], X[2][1], X[2][2], xr, xl, yd, yu, tpar, cpar);
 
             for (j = 0; j < fb->num_cams; j++) {
                 zaehler1 = candsearch_in_pix (
@@ -864,7 +866,7 @@ int trackback_c ()
             //}
 
             /* fill and sort candidate struct */
-            sortwhatfound(p16, &zaehler1);
+            sortwhatfound(p16, &zaehler1, fb->num_cams);
             w = (foundpix *) calloc (zaehler1, sizeof (foundpix));
 
             /*end of candidate struct */
