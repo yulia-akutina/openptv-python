@@ -30,6 +30,7 @@
 int determination_proc_c();
 
 volume_par *vpar;
+control_par *cpar;
 
 int	n_img;	       		      	/* no of images */
 int	hp_flag=0;           	      	/* flag for highpass */
@@ -137,6 +138,8 @@ int init_proc_c()
     }
     
     /*  read from main parameter file  */
+    cpar = read_control_par("parameters/ptv.par");
+    
     fpp = fopen_r ("parameters/ptv.par");
     
     fscanf (fpp, "%d\n", &n_img);
@@ -246,6 +249,8 @@ int start_proc_c()
     unsigned char *im0 = img[0];
     
     /*  read from main parameter file  */
+    cpar = read_control_par("parameters/ptv.par");
+    
     printf("inside start_proc");
     fpp = fopen_r ("parameters/ptv.par");
     
@@ -529,7 +534,7 @@ int correspondences_proc_c ()
         mmp.lut = 1;
     }
     
-    correspondences_4 (vpar);
+    correspondences_4 (vpar, cpar);
     
     /* --------------- */
     /* save pixel coords for tracking */

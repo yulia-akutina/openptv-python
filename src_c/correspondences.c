@@ -23,7 +23,7 @@ Description:	       	establishment of correspondences for 2/3/4 cameras
 /*--------------- 4 camera model: consistent quadruplets -------------------*/
 /****************************************************************************/
 
-void correspondences_4 (volume_par *vpar)
+void correspondences_4 (volume_par *vpar, control_par *cpar)
 {
   int 	i,j,k,l,m,n,o,  i1,i2,i3;
   int   count, match0=0, match4=0, match3=0, match2=0, match1=0;
@@ -39,7 +39,8 @@ void correspondences_4 (volume_par *vpar)
   for (j=0; j<4; j++) for (i=0; i<nmax; i++) tim[j][i] = 0;
 
   /* allocate memory for lists of correspondences */
-  for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++)
+  for (i1 = 0; i1 < cpar->num_cams - 1; i1++)
+    for (i2 = i1 + 1; i2 < cpar->num_cams; i2++)
     list[i1][i2] = (correspond *) malloc (num[i1] * sizeof (correspond));
 
   con0 = (n_tupel *) malloc (4*nmax * sizeof (n_tupel));
@@ -48,8 +49,8 @@ void correspondences_4 (volume_par *vpar)
   sprintf (buf,"Establishing correspondences");
   match=0; match0=0; match2=0;
 
-  for (i1=0; i1<n_img-1; i1++)
-    for (i2=i1+1; i2<n_img; i2++)
+  for (i1 = 0; i1 < cpar->num_cams - 1; i1++)
+    for (i2 = i1 + 1; i2 < cpar->num_cams; i2++)
       for (i=0; i<num[i1]; i++)
 	{
 	  list[i1][i2][i].p1 = 0;
@@ -64,7 +65,7 @@ void correspondences_4 (volume_par *vpar)
   }
 
   /* -------------if only one cam and 2D--------- */ //by Beat Lüthi June 2007
-  if(n_img==1){
+  if(cpar->num_cams == 1){
 	  if(res_name[0]==0){
           sprintf (res_name, "rt_is");
 	  }
@@ -88,7 +89,8 @@ void correspondences_4 (volume_par *vpar)
   /* -------------end of only one cam and 2D ------------ */
 
   /* matching  1 -> 2,3,4  +  2 -> 3,4  +  3 -> 4 */
-  for (i1=0; i1<n_img-1; i1++)	for (i2=i1+1; i2<n_img; i2++) {
+  for (i1 = 0; i1 < cpar->num_cams - 1; i1++)
+    for (i2 = i1 + 1; i2 < cpar->num_cams; i2++) {
      printf ("Establishing correspondences  %d - %d\n", i1, i2);
      /* establish correspondences from num[i1] points of img[i1] to img[i2] */
 
@@ -124,7 +126,7 @@ void correspondences_4 (volume_par *vpar)
 
   /* ------------------------------------------------------------------ */
   /* search consistent quadruplets in the list */
-  if (n_img == 4)
+  if (cpar->num_cams == 4)
     {
       printf ("Search consistent quadruplets\n");
 	printf("num0=%d\n",num[0]);
@@ -209,14 +211,14 @@ void correspondences_4 (volume_par *vpar)
   /* ----------------------------------------------------------------------- */
 
   /* search consistent triplets :  123, 124, 134, 234 */
-  if ((n_img ==4 && allCam_flag==0) || n_img ==3)
+  if ((cpar->num_cams ==4 && allCam_flag==0) || cpar->num_cams ==3)
     {
    //   puts ("Search consistent triplets");
       printf("Search consistent triplets");
       match0=0;
-      for (i1=0; i1<n_img-2; i1++)
-	for (i2=i1+1; i2<n_img-1; i2++)
-	  for (i3=i2+1; i3<n_img; i3++)
+      for (i1 = 0; i1 < cpar->num_cams - 2; i1++)
+        for (i2 = i1 + 1; i2 < cpar->num_cams - 1; i2++)
+            for (i3 = i2 + 1; i3 < cpar->num_cams; i3++)
 	    for (i=0; i<num[i1]; i++)
 	      {
 		p1 = list[i1][i2][i].p1;
@@ -242,7 +244,7 @@ void correspondences_4 (volume_par *vpar)
 				   + list[i1][i3][i].dist[k]
 				   + list[i2][i3][p2].dist[m]);
                 if (corr > vpar->corrmin) {
-                    for (n=0; n<n_img; n++) con0[match0].p[n] = -2;
+                    for (n = 0; n < cpar->num_cams; n++) con0[match0].p[n] = -2;
                         con0[match0].p[i1] = p1;
                         con0[match0].p[i2] = p2;
                         con0[match0].p[i3] = p3;
@@ -273,7 +275,7 @@ void correspondences_4 (volume_par *vpar)
 	  p1 = con0[i].p[0];	if (p1 > -1)	if (++tim[0][p1] > 1)	continue;
 	  p2 = con0[i].p[1];	if (p2 > -1)	if (++tim[1][p2] > 1)	continue;
 	  p3 = con0[i].p[2];	if (p3 > -1)	if (++tim[2][p3] > 1)	continue;
-	  p4 = con0[i].p[3];	if (p4 > -1  && n_img > 3) if (++tim[3][p4] > 1) continue;
+	  p4 = con0[i].p[3];	if (p4 > -1  && cpar->num_cams > 3) if (++tim[3][p4] > 1) continue;
 
 	  con[match++] = con0[i];
 	}
@@ -284,7 +286,7 @@ void correspondences_4 (volume_par *vpar)
 printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
  printf("\nCheckpoint 8\n");
       /* repair artifact (?) */
-      if (n_img == 3)	for (i=0; i<match; i++)	con[i].p[3] = -1;
+      if (cpar->num_cams == 3) for (i=0; i<match; i++)	con[i].p[3] = -1;
     }
 
   /* ----------------------------------------------------------------------- */
@@ -292,15 +294,14 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
 
   /* search consistent pairs :  12, 13, 14, 23, 24, 34 */
   /* only if an object model is available or if only 2 images are used */
-      if(n_img>1 && allCam_flag==0){
+      if(cpar->num_cams > 1 && allCam_flag==0){
 	printf("Search pairs");
 
 
   match0 = 0;
-  for (i1=0; i1<n_img-1; i1++)
-    if ( n_img == 2 || (num[0] < 64 && num[1] < 64 && num[2] < 64 && num[3] < 64))
-	//if ( n_img > 1)
-      for (i2=i1+1; i2<n_img; i2++)
+  for (i1 = 0; i1 < cpar->num_cams - 1; i1++)
+    if ( cpar->num_cams == 2 || (num[0] < 64 && num[1] < 64 && num[2] < 64 && num[3] < 64))
+      for (i2 = i1 + 1; i2 < cpar->num_cams; i2++)
 	for (i=0; i<num[i1]; i++)
 	  {
 	    p1 = list[i1][i2][i].p1;
@@ -337,9 +338,9 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
     {
       p1 = con0[i].p[0];	if (p1 > -1)	if (++tim[0][p1] > 1)	continue;
       p2 = con0[i].p[1];	if (p2 > -1)	if (++tim[1][p2] > 1)	continue;
-      p3 = con0[i].p[2];	if (p3 > -1  && n_img > 2)
+      p3 = con0[i].p[2];	if (p3 > -1  && cpar->num_cams > 2)
 	if (++tim[2][p3] > 1)	continue;
-      p4 = con0[i].p[3];	if (p4 > -1  && n_img > 3)
+      p4 = con0[i].p[3];	if (p4 > -1  && cpar->num_cams > 3)
 	if (++tim[3][p4] > 1)	continue;
 
       con[match++] = con0[i];
@@ -347,7 +348,7 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
   } //end pairs?
 
   match2 = match-match4-match3;
-  if(n_img==1){
+  if(cpar->num_cams == 1){
  printf ( "determined %d points from 2D", match1);
   }
   else{
@@ -359,7 +360,7 @@ printf ( "%d consistent quadruplets, %d triplets ", match4, match3);
   /* give each used pix the correspondence number */
   for (i=0; i<match; i++)
     {
-      for (j=0; j<n_img; j++)
+      for (j = 0; j < cpar->num_cams; j++)
 	{
 	  p1 = geo[j][con[i].p[j]].pnr;
 	  if (p1 > -1 && p1 < 1202590843)
@@ -393,10 +394,9 @@ match1_g=match1;
 
   /* ----------------------------------------------------------------------- */
   /* free memory for lists of correspondences */
-  for (i1=0; i1<n_img-1; i1++)
-    {
-      for (i2=i1+1; i2<n_img; i2++) free (list[i1][i2]);
-    }
+  for (i1 = 0; i1 < cpar->num_cams - 1; i1++)
+    for (i2 = i1 + 1; i2 < cpar->num_cams; i2++)
+        free (list[i1][i2]);
 
   free (con0);
 
