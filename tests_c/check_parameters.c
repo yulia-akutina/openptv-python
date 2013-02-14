@@ -59,15 +59,16 @@ START_TEST(test_read_control_par)
 
     cpar_correct.num_cams = 4;
     cpar_correct.img_base_name = (char **) malloc(4*sizeof(char *));
+    cpar_correct.cal_img_base_name = (char **) malloc(4*sizeof(char *));
     
     for (cam = 0; cam < 4; cam++) {
         cpar_correct.img_base_name[cam] = 
             (char *) malloc((strlen(img_format) + 1) * sizeof(char));
-        sprintf(cpar_correct.img_base_name[cam], img_format, cam);
+        sprintf(cpar_correct.img_base_name[cam], img_format, cam + 1);
         
         cpar_correct.cal_img_base_name[cam] = 
             (char *) malloc((strlen(cal_format) + 1) * sizeof(char));
-        sprintf(cpar_correct.cal_img_base_name[cam], cal_format, cam);
+        sprintf(cpar_correct.cal_img_base_name[cam], cal_format, cam + 1);
     }
     
     cpar = read_control_par("testing_fodder/parameters/ptv.par");
