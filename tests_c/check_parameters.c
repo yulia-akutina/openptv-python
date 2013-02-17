@@ -59,6 +59,7 @@ START_TEST(test_read_control_par)
 
     cpar_correct.num_cams = 4;
     cpar_correct.img_base_name = (char **) malloc(4*sizeof(char *));
+    cpar_correct.cal_img_base_name = (char **) malloc(4*sizeof(char *));
     
     for (cam = 0; cam < 4; cam++) {
         cpar_correct.img_base_name[cam] = 
