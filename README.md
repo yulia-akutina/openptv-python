@@ -10,10 +10,10 @@ This document is only for the Mac OS X users that can use pre-compiled ```.so```
 
 
 1. Install EPD-free 32bit version from http://epd-free.enthought.com/ (includes Traits and wxPython)
-2. Download the tarball from [sf.net](https://sourceforge.net/projects/openptv/files/latest/download?source=files) (including the ```test/```` folder)
+2. Download the tarball from [sf.net](https://sourceforge.net/projects/openptv/files/latest/download?source=files) (including the ```test/``` folder)
 3. Open the archive, get to the unzipped folder, open the terminal and run:  
 
-    python pyptv_gui/pyptv_gui.py test/
+    ```python pyptv_gui/pyptv_gui.py test/```
      
 If you are not on Mac OS X and you need to compile the software, make sure you get the Cython and run:
 
