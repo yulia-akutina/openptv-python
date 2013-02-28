@@ -599,8 +599,9 @@ double	X,Y,Z;
 
 
 
-void volumedimension (xmax, xmin, ymax, ymin, zmax, zmin)
+void volumedimension (xmax, xmin, ymax, ymin, zmax, zmin, num_cams)
 double *xmax, *xmin, *ymax, *ymin, *zmax, *zmin;
+int num_cams;
 {
   int	i_cam;
   double X,Y,Z, R, X1,Y1,Z1, Zmin, Rmax=0,Zmax, a,b,c;
@@ -621,7 +622,7 @@ double *xmax, *xmin, *ymax, *ymin, *zmax, *zmin;
   *zmin=Zmin;
   *zmax=Zmax;
 
-  for (i_cam=0;i_cam<n_img;i_cam++)
+  for (i_cam = 0; i_cam < num_cams; i_cam++)
     {  
       /* intersect with image vertices rays */
       pixel_to_metric (0.0, 0.0, imx,imy, pix_x,pix_y, &x,&y, chfield);
