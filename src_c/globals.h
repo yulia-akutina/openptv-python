@@ -130,7 +130,6 @@ void cross();
 void dotP();
 void intersect_rt_3m();
 void intersect_rt();
-void img_coord_old();
 int mod();
 void getabcFromRot();
 void sortgrid_man();
