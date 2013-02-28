@@ -41,7 +41,7 @@ cdef extern int trajectories_c(int i, int num_cams)
 cdef extern void read_ascii_data(int filenumber)
 cdef extern int determination_proc_c (int dumbbell)
 
-cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar)
+cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar, control_par *cpar)
 
 cdef extern int imgsize
 cdef extern int imx
@@ -367,12 +367,12 @@ def py_ptv_set_dumbbell(dumbbell):
     global dumbbell_pyptv
     dumbbell_pyptv=<int>dumbbell
     
-def py_right_click(coord_x,coord_y,n_image):
+def py_right_click(int coord_x, int coord_y, n_image):
     global rclick_intx1,rclick_inty1,rclick_intx2,rclick_inty2, rclick_points_x1,rclick_points_y1,rclick_count,rclick_points_intx1, rclick_points_inty1
     x2_points,y2_points,x1,y1,x2,y2=[],[],[],[],[],[]
     
     cdef volume_par *vpar = read_volume_par("parameters/criteria.par")
-    r = mouse_proc_c (<int>coord_x, <int> coord_y, 3,<int>n_image, vpar)
+    r = mouse_proc_c (coord_x, coord_y, 3, n_image, vpar, cpar)
     free(vpar)
     
     if r==-1:
@@ -394,7 +394,7 @@ def py_determination_proc_c(dumbbell):
     determination_proc_c (<int>dumbbell)
 
 def py_rclick_delete(coord_x,coord_y,n_image):
-    mouse_proc_c(<int>coord_x, <int> coord_y, 4,<int>n_image, NULL)
+    mouse_proc_c(<int>coord_x, <int> coord_y, 4,<int>n_image, NULL, NULL)
 
 def py_get_pix_N(x,y,n_image):
     global pix,n_img

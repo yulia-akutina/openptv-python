@@ -8,8 +8,8 @@ int rclick_intx1[4], rclick_inty1[4], rclick_intx2[4], rclick_inty2[4],\
     rclick_points_x1[4][10000], rclick_points_y1[4][10000], rclick_count[4],\
     rclick_points_intx1, rclick_points_inty1;
 
-int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar)
-
+int mouse_proc_c (int click_x, int click_y, int kind, int num_image,
+    volume_par *vpar, control_par *cpar)
 {
   int     i, j, n, zf;
   double  x, y;
@@ -56,8 +56,7 @@ int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par 
       printf ( "%d %d %d %d %d\n", pt1, pix[n][pt1].nx, pix[n][pt1].ny,
 	       pix[n][pt1].n, pix[n][pt1].sumg);  
 	       	       	       
-	       for (i=0; i<n_img; i++)	 if (i != n)
-		 {
+	       for (i = 0; i < cpar->num_cams; i++) if (i != n) {
 		   /* calculate epipolar band in img[i] */
 		   epi_mm (geo[n][k].x,geo[n][k].y,
 			   Ex[n],I[n], G[n], Ex[i],I[i], G[i], mmp, vpar,
