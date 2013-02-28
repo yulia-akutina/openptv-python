@@ -448,7 +448,8 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 		        invol=0; 
 
 		        det_lsq_3d (Ex, I, G, ap, mmp, x2[0], y2[0], x2[1], y2[1], 
-                    x2[2], y2[2], x2[3], y2[3], &(X[4][0]), &(X[4][1]), &(X[4][2]));
+                    x2[2], y2[2], x2[3], y2[3],
+                    &(X[4][0]), &(X[4][1]), &(X[4][2]), fb->num_cams);
 
 		        /* volume check */
                 if ( vpar->X_lay[0] < X[4][0] && X[4][0] < vpar->X_lay[1] &&
@@ -559,7 +560,7 @@ int trackcorr_c_loop (tracking_run *run_info, int step, int display)
     
 	    	        det_lsq_3d (Ex, I, G, ap, mmp,
                         x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3],
-                        &(X[3][0]), &(X[3][1]), &(X[3][2]));
+                        &(X[3][0]), &(X[3][1]), &(X[3][2]), fb->num_cams);
 
 		            /* in volume check */
 		            if ( vpar->X_lay[0] < X[3][0] && X[3][0] < vpar->X_lay[1] &&
@@ -930,7 +931,7 @@ int trackback_c ()
 
                         det_lsq_3d (Ex, I, G, ap, mmp,
                             x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3],
-                            &(X[3][0]), &(X[3][1]), &(X[3][2]));
+                            &(X[3][0]), &(X[3][1]), &(X[3][2]), fb->num_cams);
 
                         /* volume check */
                         if ( vpar->X_lay[0] < X[3][0] && X[3][0] < vpar->X_lay[1] &&

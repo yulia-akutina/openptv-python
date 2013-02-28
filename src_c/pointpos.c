@@ -85,13 +85,14 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp, *dist;
 
 }
 
-void det_lsq_3d (Ex, I, G, ap, mm, x1, y1, x2, y2, x3, y3, x4, y4, Xp, Yp, Zp)
+void det_lsq_3d (Ex, I, G, ap, mm, x1, y1, x2, y2, x3, y3, x4, y4, Xp, Yp, Zp, num_cams)
 Exterior	Ex[4];
 Interior	I[4];
 Glass   	G[4];
 ap_52		ap[4];
 mm_np		mm;
 double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
+int num_cams;
 {
 
 	    int     i,count_inner=0,n,m,flag[4];
@@ -130,8 +131,8 @@ double		x1, y1, x2, y2, x3, y3, x4, y4, *Xp,*Yp,*Zp;
 		}
 
 		count_inner=0;
-		for (n=0;n<n_img;n++){
-			for(m=n+1;m<n_img;m++){
+		for (n = 0; n < num_cams; n++){
+			for(m = n+1; m < num_cams; m++){
 				if(flag[n]==1 && flag[m]==1){
                     mid_point(X[n],Y[n],Z[n],a[n],b[n],c[n],X[m],Y[m],Z[m],a[m],b[m],c[m],&dist,&XX,&YY,&ZZ);
                     d_inner += dist;
