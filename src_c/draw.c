@@ -18,7 +18,7 @@ Routines contained:     drawcross, drawvector, draw_pnr, mark_detections
 #include "ptv.h"
 #include "parameters.h"
 
-int trajectories_c(int i) 
+int trajectories_c(int i, int num_cams) 
 /* draws crosses for detected points in a displayed image */
 {
   int   k, intx1, inty1, intx2, inty2;
@@ -75,7 +75,7 @@ int trajectories_c(int i)
 
 	if (m >= 0)  {	  
         
-	  for (k=0; k<n_img; k++)
+	  for (k=0; k<num_cams; k++)
 	    {
 	      img_coord (line1[j].x1, line1[j].y1, line1[j].z1, Ex[k],I[k], G[k], ap[k], mmp, &p1[k].x, &p1[k].y);
 	      metric_to_pixel (p1[k].x, p1[k].y, imx,imy, pix_x,pix_y, &p1[k].x, &p1[k].y, chfield);

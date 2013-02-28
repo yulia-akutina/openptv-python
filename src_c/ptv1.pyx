@@ -9,6 +9,8 @@ cdef extern from "stdlib.h":
     enum: NULL
 
 cdef extern from "parameters.h":
+    ctypedef struct control_par:
+        int num_cams
     ctypedef struct volume_par:
         pass
     volume_par* read_volume_par(char* vpar_fname)
@@ -35,7 +37,7 @@ cdef extern tracking_run* trackcorr_c_init ()
 cdef extern int trackcorr_c_loop (tracking_run *run_info, int step, int display)
 cdef extern int trackcorr_c_finish(tracking_run *run_info, int step)
 cdef extern int trackback_c ()
-cdef extern int trajectories_c(int i)
+cdef extern int trajectories_c(int i, int num_cams)
 cdef extern void read_ascii_data(int filenumber)
 cdef extern int determination_proc_c (int dumbbell)
 
@@ -89,6 +91,8 @@ cdef extern int zoom_x[], zoom_y[], zoom_f[]
 cdef extern int rclick_intx1[4],rclick_inty1[4],rclick_intx2[4],rclick_inty2[4], rclick_points_x1[4][10000],rclick_points_y1[4][10000],rclick_count[4]
 cdef extern int rclick_points_intx1, rclick_points_inty1
 
+# New jw_ptv-global configuration:
+cdef extern control_par *cpar
 
 def py_set_imgdimensions(size,imx1,imy1):
     global imgsize,imx,imy
@@ -344,7 +348,7 @@ def py_get_mark_track_c(i_img):
 
 def py_traject_loop(seq):
     global intx1_tr,intx2_tr,inty1_tr,inty2_tr,m1_tr
-    trajectories_c(seq)
+    trajectories_c(seq, cpar[0].num_cams)
     intx1,intx2,inty1,inty2=[],[],[],[]
     for i in range(n_img):
         intx1_t,intx2_t,inty1_t,inty2_t=[],[],[],[]
