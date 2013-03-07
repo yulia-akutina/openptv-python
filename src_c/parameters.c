@@ -223,10 +223,10 @@ control_par* read_control_par(char *filename) {
     }
     
     return ret;
-    close(par_file);
+    fclose(par_file);
 
 handle_error:
-    close(par_file);
+    fclose(par_file);
     free_control_par(ret);    
     return NULL;
 }
