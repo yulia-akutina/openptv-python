@@ -22,68 +22,6 @@ Routines contained:		-
 
 double get_mmf_from_mmLUT ();
 
-void  multimed_nlay (ex,mm,X,Y,Z,Xq,Yq)
-Exterior	ex;
-mm_np		mm;
-double  	X, Y, Z, *Xq,*Yq;
-{
-  int		i, it=0;
-  double	beta1, beta2[32], beta3, r, rbeta, rdiff, rq, mmf;
-  
-  /* interpolation in mmLUT, if selected (requires some global variables) */
-  if (mm.lut)
-    {    
-      /* check, which is the correct image */
-      for (i=0; i<n_img; i++)
-	if (Ex[i].x0 == ex.x0  &&  Ex[i].y0 == ex.y0  &&  Ex[i].z0 == ex.z0)
-	  break;
-      
-      mmf = get_mmf_from_mmLUT (i, X,Y,Z);
-      
-      if (mmf > 0)
-	{
-	  *Xq = ex.x0 + (X-ex.x0) * mmf;
-	  *Yq = ex.y0 + (Y-ex.y0) * mmf;
-	  return;
-	}
-    }
-  
-  /* iterative procedure (if mmLUT does not exist or has no entry) */
-  r = sqrt ((X-ex.x0)*(X-ex.x0)+(Y-ex.y0)*(Y-ex.y0));
-  rq = r;
-  
-  do
-    {
-      beta1 = atan (rq/(ex.z0-Z));
-      for (i=0; i<mm.nlay; i++)	beta2[i] = asin (sin(beta1) * mm.n1/mm.n2[i]);
-      beta3 = asin (sin(beta1) * mm.n1/mm.n3);
-      
-      rbeta = (ex.z0-mm.d[0]) * tan(beta1) - Z * tan(beta3);
-      for (i=0; i<mm.nlay; i++)	rbeta += (mm.d[i] * tan(beta2[i]));
-      rdiff = r - rbeta;
-      rq += rdiff;
-      it++;
-    }
-  while (((rdiff > 0.001) || (rdiff < -0.001))  &&  it < 40);
-  
-  if (it >= 40)
-    {
-      *Xq = X; *Yq = Y;
-      puts ("Multimed_nlay stopped after 40. Iteration");	return;
-    }
-    
-  if (r != 0)
-    {
-      *Xq = ex.x0 + (X-ex.x0) * rq/r;
-      *Yq = ex.y0 + (Y-ex.y0) * rq/r;
-    }
-  else
-    {
-      *Xq = X;
-      *Yq = Y;
-    }
-}
-
 void  multimed_nlay_v2 (ex,ex_o,mm,X,Y,Z,Xq,Yq)
 Exterior	ex;
 Exterior	ex_o;
@@ -328,49 +266,6 @@ double		X, Y, Z;
     }
   
   if (r != 0)	return (rq/r);	else return (1.0);
-  
-
-//-----------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------
-
-  //Beat Lüthi, Nov 2007, I will implement the Risö method to avoid all this sin, atan etc
-  
-  
-  /*
-
-  while(absError>0.00001 && counter<40){    
-       //sending the water_ray to air
-	   xInInterFace=X-Z/dir_water_z*dir_water_x; //
-	   //snellNormal_y=cross(dir_water,interF.base[2]);
-	   //snellNormal=snellNormal/norm(snellNormal);
-	   //dir_phi=cross(interF.base[2],snellNormal);
-	   comp_parallel=dir_water_x; //dot(dir_water,dir_phi);
-	   comp_perpendicular=pow(1./(mm.n3/mm.n1*mm.n3/mm.n1)-comp_parallel*comp_parallel,0.5); //sqrt(1./(1.333*1.333)-comp_parallel*comp_parallel);
-	   //dir_air=comp_perpendicular*interF.base[2]+comp_parallel*dir_phi;
-	   dir_air_x=dir_water_x;
-	   dir_air_z=comp_perpendicular;
-	   //dir_air=dir_air/norm(dir_air);
-	   dist=pow(dir_air_x*dir_air_x+dir_air_z*dir_air_z,0.5);
-	   dir_air_x=dir_air_x/dist;
-	   dir_air_z=dir_air_z/dist;
-
-	   //measuring how much cam_origo is missed and correcting water_ray
-	   //error=pCamOrigo-xInInterFace-dot(pCamOrigo-xInInterFace,dir_air)*dir_air/norm2(dir_air);
-	   error_x=ex.x0-xInInterFace-((ex.x0-xInInterFace)*dir_air_x+ex.z0*dir_air_z)*dir_air_x;
-	   error_z=ex.z0-             ((ex.x0-xInInterFace)*dir_air_x+ex.z0*dir_air_z)*dir_air_z;
-	   absError=pow(error_x*error_x+error_z*error_z,0.5);
-       //dir_water=xInInterFace-particlePoint+0.1*error;
-	   dir_water_x=xInInterFace-X+0.1*error_x;
-	   dir_water_z=-Z+0.1*error_z;
-	   //dir_water = dir_water/norm(dir_water);
-	   dist=pow(dir_water_x*dir_water_x+dir_water_z*dir_water_z,0.5);
-	   dir_water_x=dir_water_x/dist;
-       dir_water_z=dir_water_z/dist;
-	   counter++;
-  }
-  return( (Z-ex.z0)/dir_air_z*dir_air_x / X  );*/
-
 }
 
 
