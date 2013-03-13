@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# sqadj.c pointpos.c multimed.c imgcoord.c intersect.c ray_tracing.c trafo.c
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -22,14 +21,12 @@ ext_mods = [
         "rotation.c", "correspondences.c", "epi.c", "multimed.c", 
         "ray_tracing.c", "imgcoord.c", "lsqadj.c", "orientation.c","sortgrid.c",
         "pointpos.c", "intersect.c", "track.c", "ttools.c", "draw.c",
-        "mousefunction.c", "tracking_frame_buf.c", "vec_utils.c",
-        "parameters.c", "tracking_run.c"],
-        include_dirs = [np.get_include(),'.'],
+        "mousefunction.c", "vec_utils.c", "parameters.c", "tracking_run.c"],
+        include_dirs=[np.get_include(),'.'], libraries=['optv'],
         extra_compile_args=['-O3', '-fno-common']),
-    Extension("tracking_framebuf", ["tracking_framebuf.pyx",
-        "tracking_frame_buf.c"]),
+    Extension("tracking_framebuf", ["tracking_framebuf.pyx"], libraries=['optv']),
     Extension("tracking_run_py", ["tracking_run_py.pyx", "tracking_run_py.pxd", 
-        "tracking_run.c", "tracking_frame_buf.c", "parameters.c"]) ]
+        "tracking_run.c", "parameters.c"], libraries=['optv']) ]
 
 setup(
     name="ptv1",

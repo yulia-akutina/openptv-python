@@ -3,7 +3,7 @@
 
 #include "calibration.h"
 #include "typedefs.h"
-#include "tracking_frame_buf.h"
+#include <optv/tracking_frame_buf.h>
 #include "parameters.h"
 
 typedef struct {

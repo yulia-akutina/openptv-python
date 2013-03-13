@@ -22,7 +22,7 @@ Routines contained:    	trackcorr_c
 */
 
 #include "ptv.h"
-#include "tracking_frame_buf.h"
+#include <optv/tracking_frame_buf.h>
 #include "tracking_run.h"
 #include "vec_utils.h"
 #include "parameters.h"

@@ -3,7 +3,7 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "tracking_frame_buf.h"
+#include <optv/tracking_frame_buf.h>
 #include "typedefs.h"
 
 FILE *fopen_r(char *filename);

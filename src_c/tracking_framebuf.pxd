@@ -2,7 +2,7 @@
 # Implementing a minimal Python binding for frame and target.
 # With time, this will grow to encompass what's needed.
 
-cdef extern from "tracking_frame_buf.h":
+cdef extern from "optv/tracking_frame_buf.h":
     ctypedef struct target:
         int pnr
         double x, y

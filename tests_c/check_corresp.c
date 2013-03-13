@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../src_c/tracking_frame_buf.h"
+#include <optv/tracking_frame_buf.h>
 #include "../src_c/calibration.h"
 #include "../src_c/parameters.h"
 #include "../src_c/typedefs.h"
