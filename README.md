@@ -39,9 +39,12 @@ If the compilation passed, open the terminal and run:
 
 		python pyptv_gui/pyptv_gui.py
 
-Follow the instructions in our **screencasts and tutorials**:  
+Follow the instructions in our **screencasts and tutorials**:
+  
   *  Tutorial 1: <http://youtu.be/S2fY5WFsFwo>  
+  
   *  Tutorial 2: <http://www.youtube.com/watch?v=_JxFxwVDSt0>   
+  
   *  Tutorial 3: <http://www.youtube.com/watch?v=z1eqFL5JIJc>  
   
   
