@@ -4,7 +4,13 @@
 #include <optv/tracking_frame_buf.h>
 #include <stdio.h>
 
+#ifndef GLOBALS_H
+#define GLOBALS_H
+
 #define nmax 20240
+
+#include "parameters.h"
+extern control_par *cpar; /* From jw_ptv.c, temporary Windows-build thing */
 
 extern int n_img;          /* no of images */
 extern int hp_flag;        /* flag for highpass */
@@ -138,3 +144,4 @@ void det_lsq_3d ();
 void orient();
 void volumedimension();
 
+#endif

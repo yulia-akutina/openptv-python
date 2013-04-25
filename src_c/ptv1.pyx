@@ -3,6 +3,23 @@ cimport numpy as np
 
 from tracking_run_py cimport tracking_run, TrackingRun
 
+ctypedef extern struct n_tupel:
+    int     p[4]
+    double  corr
+
+
+ctypedef extern struct target:
+    int pnr
+    double  x, y
+    int     n, nx, ny, sumg
+    int     tnr
+
+
+
+ctypedef extern struct coord_2d:
+    int pnr
+    double x, y
+
 cdef extern from "stdlib.h":
     void *memcpy(void *dst, void *src, long n)
     void free(void *ptr)
@@ -18,81 +35,64 @@ cdef extern from "parameters.h":
 # Apologies. This is needed until orientation overhaul begins.
 cdef enum:
     nmax = 20240
-cdef extern int nfix 
 
-cdef extern void prepare_eval(int n_img, int *n_fix)
+cdef extern from "globals.h": # to lose the declspec
+    void prepare_eval(int n_img, int *n_fix)
 
-cdef extern void highpass(unsigned char *img, unsigned char *img_hp, int dim_lp, int filter_hp, int field)
-cdef extern int init_proc_c()
-cdef extern int start_proc_c()
-cdef extern int pre_processing_c ()
-cdef extern int detection_proc_c() 
-cdef extern int correspondences_proc_c() 
-cdef extern int calibration_proc_c(int sel) 
+    void highpass(unsigned char *img, unsigned char *img_hp, int dim_lp, int filter_hp, int field)
+    int init_proc_c()
+    int start_proc_c()
+    int pre_processing_c ()
+    int detection_proc_c() 
+    int correspondences_proc_c() 
+    int calibration_proc_c(int sel) 
 
-cdef extern int sequence_proc_c(int dumb_flag)
-cdef extern int sequence_proc_loop_c(int dumbell, int i)
+    int sequence_proc_c(int dumb_flag)
+    int sequence_proc_loop_c(int dumbell, int i)
 
-cdef extern tracking_run* trackcorr_c_init ()
-cdef extern int trackcorr_c_loop (tracking_run *run_info, int step, int display)
-cdef extern int trackcorr_c_finish(tracking_run *run_info, int step)
-cdef extern int trackback_c ()
-cdef extern int trajectories_c(int i, int num_cams)
-cdef extern void read_ascii_data(int filenumber)
-cdef extern int determination_proc_c (int dumbbell)
+    tracking_run* trackcorr_c_init ()
+    int trackcorr_c_loop (tracking_run *run_info, int step, int display)
+    int trackcorr_c_finish(tracking_run *run_info, int step)
+    int trackback_c ()
+    int trajectories_c(int i, int num_cams)
+    void read_ascii_data(int filenumber)
+    int determination_proc_c (int dumbbell)
 
-cdef extern int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar, control_par *cpar)
+    int mouse_proc_c (int click_x, int click_y, int kind, int num_image, volume_par *vpar, control_par *cpar)
+    target *p[4]
+    target pix[4][20240]
+    coord_2d geo[4][20240]
+    coord_2d crd[4][20240]
+    n_tupel con[20240] 
+    int x_calib[4][1000]
+    int y_calib[4][1000]
+    int z_calib[4][1000]
+    int ncal_points[4]  
+    int  orient_x1[4][1000]
+    int  orient_y1[4][1000]
+    int  orient_x2[4][1000]
+    int  orient_y2[4][1000]
+    int  orient_n[4]    
+    int intx0_tr[4][10000],intx1_tr[4][10000],intx2_tr[4][10000],inty0_tr[4][10000],inty1_tr[4][10000],inty2_tr[4][10000],pnr1_tr[4][10000],pnr2_tr[4][10000],m1_tr
+    float pnr3_tr[4][10000]
+    int n_img
+    int num[4]
+    int zoom_x[], zoom_y[], zoom_f[]
+    int rclick_intx1[4],rclick_inty1[4],rclick_intx2[4],rclick_inty2[4], rclick_points_x1[4][10000],rclick_points_y1[4][10000],rclick_count[4]
+    int rclick_points_intx1, rclick_points_inty1
 
-cdef extern int imgsize
-cdef extern int imx
-cdef extern int imy
-cdef extern int dumbbell_pyptv
-cdef extern int match4_g,match3_g,match2_g,match1_g
-cdef extern unsigned char *img[4]
-cdef extern int seq_step_shake
-
-#cdef extern struct target
-
-ctypedef extern struct target:
-    int pnr
-    double  x, y
-    int     n, nx, ny, sumg
-    int     tnr
-
-
-
-ctypedef extern struct coord_2d:
-    int pnr
-    double x, y
-    
-ctypedef extern struct n_tupel:
-    int     p[4]
-    double  corr
-
-cdef extern target *p[4]
-cdef extern target pix[4][20240]
-cdef extern coord_2d geo[4][20240]
-cdef extern coord_2d crd[4][20240]
-cdef extern n_tupel con[20240] 
-cdef extern int x_calib[4][1000]
-cdef extern int y_calib[4][1000]
-cdef extern int z_calib[4][1000]
-cdef extern int ncal_points[4]  
-cdef extern int  orient_x1[4][1000]
-cdef extern int  orient_y1[4][1000]
-cdef extern int  orient_x2[4][1000]
-cdef extern int  orient_y2[4][1000]
-cdef extern int  orient_n[4]    
-cdef extern int intx0_tr[4][10000],intx1_tr[4][10000],intx2_tr[4][10000],inty0_tr[4][10000],inty1_tr[4][10000],inty2_tr[4][10000],pnr1_tr[4][10000],pnr2_tr[4][10000],m1_tr
-cdef extern float pnr3_tr[4][10000]
-cdef extern int n_img
-cdef extern int num[4]
-cdef extern int zoom_x[], zoom_y[], zoom_f[]
-cdef extern int rclick_intx1[4],rclick_inty1[4],rclick_intx2[4],rclick_inty2[4], rclick_points_x1[4][10000],rclick_points_y1[4][10000],rclick_count[4]
-cdef extern int rclick_points_intx1, rclick_points_inty1
+    int imgsize
+    int imx
+    int imy
+    int dumbbell_pyptv
+    int match4_g,match3_g,match2_g,match1_g
+    unsigned char *img[4]
+    int seq_step_shake
+    int nfix 
 
 # New jw_ptv-global configuration:
-cdef extern control_par *cpar
+cdef extern from "globals.h":
+    control_par *cpar
 
 def py_set_imgdimensions(size,imx1,imy1):
     global imgsize,imx,imy
