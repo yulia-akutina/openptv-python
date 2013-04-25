@@ -1,31 +1,54 @@
-openptv-python
-==============
+OpenPTV-Python (PyPTV)
+======================
 
-PyPTV is the Python version of [OpenPTV](http://www.openptv.net) which is 
-Traits-based GUI and core algorithms in C (see <https://github.com/yosefm/openptv/tree/fb_submission>) 
+**OpenPTV-Python** (a.k.a **PyPTV**) is the Python version of [OpenPTV](http://www.openptv.net). It is basically the Python Traits GUI (from Enthought Inc.) that *interfaces* the OpenPTV library that includes all the core algorithms (correspondence, tracking, calibration, etc.) written in ANSI C. 
 
-## Getting started with OpenPTV-python on Mac OS X
+Both PyPTV and the OpenPTV library are in the development phase and continuously refactored. Please follow the development on the community mailing list:
 
-This document is only for the Mac OS X users that can use pre-compiled ```.so``` files
-
-
-1. Install EPD-free 32bit version from http://epd-free.enthought.com/ (includes Traits and wxPython)
-2. Download the tarball from [sf.net](https://sourceforge.net/projects/openptv/files/latest/download?source=files) (including the ```test/``` folder)
-3. Open the archive, get to the unzipped folder, open the terminal and run:  
-
-    ```python pyptv_gui/pyptv_gui.py test/```
-     
-If you are not on Mac OS X and you need to compile the software, make sure you get the Cython and run:
-
-    python pyptv_gui/setup.py build_ext --inplace
-    
-you can write us to openptv at gmail dot com and we'll provide pre-compiled version for your platform.
-
-4. Follow the instructions in our screencast tutorials:
-  *  Tutorial 1: http://youtu.be/S2fY5WFsFwo
-  *  Tutorial 2: http://www.youtube.com/watch?v=_JxFxwVDSt0
-  *  Tutorial 3: http://www.youtube.com/watch?v=z1eqFL5JIJc
+	openptv@googlegroups.com
 
 
-## If you want to contribute, see http://www.openptv.net
+## Installation
+
+1. [Optional, recommended] Download and install the unit testing framework <http://check.sourceforge.net/> - without this one you cannot test the compilation properly, although you can install and run the PyPTV software.
+
+2. Download the install the OpenPTV library (`liboptv`) <http://github.com/alexlib/openptv>. Please follow closely the Installation instructions. 
+
+3. Download or clone the PyPTV repository: <http://github.com/alexlib/openptv-python>. If you want to run the tests: use the same set of `autotools`. If you don't want to test, skip this step (note that `CC="gcc -arch i386"` is only needed for Mac OS X, remove it on Linux):
+
+
+		autoreconf --install
+		./configure CC="gcc -arch i386"
+		make
+		make check
+	
+4. Compile the Python/Cython interface to the `liboptv` library (unrelated to the tests in step 3) and install it to the default locations:
+
+		cd pyptv_gui
+		python setup.py install
+	
+or if you don't want to install somewhere in the path, compile all the necessary libraries in the `../src_c` directory 
+
+		python setup.py build_ext --inplace
+	
+
+
+## Getting started:
+
+If the compilation passed, open the terminal and run:  
+
+		python pyptv_gui/pyptv_gui.py
+
+Follow the instructions in our **screencasts and tutorials**:
+  
+  *  Tutorial 1: <http://youtu.be/S2fY5WFsFwo>  
+  
+  *  Tutorial 2: <http://www.youtube.com/watch?v=_JxFxwVDSt0>   
+  
+  *  Tutorial 3: <http://www.youtube.com/watch?v=z1eqFL5JIJc>  
+  
+  
+Ask for help on our mailing list:
+
+	openptv@googlegroups.com
 
