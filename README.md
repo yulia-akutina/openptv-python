@@ -14,6 +14,9 @@ Both PyPTV and the OpenPTV library are in the development phase and continuously
 
 2. Download the install the OpenPTV library (`liboptv`) <https://github.com/alexlib/openptv/>. Please follow closely the Installation instructions. 
 
+3. Get one of the Python development environments for your platform. We recommend WinPython or PythonXY on Windows or 
+Enthought Python Distribution on all the platforms. If you want to build all the prerequisities yourself (e.g. using Linux
+package manager, `apt-get` or Mac OS X `homebrew` or `ports`) then you need Python 2.7, Cython, Numpy, Scipy, Matplotlib, ETS tools (TraitsUI, Chaco, Enable and many sub-packages)  
 3. Download or clone the PyPTV repository: <http://github.com/alexlib/openptv-python>. If you want to run the tests: use the same set of `autotools`. If you don't want to test, skip this step (note that `CC="gcc -arch i386"` is only needed for Mac OS X, remove it on Linux):
 
 
