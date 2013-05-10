@@ -12,7 +12,7 @@ Both PyPTV and the OpenPTV library are in the development phase and continuously
 
 1. [Optional, recommended] Download and install the unit testing framework <http://check.sourceforge.net/> - without this one you cannot test the compilation properly, although you can install and run the PyPTV software.
 
-2. Download the install the OpenPTV library (`liboptv`) <https://github.com/yosefm/openptv/tree/cmake_submission>. Please follow closely the Installation instructions. 
+2. Download the install the OpenPTV library (`liboptv`) <https://github.com/alexlib/openptv/>. Please follow closely the Installation instructions. 
 
 3. Download or clone the PyPTV repository: <http://github.com/alexlib/openptv-python>. If you want to run the tests: use the same set of `autotools`. If you don't want to test, skip this step (note that `CC="gcc -arch i386"` is only needed for Mac OS X, remove it on Linux):
 
