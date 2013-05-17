@@ -41,6 +41,9 @@ Install by compiling the Python/Cython interface to the `liboptv` library (unrel
 or if you don't want to install somewhere in the path, compile all the necessary libraries in the `../src_c` directory 
 
 		python setup.py build_ext --inplace
+if the setup process creates errors related to `liboptv` linking, please add the `/include` and `/lib` locations, e.g.:
+
+		python setup.py install -I /usr/local/include -L /usr/local/lib
 	
 
 
