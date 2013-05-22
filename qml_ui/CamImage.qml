@@ -22,8 +22,8 @@ Item {
         Repeater {
             id: target_marks
             delegate: Rectangle {
-                x: posx/bg_img.sourceSize.width * bg_img.width
-                y: posy/bg_img.sourceSize.height * bg_img.height
+                x: posx/bg_img.sourceSize.width * bg_img.width - width/2.
+                y: posy/bg_img.sourceSize.height * bg_img.height - height/2.
                 
                 width: 4; height: 4;
                 radius: 4;
