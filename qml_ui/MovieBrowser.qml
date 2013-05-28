@@ -3,7 +3,7 @@ import QtQuick 1.0
 
 Item {
     width: cams.width
-    height: cams.height + controls.height + cont_replay_disp.height
+    height: cams.height + controls.height + cont_replay_disp.height + scene_title.height
     
     property string scene_template
     property alias first_frame: controls.first_frame
@@ -30,8 +30,15 @@ Item {
         }
     }
     
+    Text {
+        id: scene_title
+        width: parent.width
+        text: "Scene: " + scene_template.match( /.*\// )
+    }
+
     Multicam {
         id: cams
+        anchors.top: scene_title.bottom
     }
     MovieControl {
         id: controls

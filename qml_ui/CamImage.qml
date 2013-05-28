@@ -11,7 +11,7 @@ Item {
     Text {
         id: status_line
         width: parent.width
-        text: "Camera " + (index + 1) + " " + file 
+        text: "Camera " + (index + 1) + " (" + file.split('/').reverse()[0] + ")"
     }
     Image { 
         id: bg_img

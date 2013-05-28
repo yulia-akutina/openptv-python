@@ -19,6 +19,7 @@ Item {
         rows: 2; columns: 2
         flow: Grid.LeftToRight
         anchors.fill: parent
+        spacing: 2
         
         Repeater {
             model: init_images
