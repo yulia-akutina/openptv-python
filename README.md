@@ -9,6 +9,9 @@ Both PyPTV and the OpenPTV library are in the development phase and continuously
 
 
 ## Installation
+
+Mac OS X users can use the [pre-compiled try-before-installing instructions](https://github.com/OpenPTV/openptv-python/wiki/Getting-started-using-OpenPTV-Python-on-Mac-OS-X)
+
 ### Prerequisites:
 
 1. [Optional, recommended] Download and install the unit testing framework <http://check.sourceforge.net/> - without this one you cannot test the compilation properly, although you can install and run the PyPTV software.
